@@ -1,0 +1,128 @@
+.fpo-container {
+  width: 1550px;
+  height: 1000px;
+  margin: 0 auto;
+  padding: 20px 40px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+.fpo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+ 
+}
+
+.infologo-left{
+  height: 60px;
+}
+.infologo-right {
+  height: 120px;
+}
+.left{
+  display: flex;
+  width: 50%;
+   flex-direction: column;
+}
+.right{
+  display: flex;
+   width: 50%;
+   flex-direction: column;
+}
+.fpo-addressleft{
+  display: flex;
+  width: 50%;
+   flex-direction: column;
+}
+.fpo-addressright{
+  display: flex;
+  width: 50%;
+   flex-direction: column;
+}
+
+.fpo-middle-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #006638;
+  color: #fff;
+  padding: 20px 20px;
+  font-size: 20px;
+  font-weight: bold;
+  
+}
+.fpo-form h2,
+.fpo-service h4 {
+  text-align: center;
+  color: #2e7d32;
+  font-weight: bold;
+}
+
+.fpo-grid {
+  display: flex;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+ 
+}
+
+.fpo-address {
+  display: flex;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.fpo-form label,
+.fpo-service label {
+    display: block;
+  font-weight: 500;
+  margin-bottom: 8px;
+  margin-top: 18px;
+  color: #333;
+}
+
+.fpo-form input,
+.fpo-service input {
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+
+.fpo-service .css-13cymwt-control {
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+
+
+.fpo-button:hover {
+  background-color: #1b5e20;
+}
+
+.fpo-button.submit {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 24px;
+  background-color: #2e7d32;
+  color: #fff;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+  margin-left: 89%;
+  transition: background 0.3s ease;
+ 
+}
+
+.success {
+  color: #388e3c;
+  text-align: center;
+  margin-bottom: 8px;
+}

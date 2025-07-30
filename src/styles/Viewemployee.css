@@ -1,0 +1,283 @@
+/* Main container */
+.employee-view-container {
+  display: flex;
+  flex-direction: column;
+  font-family: 'Segoe UI', sans-serif;
+  color: #333;
+  min-height: 100vh;
+  background-color: #f4f6f9;
+}
+
+/* Header styles */
+.employee-view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  border-bottom: 1px solid #ccc;
+}
+
+.employee-logo-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+  position: relative;
+}
+
+.emploee-view-logo-img{
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+}
+
+.user-icon {
+  background-color: #ccc;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+}
+
+/* Dropdown */
+.employee-dropdown-menu {
+  position: absolute;
+  top: 120px;
+  right: 0;
+  background: whitesmoke;
+  border: 1px solid #ccc;
+  padding: 8px 0;
+  box-shadow: 0 10px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  width: 180px;
+  height: 280px;
+}
+
+.dropdown-item {
+  padding: 16px 30px;
+  font-size: 16px;
+  color: #333;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #bae6fd;
+  font-weight: bold;
+  color: #1e3a8a;
+  border-left: 4px solid #2563eb;
+}
+
+/* Background photo card */
+.header-background {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  background-color: #f9f9f9;
+  overflow: hidden;
+}
+
+.employee-bg-img{
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+
+.employee-photo-id-card{
+  display: flex;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: white;
+  padding: 16px 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  text-align: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.photo-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid #ccc;
+}
+
+.farmer-id-name {
+  display: flex;
+  flex-direction: column;
+}
+
+.farmer-id {
+  font-size: 14px;
+  color: #666;
+}
+
+.one {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* Body content */
+.e-body-content {
+  display: flex;
+  padding: 20px;
+  gap: 30px;
+}
+
+/* Sidebar */
+.e-sidebar {
+  width: 300px;
+  background-color: #f1f5f9;
+  border-right: 1px solid #d1d5db;
+  padding: 20px 10px;
+  
+}
+
+.e-sidebar-item {
+  padding: 20px 12px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #374151;
+  transition: background 0.2s ease;
+}
+
+.e-sidebar-item.active {
+  background-color: #bae6fd;
+  font-weight: bold;
+  color: #1e3a8a;
+  border-left: 4px solid #2563eb;
+}
+
+.e-sidebar-item:hover {
+  background-color: #f0f0f0;
+}
+
+/* Form container */
+.view-employee-form {
+  height: 550px;
+  flex: 1;
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.employee-step-container{
+  margin-left: 250px;
+  width: 900px;
+  height: 600px;
+}
+
+.step-container h2 {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 20px;
+    color: black;
+}
+
+/* View mode rows */
+.viewinfo-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-bottom: 16px;
+}
+
+.viewinfo-row div {
+  min-width: 220px;
+  font-size: 15px;
+}
+
+/* Edit mode grid */
+.employee-edit-main-form-grid{
+ display: flex;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.employeeform-leftgrid,
+.employeeform-rightgrid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  
+}
+
+.form-one,
+.form-two,
+.form-three,
+.form-four,
+.form-five {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+/* Labels and Inputs */
+.label {
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.input,
+select {
+  padding: 10px;
+  font-size: 14px;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.input:focus,
+select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+/* Error message */
+.error {
+  color: #dc3545;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* Buttons */
+.employee-view-button{
+  align-self: flex-start;
+  padding: 10px 24px;
+  background-color: #006838;
+  color: white;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.employee-view-button:hover {
+  background-color: #09d475;
+}
+.action-buttons {
+ display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+/* Optional tags */
+.optional {
+  color: #999;
+  font-style: italic;
+  font-size: 13px;
+}
+
+.required {
+  color: red;
+}

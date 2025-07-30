@@ -1,0 +1,34 @@
+/* General styles */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* Force-disable text selection and set cursor to default for specific non-editable elements */
+h1, h2, h3, h4, h5, h6,
+label,
+nav, .sidebar, .topbar,
+img, svg,
+.logo,
+button:disabled,
+a.static,
+span.static,
+div.static-text {
+  user-select: none !important;
+  cursor: default !important;
+}
+
+/* Optional: target all buttons and anchor tags if you want ALL of them to look non-editable */
+button:not(.editable),
+a:not(.editable) {
+  user-select: none !important;
+  cursor: default !important;
+}

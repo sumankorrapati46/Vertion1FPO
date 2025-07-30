@@ -1,0 +1,207 @@
+body {
+  background: linear-gradient(135deg, #f8fafc 0%, #e8f5e9 100%);
+  min-height: 100vh;
+}
+
+.details-container {
+  max-width: 1000px;
+  margin: 20px 20px 20px 120px;
+  padding: 40px 36px 32px 36px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(44, 62, 80, 0.12), 0 1.5px 6px rgba(44, 62, 80, 0.08);
+  border: 1.5px solid #e0e7ef;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+}
+
+.details-container h2 {
+  margin-bottom: 18px;
+  color: #1a2a36;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  position: relative;
+}
+.details-container h2::after {
+  content: "";
+  display: block;
+  margin: 18px auto 0 auto;
+  width: 80px;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.details-container button {
+  background: linear-gradient(90deg, #0cac41 0%, #006838 100%);
+  color: #fff;
+  border: none;
+  padding: 10px 22px;
+  margin-bottom: 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.08rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+}
+.details-container button:hover:not(:disabled) {
+  background: linear-gradient(90deg, #006838 0%, #43e97b 100%);
+  box-shadow: 0 4px 16px rgba(44, 62, 80, 0.13);
+  transform: translateY(-2px) scale(1.03);
+}
+.details-container button:disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
+}
+
+.details-card {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+  background: #f7fafc;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(44, 62, 80, 0.06);
+  padding: 32px 24px 18px 24px;
+}
+
+.photo-section {
+  flex: 0 0 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-photo {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+}
+
+.info-section {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px 48px;
+  font-size: 1.13rem;
+  color: #263238;
+  background: #f0f7fa;
+  border-radius: 10px;
+  padding: 18px 32px 18px 32px;
+  box-shadow: 0 1px 4px rgba(44, 62, 80, 0.04);
+}
+.info-section p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  font-size: 1.13rem;
+  color: #263238;
+  font-weight: 500;
+  gap: 10px;
+}
+.info-section strong {
+  color: #1a2a36;
+  font-weight: 700;
+  margin-right: 6px;
+}
+.info-section .icon {
+  font-size: 1.25em;
+  margin-right: 7px;
+  color: #43e97b;
+}
+
+.status-section {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.status-section select {
+  padding: 8px 16px;
+  border: 1.5px solid #b2dfdb;
+  border-radius: 6px;
+  min-width: 170px;
+  font-size: 1.08rem;
+  background: #f0f7fa;
+  color: #263238;
+  font-weight: 500;
+  transition: border 0.2s;
+}
+.status-section select:focus {
+  border: 1.5px solid #43e97b;
+  outline: none;
+}
+
+.status-section button {
+  background-color: #1976d2;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.status-section button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+.status-section button:hover:not(:disabled) {
+  background-color: #0d47a1;
+}
+
+/* Status color badges */
+.status {
+  padding: 7px 18px;
+  border-radius: 18px;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 1.08rem;
+  letter-spacing: 1px;
+  box-shadow: 0 1px 4px rgba(44, 62, 80, 0.08);
+  border: 1.5px solid #e0e7ef;
+  background: #fff;
+  margin-left: 8px;
+}
+.status.approved {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-color: #a5d6a7;
+}
+.status.rejected {
+  background: #ffcdd2;
+  color: #c62828;
+  border-color: #ef9a9a;
+}
+.status.return {
+  background: #ffe0b2;
+  color: #ef6c00;
+  border-color: #ffcc80;
+}
+.status.pending {
+  background: #fffde7;
+  color: #fbc02d;
+  border-color: #ffe082;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .details-container {
+    padding: 18px 4vw;
+  }
+  .details-card {
+    flex-direction: column;
+    padding: 18px 8px 8px 8px;
+  }
+  .info-section {
+    grid-template-columns: 1fr;
+    padding: 12px 8px;
+    gap: 18px 0;
+  }
+}
