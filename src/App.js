@@ -10,7 +10,6 @@ import OtpVerification from "./pages/OtpVerification";
 import ChangeUserId from "./pages/ChangeUserId";
 import ChangePassword from "./pages/ChangePassword";
 import Viewfarmer from "./pages/Viewfarmer";
-import Dashboard from "./pages/Dashboard";
 import EmployeeDetails from "./pages/EmployeeDetails";
 import AddFPOForm from "./pages/Fpo";
 import Adminconfig from "./pages/Adminconfig";
@@ -129,7 +128,7 @@ function AppContent() {
         <Route path="/change-userid" element={<ChangeUserId />} />
         <Route path="/change-password" element={<ChangePassword />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<SuperAdminDashboard />} />
         <Route path="/employee-details" element={<EmployeeDetails />} />
         <Route path="/registration-list" element={<RegistrationList />} />
         <Route path="/farmer-list" element={<FarmerList />} />
