@@ -1,10 +1,7 @@
 // src/pages/OtpVerification.jsx
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
- 
-import background from '../assets/background-image.png';
-import logo       from '../assets/rightlogo.png';
+import { authAPI } from '../api/apiService';
 import '../styles/Login.css';
  
 const OtpVerification = () => {
@@ -15,15 +12,15 @@ const OtpVerification = () => {
  
   const navigate  = useNavigate();
   const location  = useLocation();
-  const { email, type } = location.state || {};        // { email, type: "userId" | "password" }
+  const { target, type } = location.state || {};        // { target, type: "userId" | "password" }
  
   /* ───────── GUARD ───────── */
   useEffect(() => {
-    if (!email || !type) {
+    if (!target || !type) {
       alert('Invalid navigation – redirecting.');
       navigate('/forgot-password');
     }
-  }, [email, type, navigate]);
+  }, [target, type, navigate]);
  
   /* ───────── TIMER ───────── */
   useEffect(() => {
@@ -36,12 +33,12 @@ const OtpVerification = () => {
   const handleVerify = async () => {
     if (otp.length !== 6) { alert('Enter a 6‑digit OTP'); return; }
     try {
-      await axios.post('http://localhost:8080/api/auth/verify-otp', { email, otp });
+      await authAPI.verifyOTP({ email: target, otp });
       alert('OTP verified ✔️');
       if (type === 'userId') {
-        navigate('/change-userid', { state: { email } });
+        navigate('/change-userid', { state: { target } });
       } else {
-        navigate('/change-password', { state: { email } });
+        navigate('/change-password', { state: { target } });
       }
     } catch (err) {
       console.error(err);
@@ -53,7 +50,7 @@ const OtpVerification = () => {
   const handleResend = async () => {
     if (!canResend) return;
     try {
-      await axios.post('http://localhost:8080/api/auth/resend-otp', { email });
+      await authAPI.resendOTP(target);
       alert('OTP resent!');
       setTimer(30);
       setCanResend(false);
@@ -149,7 +146,7 @@ const OtpVerification = () => {
           <div className="login-card">
             {/* DATE Logo at Top */}
             <div className="date-logo-section">
-              <img src={logo} alt="DATE Logo" className="date-logo" />
+              <div className="date-logo">DATE</div>
               <div className="date-text">
                 <h3>Digital Agristack Transaction Enterprises</h3>
                 <p>Empowering Agricultural Excellence</p>
@@ -158,7 +155,7 @@ const OtpVerification = () => {
 
             <div className="otp-verification-content">
               <h2>Email Verification</h2>
-              <p>We sent a 6-digit code to <strong>{email}</strong></p>
+              <p>We sent a 6-digit code to <strong>{target}</strong></p>
               <form>
                 <div className="form-field">
                   <label htmlFor="otpInput">Enter OTP</label>
@@ -190,6 +187,4 @@ const OtpVerification = () => {
   );
 };
  
-export default OtpVerification;
- 
- 
+export default OtpVerification; 

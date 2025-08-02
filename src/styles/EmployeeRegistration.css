@@ -1,0 +1,337 @@
+/* Employee Registration Form Styles */
+.employee-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.employee-wrapper.dashboard-mode {
+  min-height: auto;
+  background: none;
+  padding: 0;
+}
+
+.form-full {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.employee-form {
+  padding: 40px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Step Navigation */
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+  padding: 20px 0;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  margin: 0 15px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.step.active {
+  color: #667eea;
+  font-weight: 600;
+}
+
+.step-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.step.active .step-number {
+  background: #667eea;
+  color: white;
+}
+
+/* Form Grid Layouts */
+.employeeform-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.emp-form-one,
+.emp-form-two,
+.emp-form-three,
+.emp-form-four,
+.emp-form-five,
+.emp-form-six,
+.emp-form-seven {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Photo Upload Section */
+.frame-photo {
+  grid-column: 1 / -1;
+  margin-bottom: 20px;
+}
+
+.photo-box {
+  width: 150px;
+  height: 150px;
+  border: 2px dashed #ddd;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+  background: #f8f9fa;
+  position: relative;
+  overflow: hidden;
+}
+
+.photo-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.photo-placeholder {
+  color: #6c757d;
+  font-size: 14px;
+  text-align: center;
+}
+
+.photo-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+/* Form Fields */
+.label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.required {
+  color: #dc3545;
+  font-weight: 700;
+}
+
+.optional {
+  color: #6c757d;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+.input,
+select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.input:focus,
+select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.docinput {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+/* Error Messages */
+.error,
+.error-text {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+.reg-error {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+/* Button Styles */
+.employee-btn {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+}
+
+.employee-btn button {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.employee-btn button[type="button"] {
+  background: #6c757d;
+  color: white;
+}
+
+.employee-btn button[type="button"]:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+.employee-btn button[type="submit"] {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.employee-btn button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .employee-form {
+    padding: 20px;
+  }
+
+  .employeeform-grid,
+  .emp-form-one,
+  .emp-form-two,
+  .emp-form-three,
+  .emp-form-four,
+  .emp-form-five,
+  .emp-form-six,
+  .emp-form-seven {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .frame-photo {
+    grid-column: 1;
+  }
+
+  .employee-btn {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .employee-btn button {
+    width: 100%;
+  }
+}
+
+/* Dashboard Mode Adjustments */
+.employee-wrapper.dashboard-mode .form-full {
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.employee-wrapper.dashboard-mode .employee-form {
+  max-height: 70vh;
+  padding: 20px;
+}
+
+/* File Upload Styling */
+input[type="file"] {
+  padding: 8px;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+input[type="file"]:hover {
+  border-color: #667eea;
+  background: #f0f2ff;
+}
+
+/* Document Section */
+.emp-form-six {
+  grid-template-columns: 1fr;
+}
+
+.emp-form-six .input {
+  margin-bottom: 15px;
+}
+
+/* Professional and Bank Details */
+.emp-form-four,
+.emp-form-five {
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 768px) {
+  .emp-form-four,
+  .emp-form-five {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Close Button for Standalone Mode */
+.form-right {
+  position: relative;
+}
+
+/* Loading States */
+.employee-form.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Success Animation */
+@keyframes successPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.success-animation {
+  animation: successPulse 0.5s ease-in-out;
+} 

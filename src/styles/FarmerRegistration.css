@@ -1,0 +1,476 @@
+/* Farmer Registration Form Styles */
+.farmer-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.farmer-wrapper.dashboard-mode {
+  min-height: auto;
+  background: none;
+  padding: 20px;
+}
+
+.form-full {
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.farmer {
+  padding: 40px;
+  min-height: 600px;
+}
+
+/* Form Grid Layout */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.field-left,
+.field-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Photo Upload Styles */
+.photo-group {
+  margin-bottom: 20px;
+}
+
+.photo-box {
+  width: 150px;
+  height: 150px;
+  border: 2px dashed #ddd;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+  overflow: hidden;
+  background: #f8f9fa;
+}
+
+.photo-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.photo-placeholder {
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+}
+
+.photo-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+/* Form Fields */
+.label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.input,
+select,
+input[type="date"],
+input[type="tel"],
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.input:focus,
+select:focus,
+input[type="date"]:focus,
+input[type="tel"]:focus,
+input[type="text"]:focus,
+input[type="number"]:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Required and Optional Indicators */
+.required {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.optional {
+  color: #7f8c8d;
+  font-size: 12px;
+}
+
+/* Error Messages */
+.error,
+.reg-error,
+.error-text {
+  color: #e74c3c;
+  font-size: 12px;
+  margin-top: 5px;
+  margin-bottom: 0;
+}
+
+/* Address Field */
+.address-field {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Professional Field */
+.profes-field {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Current Crop Field */
+.current-field {
+  width: 100%;
+}
+
+.currentform-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.cropform-columnleft,
+.cropform-columnright {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Proposed Crop Field */
+.proposed-field {
+  width: 100%;
+}
+
+.proposedform-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.proposedform-columnleft,
+.proposedform-columnright {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Irrigation Field */
+.irrigation-field {
+  width: 100%;
+}
+
+.tab-header {
+  display: flex;
+  border-bottom: 2px solid #e1e5e9;
+  margin-bottom: 30px;
+}
+
+.tab {
+  padding: 15px 30px;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  color: #666;
+}
+
+.tab:hover {
+  color: #667eea;
+}
+
+.tab.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Other Fields */
+.other-field {
+  width: 100%;
+}
+
+.other-field h3 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 24px;
+  border-bottom: 2px solid #e1e5e9;
+  padding-bottom: 10px;
+}
+
+/* Document Input */
+.docinput {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+/* Button Group */
+.btn-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #e1e5e9;
+}
+
+.btn-group button {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-group button:first-child {
+  background: #95a5a6;
+  color: white;
+}
+
+.btn-group button:first-child:hover {
+  background: #7f8c8d;
+}
+
+.btn-group button:last-child {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-group button:last-child:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Form Right Side (Close Button) */
+.form-right {
+  flex: 0 0 300px;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .form-grid,
+  .currentform-grid,
+  .proposedform-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .farmer {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .farmer-wrapper {
+    flex-direction: column;
+  }
+  
+  .form-right {
+    display: none;
+  }
+  
+  .farmer {
+    padding: 15px;
+  }
+  
+  .btn-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn-group button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .farmer {
+    padding: 10px;
+  }
+  
+  .tab-header {
+    flex-direction: column;
+  }
+  
+  .tab {
+    text-align: center;
+    border-bottom: none;
+    border-right: 3px solid transparent;
+  }
+  
+  .tab.active {
+    border-bottom-color: transparent;
+    border-right-color: #667eea;
+  }
+}
+
+/* Animation for form transitions */
+.farmer > div {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading states */
+.farmer.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Success message styling */
+.success-message {
+  background: #d4edda;
+  color: #155724;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #c3e6cb;
+}
+
+/* File upload styling */
+input[type="file"] {
+  padding: 8px;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  background: #f8f9fa;
+  cursor: pointer;
+}
+
+input[type="file"]:hover {
+  border-color: #667eea;
+  background: #f0f2ff;
+}
+
+/* Step indicator */
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+  padding: 20px 0;
+  border-bottom: 1px solid #e1e5e9;
+}
+
+.step {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 10px;
+  font-weight: bold;
+  color: white;
+  background: #95a5a6;
+  transition: all 0.3s ease;
+}
+
+.step.active {
+  background: #667eea;
+  transform: scale(1.1);
+}
+
+.step.completed {
+  background: #27ae60;
+}
+
+/* Progress bar */
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #e1e5e9;
+  border-radius: 2px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.3s ease;
+}
+
+/* Form validation feedback */
+.input.error,
+select.error {
+  border-color: #e74c3c;
+}
+
+.input.success,
+select.success {
+  border-color: #27ae60;
+}
+
+/* Accessibility improvements */
+.input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .farmer-wrapper {
+    background: white;
+  }
+  
+  .btn-group,
+  .form-right {
+    display: none;
+  }
+} 

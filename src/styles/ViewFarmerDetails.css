@@ -1,0 +1,337 @@
+/* View Farmer Details Modal Styles */
+.view-farmer-modal {
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 90vw;
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.view-farmer-modal .modal-header {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px 15px 0 0;
+  padding: 20px 30px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.view-farmer-modal .modal-header h2 {
+  color: white;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.view-farmer-modal .close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-farmer-modal .close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.view-farmer-modal .modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 0 0 15px 15px;
+}
+
+.farmer-details-container {
+  padding: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.detail-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.detail-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.detail-section h3 {
+  color: #2c3e50;
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: 600;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #3498db;
+  position: relative;
+}
+
+.detail-section h3::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 50px;
+  height: 2px;
+  background: linear-gradient(90deg, #3498db, #9b59b6);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.detail-item label {
+  font-weight: 600;
+  color: #34495e;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+.detail-item span {
+  color: #2c3e50;
+  font-size: 16px;
+  padding: 10px 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.detail-item span:empty::before {
+  content: 'Not provided';
+  color: #95a5a6;
+  font-style: italic;
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-badge.pending {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.status-badge.inactive {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* KYC Status Badges */
+.kyc-status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kyc-status-badge.approved {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.kyc-status-badge.pending {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.kyc-status-badge.rejected {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.kyc-status-badge.refer-back {
+  background: #e2e3e5;
+  color: #383d41;
+  border: 1px solid #d6d8db;
+}
+
+/* Photo Container */
+.photo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.farmer-photo {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  border: 4px solid white;
+  object-fit: cover;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .view-farmer-modal {
+    max-width: 95vw;
+    max-height: 95vh;
+    width: 95vw;
+    height: 95vh;
+  }
+
+  .farmer-details-container {
+    padding: 20px;
+  }
+
+  .detail-section {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .detail-section h3 {
+    font-size: 18px;
+  }
+
+  .detail-item span {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  .farmer-photo {
+    max-width: 150px;
+    max-height: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .view-farmer-modal .modal-header {
+    padding: 15px 20px;
+  }
+
+  .view-farmer-modal .modal-header h2 {
+    font-size: 20px;
+  }
+
+  .farmer-details-container {
+    padding: 15px;
+  }
+
+  .detail-section {
+    padding: 15px;
+  }
+
+  .detail-item span {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+}
+
+/* Scrollbar Styling */
+.view-farmer-modal .modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.view-farmer-modal .modal-body::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.view-farmer-modal .modal-body::-webkit-scrollbar-thumb {
+  background: rgba(52, 152, 219, 0.5);
+  border-radius: 4px;
+}
+
+.view-farmer-modal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(52, 152, 219, 0.7);
+}
+
+/* Animation for sections */
+.detail-section {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger animation for detail items */
+.detail-item {
+  animation: fadeInLeft 0.4s ease-out;
+  animation-fill-mode: both;
+}
+
+.detail-item:nth-child(1) { animation-delay: 0.1s; }
+.detail-item:nth-child(2) { animation-delay: 0.2s; }
+.detail-item:nth-child(3) { animation-delay: 0.3s; }
+.detail-item:nth-child(4) { animation-delay: 0.4s; }
+.detail-item:nth-child(5) { animation-delay: 0.5s; }
+.detail-item:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+} 

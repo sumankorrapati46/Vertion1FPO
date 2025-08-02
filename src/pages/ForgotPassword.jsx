@@ -2,11 +2,8 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
-import axios from "axios";
+import { authAPI } from "../api/apiService";
 import { useNavigate } from 'react-router-dom';
-import background from "../assets/background-image.png";
-import logo from "../assets/rightlogo.png";
-import illustration from "../assets/illustration1.png";
 import "../styles/Login.css";
  
 // ✅ Schema validation
@@ -35,7 +32,6 @@ const ForgotPassword = () => {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
  
@@ -45,11 +41,7 @@ const ForgotPassword = () => {
    const navigate = useNavigate();
    const onSubmit = async (data) => {
     try {
-      const response = await axios.post("http://localhost:8080/api/auth/forgot-password", {
-        emailOrPhone: data.userInput
-      }, {
-        headers: { 'Content-Type': 'application/json' }
-      });
+      await authAPI.forgotPassword(data.userInput);
  
       setTarget(data.userInput);
       setShowPopup(true); // Show popup on success
@@ -148,7 +140,7 @@ const ForgotPassword = () => {
           <div className="login-card">
             {/* DATE Logo at Top */}
             <div className="date-logo-section">
-              <img src={logo} alt="DATE Logo" className="date-logo" />
+              <div className="date-logo">DATE</div>
               <div className="date-text">
                 <h3>Digital Agristack Transaction Enterprises</h3>
                 <p>Empowering Agricultural Excellence</p>
@@ -191,4 +183,4 @@ const ForgotPassword = () => {
   );
 };
  
-export default ForgotPassword;
+export default ForgotPassword; 

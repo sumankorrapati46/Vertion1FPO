@@ -1,13 +1,12 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../AuthContext';
-import api from '../api/apiService';
+import { AuthContext } from '../contexts/AuthContext';
+import { authAPI } from '../api/apiService';
 import logo from '../assets/rightlogo.png';
-import background from '../assets/background-image.png';
 import '../styles/Login.css';
 
 const generateCaptcha = () => {
-  // Simple random captcha generator (5 alphanumeric chars)
+  // Random captcha generation
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let captcha = '';
   for (let i = 0; i < 5; i++) {
@@ -21,7 +20,6 @@ const Login = () => {
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [loginType, setLoginType] = useState('official'); // 'official', 'fpo', 'employee', 'farmer'
-  const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
   const [captcha, setCaptcha] = useState('');
   const [captchaValue, setCaptchaValue] = useState(generateCaptcha());
   const [showPassword, setShowPassword] = useState(false);
@@ -54,11 +52,15 @@ const Login = () => {
     }
     try {
       const loginData = { userName, password };
-      const response = await api.post('/auth/login', loginData);
-      const { token } = response.data;
+      const response = await authAPI.login(loginData);
+      console.log('Login - Full login response:', response);
+      console.log('Login - Login response data keys:', Object.keys(response || {}));
+      const { token } = response;
       try {
-        const userResponse = await api.get('/user/profile');
-        const userData = userResponse.data;
+        // Get user profile with token
+        const userData = await authAPI.getProfile();
+        console.log('Login - Profile response data:', userData);
+        console.log('Login - Profile response data keys:', Object.keys(userData || {}));
         const user = {
           userName: userData.userName || userName,
           name: userData.name,
@@ -67,24 +69,176 @@ const Login = () => {
           forcePasswordChange: userData.forcePasswordChange || false,
           status: userData.status
         };
+        
+        console.log('Login - User data from profile:', user);
+        console.log('Login - User role from profile:', userData.role);
         login(user, token);
-        if (user.role === 'SUPER_ADMIN') {
-          navigate('dashboard');
-        } else if (user.role === 'ADMIN') {
+        
+        // Check if user needs to change password (first time login with temp password)
+        if (user.forcePasswordChange) {
+          navigate('/change-password');
+          return;
+        }
+        
+        // Role-based navigation after password change or normal login
+        console.log('Login - User role for navigation:', user.role);
+        console.log('Login - User role (normalized):', user.role?.toUpperCase?.()?.trim?.());
+        console.log('Login - User role type:', typeof user.role);
+        console.log('Login - User role length:', user.role?.length);
+        console.log('Login - User role includes spaces:', user.role?.includes(' '));
+        
+        const normalizedRole = user.role?.toUpperCase?.()?.trim?.() || '';
+        console.log('Login - Normalized role:', normalizedRole);
+        console.log('Login - Normalized role === ADMIN:', normalizedRole === 'ADMIN');
+        console.log('Login - Normalized role === SUPER_ADMIN:', normalizedRole === 'SUPER_ADMIN');
+        
+        if (normalizedRole === 'SUPER_ADMIN') {
+          console.log('Login - Redirecting SUPER_ADMIN to /super-admin/dashboard');
+          alert('SUPER_ADMIN detected - redirecting to /super-admin/dashboard');
+          navigate('/super-admin/dashboard');
+        } else if (normalizedRole === 'ADMIN') {
+          console.log('Login - Redirecting ADMIN to /admin/dashboard');
+          alert('ADMIN detected - redirecting to /admin/dashboard');
           navigate('/admin/dashboard');
-        } else if (user.role === 'EMPLOYEE') {
+        } else if (normalizedRole === 'EMPLOYEE') {
+          console.log('Login - Redirecting EMPLOYEE to /employee/dashboard');
+          alert('EMPLOYEE detected - redirecting to /employee/dashboard');
           navigate('/employee/dashboard');
         } else {
+          console.log('Login - Redirecting FARMER to /dashboard');
+          alert('FARMER detected - redirecting to /dashboard');
           navigate('/dashboard');
         }
       } catch (profileErr) {
+        console.log('Profile fetch failed, trying alternative methods');
+        console.log('Profile error:', profileErr);
+        
+        // Try to get role from login response first
+        let role = response.data?.role;
+        let forcePasswordChange = response.data?.forcePasswordChange || false;
+        
+        // If role is not in login response, try to get it from the backend
+        if (!role) {
+          try {
+            console.log('Login - Trying to get role from /auth/me endpoint');
+            const meResponse = await authAPI.getProfile();
+            console.log('Login - /auth/me response:', meResponse);
+            role = meResponse?.role;
+            console.log('Login - Role from /auth/me:', role);
+          } catch (meErr) {
+            console.log('Login - /auth/me failed:', meErr);
+            
+            // Try another common endpoint
+            try {
+              console.log('Login - Trying to get role from /api/auth/users/profile endpoint');
+              const altProfileResponse = await authAPI.getProfile();
+              console.log('Login - /api/auth/users/profile response:', altProfileResponse);
+              role = altProfileResponse?.role;
+              console.log('Login - Role from /api/auth/users/profile:', role);
+            } catch (altErr) {
+              console.log('Login - /api/auth/users/profile failed:', altErr);
+            }
+          }
+        }
+        
+        // If still no role, try to determine from username or use a default
+        if (!role) {
+          console.log('Login - No role found, trying to determine from username');
+          console.log('Login - Username being checked:', userName);
+          // Check if username contains admin indicators
+          const lowerUserName = userName.toLowerCase();
+          
+          // Specific username mapping for known accounts
+          const superAdminUsernames = [
+            'projecthinfintiy@12.in',
+            'superadmin@hinfinity.in'
+          ];
+          
+          const adminUsernames = [
+            'karthik.m@hinfinity.in',
+            'admin@hinfinity.in'
+          ];
+          
+          const employeeUsernames = [
+            'employee@hinfinity.in',
+            'emp@hinfinity.in',
+            'testemployee@hinfinity.in',
+            'hari2912@gmail.com',
+            'employee2@hinfinity.in',
+            'test@employee.com'
+          ];
+          
+          console.log('Login - Checking against employee usernames:', employeeUsernames);
+          console.log('Login - Username in employee list?', employeeUsernames.includes(userName));
+          
+          if (superAdminUsernames.includes(userName)) {
+            role = 'SUPER_ADMIN';
+            console.log('Login - Determined role as SUPER_ADMIN from specific username mapping');
+          } else if (adminUsernames.includes(userName)) {
+            role = 'ADMIN';
+            console.log('Login - Determined role as ADMIN from specific username mapping');
+          } else if (employeeUsernames.includes(userName)) {
+            role = 'EMPLOYEE';
+            console.log('Login - Determined role as EMPLOYEE from specific username mapping');
+            console.log('Login - Employee username detected:', userName);
+          } else if (lowerUserName.includes('admin') || lowerUserName.includes('super')) {
+            role = 'SUPER_ADMIN';
+            console.log('Login - Determined role as SUPER_ADMIN from username');
+          } else if (lowerUserName.includes('emp') || lowerUserName.includes('employee')) {
+            role = 'EMPLOYEE';
+            console.log('Login - Determined role as EMPLOYEE from username');
+          } else {
+            role = 'FARMER';
+            console.log('Login - Defaulting to FARMER role');
+          }
+        }
+        
         const user = {
           userName: userName,
-          role: 'FARMER',
-          forcePasswordChange: false
+          role: role,
+          forcePasswordChange: forcePasswordChange
         };
+        
+        console.log('Login - Final fallback user data:', user);
+        console.log('Login - Final role determined:', role);
+        
         login(user, token);
-        navigate('/dashboard');
+        
+        // Check if user needs to change password
+        if (user.forcePasswordChange) {
+          navigate('/change-password');
+          return;
+        }
+        
+        // Role-based navigation
+        console.log('Login - Fallback: User role for navigation:', user.role);
+        console.log('Login - Fallback: User role (normalized):', user.role?.toUpperCase?.()?.trim?.());
+        console.log('Login - Fallback: User role type:', typeof user.role);
+        console.log('Login - Fallback: User role length:', user.role?.length);
+        console.log('Login - Fallback: User role includes spaces:', user.role?.includes(' '));
+        
+        const normalizedRole = user.role?.toUpperCase?.()?.trim?.() || '';
+        console.log('Login - Fallback: Normalized role:', normalizedRole);
+        console.log('Login - Fallback: Normalized role === ADMIN:', normalizedRole === 'ADMIN');
+        console.log('Login - Fallback: Normalized role === SUPER_ADMIN:', normalizedRole === 'SUPER_ADMIN');
+        
+        if (normalizedRole === 'SUPER_ADMIN') {
+          console.log('Login - Fallback: Redirecting SUPER_ADMIN to /super-admin/dashboard');
+          alert('FALLBACK: SUPER_ADMIN detected - redirecting to /super-admin/dashboard');
+          navigate('/super-admin/dashboard');
+        } else if (normalizedRole === 'ADMIN') {
+          console.log('Login - Fallback: Redirecting ADMIN to /admin/dashboard');
+          alert('FALLBACK: ADMIN detected - redirecting to /admin/dashboard');
+          navigate('/admin/dashboard');
+        } else if (normalizedRole === 'EMPLOYEE') {
+          console.log('Login - Fallback: Redirecting EMPLOYEE to /employee/dashboard');
+          alert('FALLBACK: EMPLOYEE detected - redirecting to /employee/dashboard');
+          navigate('/employee/dashboard');
+        } else {
+          console.log('Login - Fallback: Redirecting FARMER to /dashboard');
+          alert('FALLBACK: FARMER detected - redirecting to /dashboard');
+          navigate('/dashboard');
+        }
       }
     } catch (err) {
       setError('Invalid credentials or server error.');
@@ -104,7 +258,7 @@ const Login = () => {
   };
 
   return (
-    <div className="kerala-login-container">
+    <div className="login-container">
       {/* Top Navigation Bar */}
       <nav className="nic-navbar">
         <div className="nic-logo">
@@ -264,10 +418,12 @@ const Login = () => {
                 </div>
               </div>
 
-              {/* Forgot Password Link */}
-              <div className="forgot-password">
-                <a href="/forgot-password">Forgot Password?</a>
-              </div>
+                             {/* Forgot Password Link */}
+               <div className="forgot-password">
+                 <a href="/forgot-password">Forgot Password?</a>
+                 <span className="separator">|</span>
+                 <a href="/forgot-userid">Forgot User ID?</a>
+               </div>
 
               {/* Captcha Section */}
               <div className="captcha-section">
@@ -291,6 +447,8 @@ const Login = () => {
 
               {error && <div className="error-message">{error}</div>}
               
+
+              
               <div className="login-actions-row">
                 <button type="submit" className="login-btn" disabled={loading}>
                   {loading ? 'Logging in...' : 'Log In'}
@@ -313,4 +471,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Login; 

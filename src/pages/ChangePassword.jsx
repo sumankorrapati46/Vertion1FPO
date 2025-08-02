@@ -1,17 +1,15 @@
 // This page is used for force password change on first login
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../AuthContext';
+import { AuthContext } from '../contexts/AuthContext';
 import api from '../api/apiService';
-import logo from '../assets/rightlogo.png';
-import background from '../assets/background-image.png';
+
 import '../styles/Login.css';
 
 const ChangePassword = () => {
   const { user, login } = useContext(AuthContext);
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
@@ -35,20 +33,71 @@ const ChangePassword = () => {
       setError('New password must be at least 6 characters long.');
       return;
     }
+    
+    // Check password requirements
+    const hasUpperCase = /[A-Z]/.test(form.newPassword);
+    const hasNumber = /\d/.test(form.newPassword);
+    const hasAtSymbol = /@/.test(form.newPassword);
+    
+    if (!hasUpperCase || !hasNumber || !hasAtSymbol) {
+      setError('Password must include an uppercase letter, a number, and an @ symbol.');
+      return;
+    }
     try {
-      await api.post('/auth/reset-password/confirm', {
+      console.log('Attempting to change password for user:', user?.email || user?.userName);
+      
+      // Use reset-password/confirm endpoint for first-time password change
+      // This endpoint doesn't require current password
+      const response = await api.post('/auth/reset-password/confirm', {
         emailOrPhone: user?.email || user?.userName,
         newPassword: form.newPassword,
         confirmPassword: form.confirmPassword
       });
-      setSuccess('Password changed successfully! Please log in with your new password.');
+      console.log('Password change response:', response.data);
+      
+      setSuccess('Password changed successfully! Redirecting to dashboard...');
+      
+      // Update user data to remove forcePasswordChange flag
+      const updatedUser = {
+        ...user,
+        forcePasswordChange: false
+      };
+      
+      // Update localStorage and context
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      login(updatedUser, localStorage.getItem('token'));
+      
+      // Redirect to appropriate dashboard based on role
       setTimeout(() => {
-        window.localStorage.removeItem('user');
-        window.localStorage.removeItem('token');
-        navigate('/login');
+        if (user.role === 'SUPER_ADMIN') {
+          navigate('/super-admin/dashboard');
+        } else if (user.role === 'ADMIN') {
+          navigate('/admin/dashboard');
+        } else if (user.role === 'EMPLOYEE') {
+          navigate('/employee/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }, 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to change password.');
+      console.error('Password change error:', err);
+      console.error('Error response:', err.response?.data);
+      console.error('Error status:', err.response?.status);
+      
+      // Provide more specific error messages
+      if (err.response?.status === 400) {
+        setError(err.response?.data?.message || 'Invalid password format. Please check the requirements.');
+      } else if (err.response?.status === 401) {
+        setError('Session expired. Please log in again.');
+      } else if (err.response?.status === 404) {
+        setError('User not found. Please contact administrator.');
+      } else if (err.response?.status === 500) {
+        setError('Server error. Please try again later.');
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Failed to change password. Please try again.');
+      }
     }
   };
 
@@ -141,7 +190,7 @@ const ChangePassword = () => {
           <div className="login-card">
             {/* DATE Logo at Top */}
             <div className="date-logo-section">
-              <img src={logo} alt="DATE Logo" className="date-logo" />
+              <div className="date-logo">DATE</div>
               <div className="date-text">
                 <h3>Digital Agristack Transaction Enterprises</h3>
                 <p>Empowering Agricultural Excellence</p>
@@ -151,18 +200,6 @@ const ChangePassword = () => {
             <div className="change-password-content">
               <h2>Change Password</h2>
               <form onSubmit={handleSubmit}>
-                <div className="form-field">
-                  <label>Current Password:</label>
-                  <input
-                    type="password"
-                    name="currentPassword"
-                    value={form.currentPassword}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter your current password"
-                    disabled={!!success}
-                  />
-                </div>
                 <div className="form-field">
                   <label>New Password:</label>
                   <input
@@ -205,10 +242,7 @@ const ChangePassword = () => {
               }}>
                 <div style={{ background: '#fff', borderRadius: 10, padding: 32, minWidth: 320, boxShadow: '0 2px 16px #0002', textAlign: 'center' }}>
                   <h2 style={{ color: '#22c55e', marginBottom: 12 }}>Password Changed!</h2>
-                  <p style={{ color: '#333', marginBottom: 18 }}>Your password has been updated.<br/>Please log in with your new password.</p>
-                  <button className="login-btn" onClick={() => { window.localStorage.removeItem('user'); window.localStorage.removeItem('token'); navigate('/login'); }}>
-                    Go to Login
-                  </button>
+                  <p style={{ color: '#333', marginBottom: 18 }}>Your password has been updated successfully.<br/>Redirecting to your dashboard...</p>
                 </div>
               </div>
             )}

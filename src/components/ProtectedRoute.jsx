@@ -1,35 +1,27 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { AuthContext } from '../AuthContext';
-import { isAuthenticated, hasPermission } from '../utils/authUtils';
+import { useAuth } from '../contexts/AuthContext';
 
-const ProtectedRoute = ({ children, requiredRole = null }) => {
-  const { user } = useContext(AuthContext);
-  
-  // Check if user is authenticated
-  if (!isAuthenticated() || !user) {
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
-  
-  // Check role-based access if requiredRole is specified
-  if (requiredRole && !hasPermission(requiredRole)) {
-    // Redirect to appropriate dashboard based on user's role
-    if (user.role === 'SUPER_ADMIN') {
-      return <Navigate to="/super-admin/dashboard" replace />;
-    } else if (user.role === 'ADMIN') {
-      return <Navigate to="/admin/dashboard" replace />;
-    } else if (user.role === 'EMPLOYEE') {
-      return <Navigate to="/employee/dashboard" replace />;
-    } else {
-      return <Navigate to="/farmer/dashboard" replace />;
-    }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/login" replace />;
   }
-  
-  // Check if user needs to change password
-  if (user.forcePasswordChange) {
-    return <Navigate to="/change-password" replace />;
-  }
-  
+
   return children;
 };
 

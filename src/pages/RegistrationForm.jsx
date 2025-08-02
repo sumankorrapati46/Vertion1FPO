@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import axios from 'axios';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { authAPI } from '../api/apiService';
+import { Link, useLocation } from 'react-router-dom';
 import '../styles/RegistrationForm.css';
-import background from '../assets/background-image.png';
 import logo from '../assets/rightlogo.png';
 
 // Update Yup schema for password validation
@@ -39,54 +38,28 @@ const schema = yup.object().shape({
     .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
     .matches(/[0-9]/, 'Password must contain at least one number')
-    .matches(/[@$!%*?&#^()_+\-=\[\]{};':"\\|,.<>\/?]/, 'Password must contain at least one special character'),
+    .matches(/[@$!%*?&#^()_+\-=[\]{};':"\\|,.<>/?]/, 'Password must contain at least one special character'),
 });
 
 const RegistrationForm = () => {
   const location = useLocation();
   const initialRole = location.state?.role || '';
-  const [role, setRole] = useState(initialRole);
 
   const {
     register,
     handleSubmit,
     reset,
-    watch,
-    setValue,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: { role: initialRole },
   });
 
-  const [countries, setCountries] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState('');
-  const [states, setStates] = useState([]);
-  const selectedState = watch('state');
-
   const [emailValue, setEmailValue] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
   const [emailVerified, setEmailVerified] = useState(false);
-  const navigate = useNavigate();
   const [resendTimer, setResendTimer] = useState(0);
-
-  useEffect(() => {
-    axios.get("http://localhost:8080/api/auth/countries")
-      .then((res) => setCountries(res.data))
-      .catch((err) => console.error("Error fetching countries:", err));
-  }, []);
- 
-  // ✅ Fetch states by country
-  useEffect(() => {
-    if (selectedCountry) {
-      axios.get(`http://localhost:8080/api/auth/states/${selectedCountry}`)
-        .then((res) => setStates(res.data))
-        .catch((err) => console.error("Error fetching states:", err));
-    } else {
-      setStates([]);
-    }
-  }, [selectedCountry]);
 
   useEffect(() => {
     if (!resendTimer) return;
@@ -100,16 +73,12 @@ const RegistrationForm = () => {
       return;
     }
     try {
-      await axios.post(
-        'http://localhost:8080/api/auth/send-otp',
-        { emailOrPhone: emailValue },
-        { headers: { 'Content-Type': 'application/json' } }
-      );
+      await authAPI.sendOTP(emailValue);
       setOtpSent(true);
       setResendTimer(30);
       alert('OTP sent');
     } catch (e) {
-      alert(e.response?.data || 'Failed to send OTP');
+      alert(e.response?.data?.message || 'Failed to send OTP');
       console.error(e);
     }
   };
@@ -117,8 +86,8 @@ const RegistrationForm = () => {
   // ✅ Handle Verify OTP
   const handleVerifyOTP = async () => {
     try {
-      await axios.post("http://localhost:8080/api/auth/verify-otp", {
-        emailOrPhone: emailValue,
+      await authAPI.verifyOTP({
+        email: emailValue,
         otp: otp,
       });
       alert("Email verified successfully!");
@@ -138,8 +107,8 @@ const RegistrationForm = () => {
 
     try {
       console.log('Submitting registration data:', data);
-      const response = await axios.post('/api/auth/register', data);
-      console.log('Registration successful:', response.data);
+      const response = await authAPI.register(data);
+      console.log('Registration successful:', response);
       
       // Show success message with approval notice
       alert('Registration successful! Please wait for admin approval. You will receive an email with login credentials once approved.');
@@ -228,12 +197,12 @@ const RegistrationForm = () => {
             <h2 className="reg-form-title">Registration Form</h2>
             <p className="reg-form-subtitle">Enter your details to get started</p>
           </div>
-          <input type="hidden" {...register('role')} value={role} />
+          <input type="hidden" {...register('role')} value={initialRole} />
             {/* Optionally, show the role as read-only for user confirmation */}
-            {role && (
+            {initialRole && (
               <div className="reg-form-group">
                 <label>Role</label>
-                <input type="text" value={role} readOnly className="reg-role-field" />
+                <input type="text" value={initialRole} readOnly className="reg-role-field" />
               </div>
             )}
           <form onSubmit={handleSubmit(onSubmit)} className="reg-modern-form reg-form-grid">

@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { useForm } from 'react-hook-form';
+import { authAPI } from '../api/apiService';
 import { useNavigate } from 'react-router-dom';
 import "../styles/Login.css";
-import background from "../assets/background-image.png"; // Adjust path if needed
-import logo from "../assets/rightlogo.png"; // Replace with your actual logo
 
  
 const ChangeUserId = () => {
@@ -26,16 +23,10 @@ const handleChangeUserId = async () => {
   setError('');
 
   try {
-    const response = await axios.post('https://your-api-url.com/api/change-user-id', {
-      userId: newUserId
-    });
+    await authAPI.changeUserId({ newUserName: newUserId, password: '' });
 
-    if (response.status === 200) {
-      alert(`User ID changed successfully to: ${newUserId}`);
-      navigate('/login');
-    } else {
-      setError('Something went wrong. Please try again.');
-    }
+    alert(`User ID changed successfully to: ${newUserId}`);
+    navigate('/login');
   } catch (error) {
     if (error.response && error.response.data && error.response.data.message) {
       setError(error.response.data.message);
@@ -129,7 +120,7 @@ const handleChangeUserId = async () => {
           <div className="login-card">
             {/* DATE Logo at Top */}
             <div className="date-logo-section">
-              <img src={logo} alt="DATE Logo" className="date-logo" />
+              <div className="date-logo">DATE</div>
               <div className="date-text">
                 <h3>Digital Agristack Transaction Enterprises</h3>
                 <p>Empowering Agricultural Excellence</p>
@@ -171,4 +162,4 @@ const handleChangeUserId = async () => {
   );
 };
 
-export default ChangeUserId;
+export default ChangeUserId; 

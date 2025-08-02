@@ -1,0 +1,389 @@
+.registration-approval-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 30px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+  padding: 30px;
+}
+
+.registration-info {
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  border: 1px solid #e2e8f0;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.info-row label {
+  font-weight: 600;
+  color: #374151;
+  min-width: 120px;
+}
+
+.info-row span {
+  color: #6b7280;
+  text-align: right;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-approved {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.role-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-farmer {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.role-employee {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.role-fpo {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.role-default {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.user-details {
+  margin-bottom: 24px;
+}
+
+.user-details h3 {
+  margin: 0 0 16px 0;
+  color: #111827;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+}
+
+.detail-item span {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.approval-actions {
+  background: #f0f9ff;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #bae6fd;
+}
+
+.approval-actions h3 {
+  margin: 0 0 16px 0;
+  color: #0c4a6e;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.approve-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.approve-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+}
+
+.approve-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.reject-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.reject-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
+}
+
+.reject-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rejection-reason {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rejection-reason label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+}
+
+.rejection-reason textarea {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.rejection-reason textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.rejection-info,
+.approval-info {
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.rejection-info h3,
+.approval-info h3 {
+  margin: 0 0 16px 0;
+  color: #111827;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.rejection-reason-text {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.modal-footer {
+  padding: 20px 30px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.close-button {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-size: 14px;
+}
+
+.close-button:hover {
+  background: #4b5563;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .modal-header {
+    padding: 20px;
+  }
+  
+  .modal-body {
+    padding: 20px;
+  }
+  
+  .modal-footer {
+    padding: 20px;
+  }
+  
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .approve-btn,
+  .reject-btn {
+    width: 100%;
+  }
+  
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .info-row span {
+    text-align: left;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-header h2 {
+    font-size: 20px;
+  }
+  
+  .user-details h3,
+  .approval-actions h3,
+  .rejection-info h3,
+  .approval-info h3 {
+    font-size: 16px;
+  }
+} 

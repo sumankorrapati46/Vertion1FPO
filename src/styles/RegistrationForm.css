@@ -1,203 +1,371 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-body {
-  font-family: 'Inter', sans-serif;
-  background: #1a5f1a;
+/* Registration Form Container */
+.reg-main-content {
   min-height: 100vh;
-  position: relative;
-  overflow-x: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
 }
 
-.reg-modern-registration-container {
-  min-height: 100vh;
+/* Left Info Panel */
+.info-panel {
+  flex: 1;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.info-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('../assets/background-image.png') center/cover;
+  opacity: 0.1;
+  z-index: 0;
+}
+
+.info-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.agri-stack-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.agri-stack-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 0;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.reg-form-wrapper {
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
+.agri-text {
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.leaf-icon {
+  font-size: 2.5rem;
+  animation: sway 3s ease-in-out infinite;
+}
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.stack-text {
+  color: #ffd700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.registry-title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #ffd700;
+}
+
+.registry-info {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.registry-info h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #ffd700;
+}
+
+.help-desk {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  font-style: italic;
+}
+
+/* Agricultural Highlights */
+.agricultural-highlights {
   display: flex;
   flex-direction: column;
+  gap: 25px;
+}
+
+.highlight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.highlight-item:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.highlight-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.highlight-content h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #ffd700;
+}
+
+.highlight-content p {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+/* Right Registration Form Section */
+.reg-form-section {
+  flex: 1;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.95);
 }
 
 .reg-modern-form-card {
-  background: #fff;
+  background: white;
   border-radius: 20px;
-  padding: 2.5rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  padding: 40px;
   width: 100%;
   max-width: 600px;
-  animation: cardFloat 3s ease-in-out infinite;
-  position: relative;
-  max-height: 85vh;
-  overflow-y: auto;
+  animation: slideInUp 0.6s ease-out;
 }
 
-.reg-modern-form-card::-webkit-scrollbar {
-  width: 8px;
-  background: transparent;
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.reg-modern-form-card::-webkit-scrollbar-thumb {
-  background: #cde7c6;
-  border-radius: 8px;
-  border: 2px solid #fff;
+/* DATE Logo Section */
+.date-logo-section {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
 }
 
-.reg-modern-form-card::-webkit-scrollbar-thumb:hover {
-  background: #a8e063;
+.date-logo {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 15px;
+  border-radius: 50%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-.reg-modern-form-card {
-  scrollbar-width: thin;
-  scrollbar-color: #a8e063 #fff;
+.date-text h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
 }
 
+.date-text p {
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* Form Header */
 .reg-form-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 30px;
 }
 
 .reg-form-title {
   font-size: 2rem;
   font-weight: 700;
-  color: #28a745;
-  margin-bottom: 0.5rem;
+  color: #333;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .reg-form-subtitle {
   font-size: 1rem;
-  color: #6c757d;
-  margin-bottom: 1.5rem;
+  color: #666;
+  font-style: italic;
 }
 
-.reg-modern-form {
+/* Form Grid Layout */
+.reg-form-grid {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 25px;
 }
 
+.reg-form-col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .reg-form-col {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Form Groups */
 .reg-form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .reg-form-group label {
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: #495057;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.reg-required {
+  color: #e74c3c;
+  font-weight: bold;
 }
 
 .reg-form-group input,
 .reg-form-group select {
-  padding: 0.875rem 1rem;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
+  padding: 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
   font-size: 1rem;
-  background: #fff;
-  transition: border-color 0.3s;
+  transition: all 0.3s ease;
+  background: white;
 }
 
 .reg-form-group input:focus,
 .reg-form-group select:focus {
   outline: none;
-  border-color: #28a745;
-  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.08);
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+.reg-form-group input.reg-error,
+.reg-form-group select.reg-error {
+  border-color: #e74c3c;
+  background: #fdf2f2;
+}
+
+.reg-role-field {
+  background: #f8f9fa !important;
+  color: #666;
+  cursor: not-allowed;
+}
+
+/* Error Messages */
 .reg-error-message {
-  color: #dc2626;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
-}
-
-.reg-submit-btn {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  color: #fff;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 10px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  margin-top: 1rem;
-}
-
-.reg-submit-btn:hover {
-  background: linear-gradient(135deg, #1e7e34 0%, #1a9f7a 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(40, 167, 69, 0.18);
-}
-
-.reg-login-link {
-  text-align: center;
-  margin-top: 1.5rem;
-}
-
-.reg-login-link a {
-  color: #28a745;
-  text-decoration: none;
+  color: #e74c3c;
+  font-size: 0.8rem;
+  margin-top: 5px;
   font-weight: 500;
-  transition: color 0.2s;
 }
 
-.reg-login-link a:hover {
-  color: #1e7e34;
-  text-decoration: underline;
-}
-
-/* OTP Button Styles */
+/* Email Verification Section */
 .reg-email-verification {
-  margin-top: 0.5rem;
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #e9ecef;
+  margin: 20px 0;
 }
 
-.reg-email-verification .reg-otp-btn {
-  width: 100% !important;
-  display: block;
-  margin-bottom: 0.5rem;
-  box-sizing: border-box;
+.reg-otp-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.reg-otp-input {
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  text-align: center;
+  letter-spacing: 2px;
+  font-weight: bold;
+}
+
+.reg-otp-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.reg-otp-buttons {
+  display: flex;
+  gap: 10px;
 }
 
 .reg-otp-btn {
-  padding: 0.75rem 1.5rem;
+  padding: 12px 20px;
   border: none;
-  border-radius: 10px;
-  font-weight: 600;
+  border-radius: 8px;
   font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  flex: 1;
 }
 
 .reg-otp-btn.reg-primary {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
 .reg-otp-btn.reg-primary:hover {
-  background: linear-gradient(135deg, #1e7e34 0%, #1a9f7a 100%);
-  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
   transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
 }
 
 .reg-otp-btn.reg-secondary {
-  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(108, 117, 125, 0.3);
+  background: #6c757d;
+  color: white;
 }
 
-.reg-otp-btn.reg-secondary:hover {
-  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
-  box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+.reg-otp-btn.reg-secondary:hover:not(:disabled) {
+  background: #5a6268;
   transform: translateY(-2px);
 }
 
@@ -207,227 +375,145 @@ body {
   transform: none;
 }
 
-.reg-otp-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-.reg-otp-input {
-  padding: 0.75rem 1rem;
-  border: 2px solid #e9ecef;
-  border-radius: 10px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  background: #fff;
-}
-
-.reg-otp-input:focus {
-  outline: none;
-  border-color: #28a745;
-  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
-}
-
-.reg-otp-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.reg-otp-buttons .reg-otp-btn {
-  width: 50%;
-  margin-bottom: 0;
-}
-
-.reg-email-verification > .reg-otp-btn {
-  width: 100%;
-  display: block;
-  margin-bottom: 0.5rem;
-  box-sizing: border-box;
-}
-
+/* Verification Success */
 .reg-verification-success {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-  border: 1px solid #c3e6cb;
-  border-radius: 10px;
-  color: #155724;
-  font-weight: 500;
+  gap: 10px;
+  color: #28a745;
+  font-weight: 600;
+  font-size: 1rem;
 }
 
 .reg-success-icon {
-  color: #28a745;
-  font-weight: bold;
-  font-size: 1.1rem;
-}
-
-.date-logo-section {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 15px;
-  border: 2px solid #dee2e6;
-  justify-content: center;
-}
-
-.date-logo {
-  width: 60px;
-  height: 60px;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-}
-
-.date-text {
-  flex: 1;
-}
-
-.date-text h3 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #28a745;
-  margin-bottom: 0.25rem;
-}
-
-.date-text p {
-  font-size: 0.8rem;
-  color: #6c757d;
-  font-weight: 500;
-}
-
-.reg-main-content {
-  display: flex;
-  flex-direction: row;
-  min-height: 100vh;
-  width: 100%;
-  padding: 0;
-  max-width: none;
-  margin: 0;
-  background: #1a5f1a;
-}
-
-.info-panel {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  color: #fff;
-  padding: 2rem 4rem;
-}
-
-.agri-stack-header {
-  margin-bottom: 2rem;
-}
-
-.agri-stack-title {
-  font-size: 3.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  animation: glow 2s ease-in-out infinite alternate;
-}
-
-.agri-text {
-  color: #fff;
-}
-
-.leaf-icon {
-  font-size: 2.5rem;
-  color: #ffd700;
-  animation: bounce 2s ease-in-out infinite;
-}
-
-.stack-text {
-  color: #ffd700;
-}
-
-.registry-title {
-  font-size: 2.5rem;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 1rem;
-}
-
-.registry-info {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.help-desk {
-  margin-top: 1.5rem;
   font-size: 1.2rem;
-  color: #ffd700;
-  animation: pulse 2s ease-in-out infinite;
+  font-weight: bold;
 }
 
-.reg-form-section {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.reg-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem 2.5rem;
-  align-items: flex-start;
-}
-
-.reg-form-col {
+/* Form Actions */
+.reg-form-actions {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 15px;
 }
 
 .reg-form-actions-full {
-  grid-column: 1 / span 2;
-  text-align: center;
+  grid-column: 1 / -1;
 }
 
-@media (max-width: 1200px) {
+.reg-submit-btn {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  padding: 18px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.reg-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+}
+
+.reg-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Login Link */
+.reg-login-link {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+}
+
+.reg-login-link h4 {
+  font-size: 1rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.reg-login-link a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.reg-login-link a:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
   .reg-main-content {
     flex-direction: column;
-    gap: 2rem;
-    padding: 1rem;
   }
+  
   .info-panel {
-    padding-right: 0;
-    text-align: center;
+    padding: 40px 20px;
   }
+  
   .agri-stack-title {
     font-size: 2.5rem;
   }
-  .registry-title {
+  
+  .reg-form-section {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .agri-stack-title {
     font-size: 2rem;
+    flex-direction: column;
   }
-}
-
-@media (max-width: 900px) {
-  .reg-form-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem 0;
+  
+  .highlight-item {
+    padding: 15px;
   }
-  .reg-form-actions-full {
-    grid-column: 1 / span 1;
-  }
-}
-
-@media (max-width: 600px) {
+  
   .reg-modern-form-card {
-    padding: 1.5rem 0.5rem;
+    padding: 20px;
   }
+  
   .reg-form-title {
-    font-size: 1.3rem;
+    font-size: 1.5rem;
+  }
+  
+  .reg-otp-buttons {
+    flex-direction: column;
   }
 }
+
+@media (max-width: 480px) {
+  .agri-stack-title {
+    font-size: 1.5rem;
+  }
+  
+  .registry-title {
+    font-size: 1.5rem;
+  }
+  
+  .highlight-item {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .highlight-icon {
+    align-self: center;
+  }
+  
+  .reg-form-col {
+    grid-template-columns: 1fr;
+  }
+} 
