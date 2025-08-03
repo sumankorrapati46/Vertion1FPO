@@ -15,8 +15,34 @@ const DataTable = ({ data, columns, onEdit, onDelete, onView, showDelete = false
         return 'status-assigned';
       case 'unassigned':
         return 'status-unassigned';
+      case 'active':
+        return 'status-approved';
+      case 'inactive':
+        return 'status-rejected';
       default:
         return 'status-default';
+    }
+  };
+
+  // Debug function to safely render values
+  const safeRender = (value, columnKey) => {
+    try {
+      // If value is an object, try to extract meaningful data
+      if (value && typeof value === 'object') {
+        console.warn(`DataTable: Object found for column ${columnKey}:`, value);
+        return 'Object (see console)';
+      }
+      
+      // If value is null or undefined, return 'N/A'
+      if (value === null || value === undefined) {
+        return 'N/A';
+      }
+      
+      // If value is a string, number, or boolean, return it as string
+      return String(value);
+    } catch (error) {
+      console.error(`DataTable: Error rendering value for column ${columnKey}:`, error);
+      return 'Error';
     }
   };
 
@@ -36,13 +62,53 @@ const DataTable = ({ data, columns, onEdit, onDelete, onView, showDelete = false
             <tr key={rowIndex}>
               {columns.map((column, colIndex) => (
                 <td key={colIndex}>
-                  {column.key === 'kycStatus' || column.key === 'assignmentStatus' ? (
-                    <span className={getStatusClass(row[column.key])}>
-                      {row[column.key]}
-                    </span>
-                  ) : (
-                    row[column.key] || 'N/A'
-                  )}
+                  {(() => {
+                    const value = row[column.key];
+                    
+                    // Handle status fields with special styling
+                    if (column.key === 'kycStatus' || column.key === 'assignmentStatus' || column.key === 'status' || column.key === 'accessStatus') {
+                      return (
+                        <span className={getStatusClass(value)}>
+                          {safeRender(value, column.key)}
+                        </span>
+                      );
+                    }
+                    
+                    // Handle date fields
+                    if (column.key === 'registrationDate' || column.key === 'assignedDate') {
+                      return value ? new Date(value).toLocaleDateString() : 'N/A';
+                    }
+                    
+                    // Handle name fields (combine firstName, middleName, and lastName if needed)
+                    if (column.key === 'name') {
+                      if (row.firstName || row.lastName) {
+                        const parts = [row.firstName, row.middleName, row.lastName].filter(Boolean);
+                        return parts.length > 0 ? parts.join(' ') : 'N/A';
+                      } else if (row.name) {
+                        return row.name;
+                      } else {
+                        return 'N/A';
+                      }
+                    }
+                    
+                    // Handle phone fields
+                    if (column.key === 'phone' || column.key === 'phoneNumber') {
+                      return row.phoneNumber || row.phone || row.contactNumber || 'N/A';
+                    }
+                    
+                    // Handle email fields
+                    if (column.key === 'email') {
+                      return row.email || 'N/A';
+                    }
+                    
+                    // Handle role fields
+                    if (column.key === 'role') {
+                      return row.role || 'N/A';
+                    }
+                    
+                    // For all other fields, return the value or 'N/A'
+                    return safeRender(value, column.key);
+                  })()}
                 </td>
               ))}
               <td className="actions-cell">
@@ -63,15 +129,21 @@ const DataTable = ({ data, columns, onEdit, onDelete, onView, showDelete = false
                       ✏️ Edit
                     </button>
                   )}
-                  {customActions.map((action, index) => (
-                    <button
-                      key={index}
-                      className={`action-btn-small ${action.className || 'secondary'}`}
-                      onClick={() => action.onClick(row)}
-                    >
-                      {action.icon} {action.label}
-                    </button>
-                  ))}
+                  {customActions.map((action, index) => {
+                    // Check if action should be shown based on condition
+                    if (action.showCondition && !action.showCondition(row)) {
+                      return null;
+                    }
+                    return (
+                      <button
+                        key={index}
+                        className={`action-btn-small ${action.className || 'secondary'}`}
+                        onClick={() => action.onClick(row)}
+                      >
+                        {action.icon} {action.label}
+                      </button>
+                    );
+                  })}
                   {showDelete && onDelete && (
                     <button 
                       className="action-btn-small danger"

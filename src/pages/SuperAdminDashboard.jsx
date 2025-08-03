@@ -1,215 +1,533 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import '../styles/Dashboard.css';
-import FarmerForm from '../components/FarmerForm';
-import EmployeeForm from '../components/EmployeeForm';
-import AssignmentModal from '../components/AssignmentModal';
-import DeleteModal from '../components/DeleteModal';
-import KYCDocumentUpload from '../components/KYCDocumentUpload';
-import ViewFarmerRegistrationDetails from '../components/ViewFarmerRegistrationDetails';
-import ViewEditEmployeeDetails from '../components/ViewEditEmployeeDetails';
-
-import StatsCard from '../components/StatsCard';
+import { farmersAPI, employeesAPI, superAdminAPI } from '../api/apiService';
 import DataTable from '../components/DataTable';
+import StatsCard from '../components/StatsCard';
+import RegistrationApprovalModal from '../components/RegistrationApprovalModal';
+import RegistrationDetailModal from '../components/RegistrationDetailModal';
+import ViewFarmerRegistrationDetails from '../components/ViewFarmerRegistrationDetails';
+import AssignmentModal from '../components/AssignmentModal';
+import FarmerForm from '../components/FarmerForm';
+import ViewEditEmployeeDetails from '../components/ViewEditEmployeeDetails';
+import EmployeeRegistrationForm from '../components/EmployeeRegistrationForm';
+import KYCDocumentUpload from '../components/KYCDocumentUpload';
+import DeleteModal from '../components/DeleteModal';
+import UserProfileDropdown from '../components/UserProfileDropdown';
+import '../styles/Dashboard.css';
 
 const SuperAdminDashboard = () => {
-  const { user, logout } = useAuth();
-  const [currentView, setCurrentView] = useState('farmers');
+  const { user } = useAuth();
+  
+  // Debug logging
+  console.log('SuperAdminDashboard - User data:', user);
+  console.log('SuperAdminDashboard - User name:', user?.name);
+  console.log('SuperAdminDashboard - User role:', user?.role);
+  console.log('SuperAdminDashboard - User email:', user?.email);
+  console.log('=== SUPER ADMIN DASHBOARD LOADED ===');
+  
+  // Test if user data is available
+  useEffect(() => {
+    console.log('=== USER DATA CHECK ===');
+    console.log('User in useEffect:', user);
+    console.log('User name in useEffect:', user?.name);
+    console.log('User role in useEffect:', user?.role);
+    console.log('Greeting text:', getGreeting());
+  }, [user]);
+  
+
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [farmers, setFarmers] = useState([]);
   const [employees, setEmployees] = useState([]);
-  const [deletedRecords, setDeletedRecords] = useState([]);
-  const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [registrations, setRegistrations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Greeting function based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return 'Good Morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Good Afternoon';
+    } else if (hour >= 17 && hour < 21) {
+      return 'Good Evening';
+    } else {
+      return 'Good Night';
+    }
+  };
+  
+  // Modal states
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [selectedRegistration, setSelectedRegistration] = useState(null);
+  const [showFarmerDetails, setShowFarmerDetails] = useState(false);
+  const [selectedFarmer, setSelectedFarmer] = useState(null);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [showFarmerForm, setShowFarmerForm] = useState(false);
-  const [showEmployeeForm, setShowEmployeeForm] = useState(false);
+  const [showEmployeeDetails, setShowEmployeeDetails] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showEmployeeRegistration, setShowEmployeeRegistration] = useState(false);
+  const [showKYCModal, setShowKYCModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
-  const [showFarmerDetails, setShowFarmerDetails] = useState(false);
-  const [selectedFarmerData, setSelectedFarmerData] = useState(null);
-  const [showEmployeeDetails, setShowEmployeeDetails] = useState(false);
-  const [selectedEmployeeData, setSelectedEmployeeData] = useState(null);
-  const [showKYCDocumentUpload, setShowKYCDocumentUpload] = useState(false);
-  const [selectedFarmerForKYC, setSelectedFarmerForKYC] = useState(null);
-  const [filters, setFilters] = useState({
-    state: '',
-    district: '',
-    region: '',
-    kycStatus: '',
-    assignmentStatus: '',
-    registrationStatus: '',
-    registrationRole: ''
+  const [editingFarmer, setEditingFarmer] = useState(null);
+  const [registrationFilters, setRegistrationFilters] = useState({
+    role: '',
+    status: ''
   });
+  const [showRegistrationDetailModal, setShowRegistrationDetailModal] = useState(false);
+  const [selectedRegistrationForDetail, setSelectedRegistrationForDetail] = useState(null);
 
-  // Mock data - replace with actual API calls
   useEffect(() => {
-    // Mock farmers data
-    const mockFarmers = [
-      {
-        id: 1,
-        name: 'Rajesh Kumar',
-        phone: '9876543210',
-        state: 'Maharashtra',
-        district: 'Pune',
-        region: 'Western',
-        kycStatus: 'APPROVED',
-        assignmentStatus: 'ASSIGNED',
-        assignedEmployee: 'John Doe',
-        assignedDate: '2024-01-15'
-      },
-      {
-        id: 2,
-        name: 'Suresh Patel',
-        phone: '9876543211',
-        state: 'Gujarat',
-        district: 'Ahmedabad',
-        region: 'Western',
-        kycStatus: 'PENDING',
-        assignmentStatus: 'UNASSIGNED',
-        assignedEmployee: null,
-        assignedDate: null
-      },
-      {
-        id: 3,
-        name: 'Amit Singh',
-        phone: '9876543212',
-        state: 'Punjab',
-        district: 'Amritsar',
-        region: 'Northern',
-        kycStatus: 'REFER_BACK',
-        assignmentStatus: 'ASSIGNED',
-        assignedEmployee: 'Jane Smith',
-        assignedDate: '2024-01-10'
-      }
-    ];
+    fetchData();
+  }, []);
 
-    // Mock employees data
-    const mockEmployees = [
+  // Debug effect to monitor farmers state
+  useEffect(() => {
+    if (farmers) {
+      console.log('Farmers state updated:', farmers);
+      console.log('Farmers count:', farmers.length);
+    }
+  }, [farmers]);
+
+  // Debug effect to monitor employees state
+  useEffect(() => {
+    console.log('Employees state updated:', employees);
+    console.log('Employees count:', employees?.length || 0);
+    if (employees && employees.length > 0) {
+      console.log('First employee:', employees[0]);
+    }
+  }, [employees]);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      console.log('Fetching data from APIs...');
+      
+      console.log('Starting API calls...');
+      let farmersData, employeesData, registrationsData;
+      
+      try {
+        [farmersData, employeesData, registrationsData] = await Promise.all([
+          farmersAPI.getAllFarmers(),
+          employeesAPI.getAllEmployees(),
+          superAdminAPI.getAllUsers()
+        ]);
+        console.log('API calls completed successfully');
+      } catch (apiError) {
+        console.error('API call failed:', apiError);
+        // Set empty arrays if API fails
+        farmersData = [];
+        employeesData = [];
+        registrationsData = [];
+      }
+
+      console.log('Raw API responses:');
+      console.log('Farmers data:', farmersData);
+      console.log('Employees data:', employeesData);
+      console.log('Registrations data:', registrationsData);
+
+      // If registrations data is empty, add some mock data for testing
+      let finalRegistrationsData = registrationsData;
+      if (!registrationsData || registrationsData.length === 0) {
+        console.log('No registration data from API, adding mock data for testing');
+        finalRegistrationsData = [
       {
         id: 1,
         name: 'John Doe',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john@agri.com',
-        phone: '9876543200',
-        dateOfBirth: '1990-05-15',
-        gender: 'male',
-        address: '123 Main Street, City Center',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        pincode: '400001',
-        employeeId: 'EMP001',
-        department: 'IT',
-        designation: 'Software Engineer',
-        joiningDate: '2020-03-15',
-        salary: '75000',
-        supervisor: 'Manager Name',
-        highestQualification: 'Bachelor\'s Degree',
-        institution: 'Mumbai University',
-        graduationYear: '2012',
-        specialization: 'Computer Science',
-        emergencyName: 'Jane Doe',
-        emergencyPhone: '9876543201',
-        emergencyRelation: 'Spouse',
-        skills: 'JavaScript, React, Node.js, Python',
-        languages: 'English, Hindi, Marathi',
-        certifications: 'AWS Certified Developer, React Certification',
-        workExperience: '8 years in software development',
-        references: 'Previous Manager - John Manager (9876543210)',
-        status: 'Active',
-        totalAssigned: 25,
-        kycSummary: {
-          approved: 15,
-          pending: 8,
-          referBack: 2,
-          rejected: 0
-        }
+            email: 'john.doe@example.com',
+            phoneNumber: '9876543210',
+            role: 'FARMER',
+            status: 'PENDING'
       },
       {
         id: 2,
         name: 'Jane Smith',
-        firstName: 'Jane',
-        lastName: 'Smith',
-        email: 'jane@agri.com',
-        phone: '9876543201',
-        dateOfBirth: '1988-08-22',
-        gender: 'female',
-        address: '456 Park Avenue, Downtown',
-        city: 'Delhi',
-        state: 'Delhi',
-        pincode: '110001',
-        employeeId: 'EMP002',
-        department: 'HR',
-        designation: 'HR Manager',
-        joiningDate: '2019-07-01',
-        salary: '85000',
-        supervisor: 'HR Director',
-        highestQualification: 'Master\'s Degree',
-        institution: 'Delhi University',
-        graduationYear: '2010',
-        specialization: 'Human Resources',
-        emergencyName: 'Mike Smith',
-        emergencyPhone: '9876543202',
-        emergencyRelation: 'Spouse',
-        skills: 'HR Management, Recruitment, Employee Relations',
-        languages: 'English, Hindi',
-        certifications: 'SHRM Certified Professional',
-        workExperience: '10 years in HR management',
-        references: 'HR Director - Sarah Johnson (9876543211)',
-        status: 'Active',
-        totalAssigned: 18,
-        kycSummary: {
-          approved: 12,
-          pending: 4,
-          referBack: 1,
-          rejected: 1
-        }
+            email: 'jane.smith@example.com',
+            phoneNumber: '9876543211',
+            role: 'EMPLOYEE',
+            status: 'PENDING'
+          },
+          {
+            id: 3,
+            name: 'Bob Wilson',
+            email: 'bob.wilson@example.com',
+            phoneNumber: '9876543212',
+            role: 'FARMER',
+            status: 'APPROVED'
+          }
+        ];
       }
-    ];
 
-    setFarmers(mockFarmers);
-    setEmployees(mockEmployees);
-    
+      // If farmers data is empty, add some mock data for testing
+      let finalFarmersData = farmersData;
+      if (!farmersData || farmersData.length === 0) {
+        console.log('No farmers data from API, adding mock data for testing');
+        finalFarmersData = [
+          {
+            id: 1,
+            name: 'John Farmer',
+            contactNumber: '9876543210',
+            email: 'john.farmer@example.com',
+            accessStatus: 'ACTIVE',
+            kycStatus: 'PENDING',
+            assignedEmployee: null
+          },
+          {
+            id: 2,
+            name: 'Jane Farmer',
+            contactNumber: '9876543211',
+            email: 'jane.farmer@example.com',
+            accessStatus: 'ACTIVE',
+            kycStatus: 'APPROVED',
+            assignedEmployee: 'Not Assigned'
+          },
+          {
+            id: 3,
+            name: 'Bob Farmer',
+            contactNumber: '9876543212',
+            email: 'bob.farmer@example.com',
+            accessStatus: 'ACTIVE',
+            kycStatus: 'PENDING',
+            assignedEmployee: undefined
+          },
+          {
+            id: 4,
+            name: 'Alice Farmer',
+            contactNumber: '9876543213',
+            email: 'alice.farmer@example.com',
+            accessStatus: 'ACTIVE',
+            kycStatus: 'PENDING',
+            assignedEmployee: 'John Employee'
+          }
+        ];
+        console.log('Mock farmers data created:', finalFarmersData);
+      }
 
-    
+      console.log('Setting farmers data:', finalFarmersData);
+      console.log('Sample farmer structure:', finalFarmersData[0]);
+      // If employees data is empty, add some mock data for testing
+      let finalEmployeesData = employeesData;
+      if (!employeesData || employeesData.length === 0) {
+        console.log('No employees data from API, adding mock data for testing');
+        finalEmployeesData = [
+          {
+            id: 1,
+            name: 'John Employee',
+            contactNumber: '9876543200',
+            email: 'john.employee@example.com',
+            status: 'ACTIVE',
+            role: 'employee',
+            designation: 'KYC Officer'
+          },
+          {
+            id: 2,
+            name: 'Jane Employee',
+            contactNumber: '9876543201',
+            email: 'jane.employee@example.com',
+            status: 'ACTIVE',
+            role: 'employee',
+            designation: 'KYC Officer'
+          },
+          {
+            id: 3,
+            name: 'Mike Johnson',
+            contactNumber: '9876543202',
+            email: 'mike.johnson@example.com',
+            status: 'ACTIVE',
+            role: 'employee',
+            designation: 'KYC Officer'
+          },
+          {
+            id: 4,
+            name: 'Sarah Wilson',
+            contactNumber: '9876543203',
+            email: 'sarah.wilson@example.com',
+            status: 'ACTIVE',
+            role: 'employee',
+            designation: 'KYC Officer'
+          }
+        ];
+      }
 
-  }, []);
+      setFarmers(finalFarmersData);
+      setEmployees(finalEmployeesData);
+      setRegistrations(finalRegistrationsData);
+      
+      console.log('Fetched data:', { farmersData, employeesData, registrationsData });
+      console.log('Final employees data:', finalEmployeesData);
+      console.log('Final employees count:', finalEmployeesData?.length || 0);
+      
+      // Test if employees are being set correctly
+      console.log('=== SETTING EMPLOYEES ===');
+      console.log('About to set employees:', finalEmployeesData);
+      
+      // Test if employees are being set correctly
+      setTimeout(() => {
+        console.log('=== EMPLOYEES STATE TEST ===');
+        console.log('Employees state after 1 second:', finalEmployeesData);
+        console.log('Employees count after 1 second:', finalEmployeesData?.length || 0);
+      }, 1000);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getFilteredFarmers = () => {
-    return farmers.filter(farmer => {
-      const matchesState = !filters.state || farmer.state === filters.state;
-      const matchesDistrict = !filters.district || farmer.district === filters.district;
-      const matchesRegion = !filters.region || farmer.region === filters.region;
-      const matchesKycStatus = !filters.kycStatus || farmer.kycStatus === filters.kycStatus;
-      const matchesAssignmentStatus = !filters.assignmentStatus || farmer.assignmentStatus === filters.assignmentStatus;
-      
-      return matchesState && matchesDistrict && matchesRegion && matchesKycStatus && matchesAssignmentStatus;
-    });
+    return farmers;
   };
 
   const getFilteredEmployees = () => {
-    if (!selectedEmployee) return employees;
-    return employees.filter(emp => emp.id === parseInt(selectedEmployee));
+    return employees;
+  };
+
+  const getFilteredRegistrations = () => {
+    console.log('All registrations:', registrations);
+    // Apply filters
+    const filtered = registrations.filter(registration => {
+      const roleMatch = !registrationFilters.role || registration.role === registrationFilters.role;
+      const statusMatch = !registrationFilters.status || registration.status === registrationFilters.status;
+      return roleMatch && statusMatch;
+    });
+    console.log('Filtered registrations:', filtered);
+    return filtered;
   };
 
   const getStats = () => {
     const totalFarmers = farmers.length;
-    const unassignedFarmers = farmers.filter(f => f.assignmentStatus === 'UNASSIGNED').length;
-    const pendingKyc = farmers.filter(f => f.kycStatus === 'PENDING').length;
-    const overdueKyc = farmers.filter(f => {
-      if (f.assignedDate) {
-        const assignedDate = new Date(f.assignedDate);
-        const daysDiff = (new Date() - assignedDate) / (1000 * 60 * 60 * 24);
-        return daysDiff > 7 && f.kycStatus === 'PENDING';
-      }
-      return false;
+    const totalEmployees = employees.length;
+    const pendingRegistrations = registrations.filter(r => {
+      const status = r.status || r.userStatus || r.accessStatus;
+      return status === 'PENDING' || status === 'pending' || status === 'Pending';
     }).length;
+    const unassignedFarmers = farmers.filter(f => f.accessStatus === 'PENDING').length;
+    const activeEmployees = employees.filter(e => e.status === 'ACTIVE').length;
+    const totalFPO = 0; // Placeholder for FPO count
 
     return {
       totalFarmers,
+      totalEmployees,
+      pendingRegistrations,
       unassignedFarmers,
-      pendingKyc,
-      overdueKyc
+      activeEmployees,
+      totalFPO
     };
+  };
+
+  const handleViewRegistration = (registration) => {
+    setSelectedRegistrationForDetail(registration);
+    setShowRegistrationDetailModal(true);
+  };
+
+  const handleCloseRegistrationDetailModal = () => {
+    setShowRegistrationDetailModal(false);
+    setSelectedRegistrationForDetail(null);
+  };
+
+  const handleRegistrationUpdate = () => {
+    // Refresh the registration data
+    fetchData();
+  };
+
+  const handleApproveRegistration = async (registrationId) => {
+    try {
+      await superAdminAPI.approveUser(registrationId);
+      setRegistrations(prev => prev.map(reg => 
+        reg.id === registrationId ? { ...reg, status: 'APPROVED' } : reg
+      ));
+      alert('Registration approved successfully!');
+    } catch (error) {
+      console.error('Error approving registration:', error);
+      alert('Failed to approve registration');
+    }
+  };
+
+  const handleRejectRegistration = async (registrationId) => {
+    try {
+      await superAdminAPI.rejectUser(registrationId);
+      setRegistrations(prev => prev.map(reg => 
+        reg.id === registrationId ? { ...reg, status: 'REJECTED' } : reg
+      ));
+      alert('Registration rejected successfully!');
+    } catch (error) {
+      console.error('Error rejecting registration:', error);
+      alert('Failed to reject registration');
+    }
+  };
+
+  const handleViewFarmer = (farmer) => {
+    // Transform farmer data to match ViewFarmerRegistrationDetails expectations
+    const farmerData = {
+      id: farmer.id,
+      firstName: farmer.firstName || '',
+      lastName: farmer.lastName || '',
+      middleName: farmer.middleName || '',
+      dateOfBirth: farmer.dob || '',
+      gender: farmer.gender || '',
+      mobileNumber: farmer.contactNumber || '',
+      email: farmer.email || '',
+      maritalStatus: farmer.maritalStatus || 'Single',
+      religion: farmer.religion || 'Not Specified',
+      caste: farmer.caste || 'Not Specified',
+      category: farmer.category || 'General',
+      education: farmer.education || 'Not Specified',
+      village: farmer.village || '',
+      postOffice: farmer.postOffice || '',
+      policeStation: farmer.policeStation || '',
+      district: farmer.district || '',
+      state: farmer.state || '',
+      pincode: farmer.zipcode || '',
+      occupation: farmer.occupation || 'Farmer',
+      annualIncome: farmer.annualIncome || 'Not Specified',
+      landOwnership: farmer.landOwnership || 'Not Specified',
+      landArea: farmer.landArea || 'Not Specified',
+      irrigationType: farmer.irrigationType || 'Not Specified',
+      soilType: farmer.soilType || 'Not Specified',
+      primaryCrop: farmer.primaryCrop || 'Not Specified',
+      secondaryCrop: farmer.secondaryCrop || 'Not Specified',
+      cropSeason: farmer.cropSeason || 'Not Specified',
+      farmingExperience: farmer.farmingExperience || 'Not Specified',
+      bankName: farmer.bankName || '',
+      branchName: farmer.branchName || '',
+      accountNumber: farmer.accountNumber || '',
+      ifscCode: farmer.ifscCode || '',
+      accountType: farmer.accountType || 'Savings',
+      aadhaarNumber: farmer.aadhaarNumber || 'Not Specified',
+      panNumber: farmer.panNumber || 'Not Specified',
+      voterId: farmer.voterId || 'Not Specified',
+      rationCardNumber: farmer.rationCardNumber || 'Not Specified',
+      status: farmer.accessStatus || 'PENDING',
+      assignedEmployee: farmer.assignedEmployee || 'Not Assigned',
+      kycStatus: farmer.kycStatus || 'PENDING',
+      photo: farmer.photoFileName ? `/uploads/${farmer.photoFileName}` : null
+    };
+
+    console.log('Transformed farmer data:', farmerData);
+    setSelectedFarmer(farmerData);
+    setShowFarmerDetails(true);
+  };
+
+  const handleEditFarmer = (farmer) => {
+    const farmerData = {
+      id: farmer.id,
+      firstName: farmer.firstName || '',
+      lastName: farmer.lastName || '',
+      middleName: farmer.middleName || '',
+      salutation: farmer.salutation || '',
+      contactNumber: farmer.contactNumber || '',
+      email: farmer.email || '',
+      dob: farmer.dob || '',
+      gender: farmer.gender || '',
+      nationality: farmer.nationality || '',
+      relationType: farmer.relationType || '',
+      relationName: farmer.relationName || '',
+      altNumber: farmer.altNumber || '',
+      altNumberType: farmer.altNumberType || '',
+      country: farmer.country || '',
+      state: farmer.state || '',
+      district: farmer.district || '',
+      block: farmer.block || '',
+      village: farmer.village || '',
+      zipcode: farmer.zipcode || '',
+      sector: farmer.sector || '',
+      education: farmer.education || '',
+      experience: farmer.experience || '',
+      bankName: farmer.bankName || '',
+      accountNumber: farmer.accountNumber || '',
+      branchName: farmer.branchName || '',
+      ifscCode: farmer.ifscCode || '',
+      passbookFileName: farmer.passbookFileName || '',
+      documentType: farmer.documentType || '',
+      documentNumber: farmer.documentNumber || '',
+      documentFileName: farmer.documentFileName || '',
+      photoFileName: farmer.photoFileName || '',
+      role: farmer.role || 'FARMER',
+      accessStatus: farmer.accessStatus || 'PENDING',
+      kycStatus: farmer.kycStatus || 'PENDING'
+    };
+    console.log('Farmer data for edit:', farmerData);
+    setEditingFarmer(farmerData);
+    setShowFarmerForm(true);
+  };
+
+  const handleViewEmployee = (employee) => {
+    setSelectedEmployee(employee);
+    setShowEmployeeDetails(true);
+  };
+
+  const handleAddEmployee = () => {
+    setShowEmployeeRegistration(true);
+  };
+
+  const handleEditEmployee = (employee) => {
+    setSelectedEmployee(employee);
+    setShowEmployeeDetails(true);
+  };
+
+  const handleAssignFarmers = async (assignments) => {
+    try {
+      // Extract farmer IDs and employee ID from assignments
+      const farmerIds = assignments.map(a => a.farmerId);
+      const employeeId = assignments[0]?.employeeId;
+      
+      if (!employeeId || farmerIds.length === 0) {
+        alert('Please select an employee and at least one farmer');
+        return;
+      }
+      
+      // Try bulk assign first, then fallback to individual assignments
+      try {
+        // Call admin API to bulk assign farmers
+        await superAdminAPI.bulkAssignFarmers(farmerIds, employeeId);
+      } catch (bulkError) {
+        console.log('Bulk assign failed, trying individual assignments...');
+        // Fallback to individual assignments
+        for (const farmerId of farmerIds) {
+          try {
+            await superAdminAPI.assignFarmer(farmerId, employeeId);
+          } catch (individualError) {
+            console.error(`Failed to assign farmer ${farmerId}:`, individualError);
+          }
+        }
+      }
+      
+      // Update local state for each assignment
+      setFarmers(prev => prev.map(farmer => {
+        const assignment = assignments.find(a => a.farmerId === farmer.id);
+        if (assignment) {
+          return {
+            ...farmer,
+            assignmentStatus: 'ASSIGNED',
+            assignedEmployee: assignment.employeeName,
+            assignedDate: new Date().toISOString().split('T')[0]
+          };
+        }
+        return farmer;
+      }));
+      
+      setShowAssignmentModal(false);
+      alert('Farmers assigned successfully!');
+    } catch (error) {
+      console.error('Error assigning farmers:', error);
+      alert('Failed to assign farmers');
+    }
+  };
+
+  const handleApproveKYC = (farmerId) => {
+    // Implement KYC approval logic
+    alert('KYC approved successfully!');
+  };
+
+  const handleRejectKYC = (farmerId) => {
+    // Implement KYC rejection logic
+    alert('KYC rejected successfully!');
+  };
+
+  const handleReferBackKYC = (farmerId) => {
+    // Implement KYC refer back logic
+    alert('KYC referred back for review!');
   };
 
   const handleDelete = (item, type) => {
@@ -217,266 +535,368 @@ const SuperAdminDashboard = () => {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!itemToDelete) return;
 
-    const { item, type } = itemToDelete;
-    const deletedRecord = {
-      id: item.id,
-      entityType: type,
-      entityName: item.name || item.email,
-      deletedBy: user.name,
-      deletedAt: new Date().toISOString(),
-      reason: itemToDelete.reason || 'No reason provided'
-    };
-
-    setDeletedRecords(prev => [...prev, deletedRecord]);
-
-    if (type === 'farmer') {
-      setFarmers(prev => prev.filter(f => f.id !== item.id));
-    } else if (type === 'employee') {
-      setEmployees(prev => prev.filter(e => e.id !== item.id));
+    try {
+      const { item, type } = itemToDelete;
+      if (type === 'farmer') {
+        await farmersAPI.deleteFarmer(item.id);
+        setFarmers(prev => prev.filter(f => f.id !== item.id));
+      } else if (type === 'employee') {
+        await employeesAPI.deleteEmployee(item.id);
+        setEmployees(prev => prev.filter(e => e.id !== item.id));
+      } else if (type === 'registration') {
+        // Handle registration deletion
+        await superAdminAPI.deleteUser(item.id);
+        setRegistrations(prev => prev.filter(r => r.id !== item.id));
+      }
+      alert(`${type} deleted successfully!`);
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      alert('Failed to delete item');
+    } finally {
+      setShowDeleteModal(false);
+      setItemToDelete(null);
     }
-
-    setShowDeleteModal(false);
-    setItemToDelete(null);
   };
 
-  const handleLogout = () => {
-    logout();
-  };
+  const stats = getStats();
 
-  const handleViewFarmer = (farmer) => {
-    // Convert the farmer data to match the registration form structure
-    const farmerData = {
-      firstName: farmer.name.split(' ')[0] || '',
-      lastName: farmer.name.split(' ').slice(1).join(' ') || '',
-      mobileNumber: farmer.phone,
-      state: farmer.state,
-      district: farmer.district,
-      region: farmer.region,
-      kycStatus: farmer.kycStatus,
-      status: farmer.assignmentStatus,
-      assignedEmployee: farmer.assignedEmployee,
-      assignedDate: farmer.assignedDate,
-      // Add mock data for other fields
-      dateOfBirth: '1990-01-01',
-      gender: 'Male',
-      email: 'farmer@example.com',
-      maritalStatus: 'Married',
-      religion: 'Hindu',
-      caste: 'General',
-      category: 'General',
-      education: 'High School',
-      village: 'Sample Village',
-      postOffice: 'Sample Post Office',
-      policeStation: 'Sample Police Station',
-      pincode: '123456',
-      occupation: 'Farmer',
-      annualIncome: '50000',
-      landOwnership: 'Owned',
-      landArea: '5',
-      irrigationType: 'Tube Well',
-      soilType: 'Alluvial',
-      primaryCrop: 'Wheat',
-      secondaryCrop: 'Rice',
-      cropSeason: 'Rabi',
-      farmingExperience: '10',
-      bankName: 'State Bank of India',
-      branchName: 'Main Branch',
-      accountNumber: '1234567890',
-      ifscCode: 'SBIN0001234',
-      accountType: 'Savings',
-      aadhaarNumber: '123456789012',
-      panNumber: 'ABCDE1234F',
-      voterId: 'ABC1234567',
-      rationCardNumber: '123456789',
-      registrationDate: farmer.assignedDate || new Date().toISOString(),
-      photo: null
-    };
-    
-    setSelectedFarmerData(farmerData);
-    setShowFarmerDetails(true);
-  };
+  if (loading) {
+    return (
+      <div className="dashboard">
+        <div className="dashboard-main">
+          <div className="dashboard-content">
+            <div className="loading">Loading dashboard...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const handleCloseFarmerDetails = () => {
-    setShowFarmerDetails(false);
-    setSelectedFarmerData(null);
-  };
-
-  const handleViewEmployee = (employee) => {
-    setSelectedEmployeeData(employee);
-    setShowEmployeeDetails(true);
-  };
-
-  const handleCloseEmployeeDetails = () => {
-    setShowEmployeeDetails(false);
-    setSelectedEmployeeData(null);
-  };
-
-  const handleUpdateEmployee = (updatedData) => {
-    setEmployees(prev => prev.map(emp => 
-      emp.id === selectedEmployeeData.id ? { ...emp, ...updatedData } : emp
-    ));
-    setShowEmployeeDetails(false);
-    setSelectedEmployeeData(null);
-  };
-
-
-
-
-
-  const handleKYCDocumentUpload = (farmer) => {
-    setSelectedFarmerForKYC(farmer);
-    setShowKYCDocumentUpload(true);
-  };
-
-  const handleCloseKYCDocumentUpload = () => {
-    setShowKYCDocumentUpload(false);
-    setSelectedFarmerForKYC(null);
-  };
-
-  const handleKYCApprove = (farmerId, documents) => {
-    setFarmers(prev => prev.map(farmer => 
-      farmer.id === farmerId 
-        ? { ...farmer, kycStatus: 'APPROVED' }
-        : farmer
-    ));
-    setShowKYCDocumentUpload(false);
-    setSelectedFarmerForKYC(null);
-  };
-
-  const handleKYCReject = (farmerId, reason, documents) => {
-    setFarmers(prev => prev.map(farmer => 
-      farmer.id === farmerId 
-        ? { ...farmer, kycStatus: 'REJECTED' }
-        : farmer
-    ));
-    setShowKYCDocumentUpload(false);
-    setSelectedFarmerForKYC(null);
-  };
-
-  const handleKYCReferBack = (farmerId, reason, documents) => {
-    setFarmers(prev => prev.map(farmer => 
-      farmer.id === farmerId 
-        ? { ...farmer, kycStatus: 'REFER_BACK' }
-        : farmer
-    ));
-    setShowKYCDocumentUpload(false);
-    setSelectedFarmerForKYC(null);
-  };
-
-  const renderOverview = () => (
+  if (error) {
+    return (
+      <div className="dashboard">
+        <div className="dashboard-main">
     <div className="dashboard-content">
-      <div className="stats-grid">
-        <StatsCard
-          title="Total Farmers"
-          value={getStats().totalFarmers}
-          icon="👨‍🌾"
-          color="blue"
-        />
-        <StatsCard
-          title="Unassigned Farmers"
-          value={getStats().unassignedFarmers}
-          icon="📋"
-          color="orange"
-        />
-        <StatsCard
-          title="Pending KYC"
-          value={getStats().pendingKyc}
-          icon="⏳"
-          color="yellow"
-        />
-        <StatsCard
-          title="Overdue KYC"
-          value={getStats().overdueKyc}
-          icon="⚠️"
-          color="red"
-        />
+            <div className="error">{error}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="dashboard">
+      {/* Sidebar */}
+      <div className="dashboard-sidebar">
+        <div className="sidebar-header">
+          <div className="logo">
+            <span className="logo-text">DATE</span>
+            <span className="logo-subtitle">Digital Agristack</span>
+          </div>
+          <p>Super Admin Dashboard</p>
+        </div>
+        
+        <div className="sidebar-nav">
+          <div 
+            className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveTab('dashboard')}
+          >
+            <i className="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
       </div>
 
-      <div className="quick-actions">
-        <h3>Quick Actions</h3>
-        <div className="action-buttons">
-          <button 
-            className="action-btn primary"
-            onClick={() => setShowFarmerForm(true)}
+          <div 
+            className={`nav-item ${activeTab === 'registration' ? 'active' : ''}`}
+            onClick={() => setActiveTab('registration')}
           >
-            ➕ Add Farmer
-          </button>
-          <button 
-            className="action-btn primary"
-            onClick={() => setShowEmployeeForm(true)}
+            <i className="fas fa-user-plus"></i>
+            <span>Registration</span>
+            <i className="fas fa-chevron-down dropdown-arrow"></i>
+          </div>
+          
+          <div 
+            className={`nav-item ${activeTab === 'farmers' ? 'active' : ''}`}
+            onClick={() => setActiveTab('farmers')}
           >
-            ➕ Add Employee
-          </button>
-          <button 
-            className="action-btn secondary"
-            onClick={() => setShowAssignmentModal(true)}
+            <i className="fas fa-users"></i>
+            <span>Farmers</span>
+            <i className="fas fa-chevron-down dropdown-arrow"></i>
+          </div>
+          
+          <div 
+            className={`nav-item ${activeTab === 'employees' ? 'active' : ''}`}
+            onClick={() => setActiveTab('employees')}
           >
-            🔗 Assign Farmers
-          </button>
+            <i className="fas fa-user-tie"></i>
+            <span>Employees</span>
+            <i className="fas fa-chevron-down dropdown-arrow"></i>
+          </div>
         </div>
       </div>
 
-      <div className="todo-panel">
-        <h3>To-Do List</h3>
-        <div className="todo-items">
-          {getStats().unassignedFarmers > 0 && (
-            <div className="todo-item">
-              <span className="todo-icon">📋</span>
-              <span>{getStats().unassignedFarmers} farmers need assignment</span>
+      {/* Main Content */}
+      <div className="dashboard-main">
+        {/* Top Header Bar */}
+        <div className="top-header"></div>
+
+        {/* Dashboard Header */}
+        <div className="dashboard-header">
+          <div className="header-left">
+            <div className="greeting-section">
+              <h2 className="greeting-text">{getGreeting()}, {user?.name || 'Super Admin'}! 👋</h2>
+              <p className="greeting-time">{new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}</p>
             </div>
-          )}
-          {getStats().overdueKyc > 0 && (
-            <div className="todo-item">
-              <span className="todo-icon">⚠️</span>
-              <span>{getStats().overdueKyc} KYC cases overdue</span>
-            </div>
-          )}
-          {employees.filter(emp => emp.kycSummary.pending > 10).map(emp => (
-            <div key={emp.id} className="todo-item">
-              <span className="todo-icon">📊</span>
-              <span>{emp.name} has {emp.kycSummary.pending} pending cases</span>
-            </div>
-          ))}
+            {!user && (
+              <div style={{ 
+                background: '#fef3c7', 
+                color: '#92400e', 
+                padding: '8px 12px', 
+                borderRadius: '6px', 
+                fontSize: '14px',
+                marginTop: '8px'
+              }}>
+                ⚠️ No user data found. Using default Super Admin profile.
+              </div>
+            )}
+            <h1 className="header-title">Super Admin Dashboard</h1>
+            <p className="header-subtitle">Manage your agricultural platform</p>
+          </div>
+          <div className="header-right">
+            <UserProfileDropdown />
+          </div>
+        </div>
+
+        {/* Welcome Section */}
+        <div className="welcome-section">
+          <h1 className="welcome-title">Welcome to DATE Digital Agristack!</h1>
+          <p className="welcome-subtitle">
+            Empowering your agricultural journey with data-driven insights and seamless management. 
+            Explore your dashboard below.
+          </p>
+        </div>
+
+        {/* Dashboard Content */}
+        <div className="dashboard-content">
+          {activeTab === 'dashboard' && (
+            <>
+              {/* Dashboard Overview */}
+              <div className="overview-section">
+                <div className="overview-header">
+                  <div>
+                    <h2 className="overview-title">Dashboard Overview</h2>
+                    <p className="overview-description">
+                      Welcome back! Here's what's happening with your agricultural data.
+                    </p>
+                  </div>
+                  <div className="overview-actions">
+                    <button className="action-btn refresh">
+                      <i className="fas fa-sync-alt"></i>
+                      Refresh
+                    </button>
+                    <button className="action-btn secondary">Today</button>
+                    <button className="action-btn secondary">This Month</button>
+                    <button className="action-btn primary">This Year</button>
+                  </div>
+                </div>
+
+                {/* Stats Cards */}
+                <div className="stats-grid">
+                  <div className="stats-card">
+                    <div className="stats-icon farmers">
+                      <i className="fas fa-users"></i>
+                    </div>
+                    <div className="stats-title">Farmers</div>
+                    <div className="stats-value">{stats.totalFarmers}</div>
+                    <div className="stats-change positive">
+                      <i className="fas fa-arrow-up"></i>
+                      +12.4%
+                    </div>
+                  </div>
+
+                  <div className="stats-card">
+                    <div className="stats-icon employees">
+                      <i className="fas fa-user-tie"></i>
+                    </div>
+                    <div className="stats-title">Employees</div>
+                    <div className="stats-value">{stats.totalEmployees}</div>
+                    <div className="stats-change negative">
+                      <i className="fas fa-arrow-down"></i>
+                      -3.0%
+                    </div>
+                  </div>
+
+                  <div className="stats-card">
+                    <div className="stats-icon fpo">
+                      <i className="fas fa-building"></i>
+                    </div>
+                    <div className="stats-title">FPO</div>
+                    <div className="stats-value">{stats.totalFPO}</div>
+                    <div className="stats-change neutral">
+                      <i className="fas fa-minus"></i>
+                      +0.0%
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Sections */}
+                <div className="bottom-sections">
+                  {/* Recent Activities */}
+                  <div className="section-card">
+                    <div className="section-header">
+                      <h3 className="section-title">Recent Activities</h3>
+                      <a href="#" className="section-link">View All</a>
+                    </div>
+                    <div className="activities-list">
+                      <div className="activity-item">
+                        <div className="activity-content">
+                          <div className="activity-text">Farmer profile updated</div>
+                          <div className="activity-time">20m ago</div>
+                        </div>
+                        <span className="activity-badge success">Success</span>
+                      </div>
+                      <div className="activity-item">
+                        <div className="activity-content">
+                          <div className="activity-text">Employee profile updated</div>
+                          <div className="activity-time">10m ago</div>
+                        </div>
+                        <span className="activity-badge success">Success</span>
+                      </div>
+                      <div className="activity-item">
+                        <div className="activity-content">
+                          <div className="activity-text">New FPO application submitted</div>
+                          <div className="activity-time">Just now</div>
+                        </div>
+                        <span className="activity-badge pending">Pending</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="section-card">
+                    <div className="section-header">
+                      <h3 className="section-title">Quick Actions</h3>
+                    </div>
+                    <div className="quick-actions-grid">
+                      <button className="quick-action-btn primary">
+                        <i className="fas fa-user-plus"></i>
+                        Add New Farmer
+                      </button>
+                      <button className="quick-action-btn secondary">
+                        <i className="fas fa-user-tie"></i>
+                        Add Employee
+                      </button>
+                      <button className="quick-action-btn info">
+                        <i className="fas fa-chart-bar"></i>
+                        Generate Report
+                      </button>
+                      <button className="quick-action-btn dark">
+                        <i className="fas fa-chart-line"></i>
+                        View Analytics
+                      </button>
+                    </div>
         </div>
       </div>
     </div>
-  );
+            </>
+          )}
 
-  const renderFarmers = () => (
-    <div className="dashboard-content">
-      <div className="filters-section">
-        <h3>Farmer Management</h3>
-        <div className="filters">
+          {activeTab === 'registration' && (
+            <div className="overview-section">
+              <div className="overview-header">
+                <h2 className="overview-title">Registration Management</h2>
+                <p className="overview-description">
+                  Manage pending registrations and approve new users.
+                </p>
+                <div className="overview-actions">
           <select 
-            value={filters.state} 
-            onChange={(e) => setFilters(prev => ({ ...prev, state: e.target.value }))}
-          >
-            <option value="">All States</option>
-            <option value="Maharashtra">Maharashtra</option>
-            <option value="Gujarat">Gujarat</option>
-            <option value="Punjab">Punjab</option>
+                    value={registrationFilters.role} 
+                    onChange={(e) => setRegistrationFilters(prev => ({ ...prev, role: e.target.value }))}
+                    className="filter-select"
+                  >
+                    <option value="">All Roles</option>
+                    <option value="FARMER">Farmer</option>
+                    <option value="EMPLOYEE">Employee</option>
+                    <option value="ADMIN">Admin</option>
+                    <option value="SUPER_ADMIN">Super Admin</option>
           </select>
           <select 
-            value={filters.kycStatus} 
-            onChange={(e) => setFilters(prev => ({ ...prev, kycStatus: e.target.value }))}
+                    value={registrationFilters.status} 
+                    onChange={(e) => setRegistrationFilters(prev => ({ ...prev, status: e.target.value }))}
+                    className="filter-select"
           >
-            <option value="">All KYC Status</option>
+                    <option value="">All Status</option>
+                    <option value="PENDING">Pending</option>
             <option value="APPROVED">Approved</option>
-            <option value="PENDING">Pending</option>
-            <option value="REFER_BACK">Refer Back</option>
             <option value="REJECTED">Rejected</option>
           </select>
-          <select 
-            value={filters.assignmentStatus} 
-            onChange={(e) => setFilters(prev => ({ ...prev, assignmentStatus: e.target.value }))}
-          >
-            <option value="">All Assignment Status</option>
-            <option value="ASSIGNED">Assigned</option>
-            <option value="UNASSIGNED">Unassigned</option>
-          </select>
+                </div>
+              </div>
+              
+              {(() => {
+                const registrationData = getFilteredRegistrations();
+                return (
+                  <DataTable
+                    data={registrationData}
+                    columns={[
+                      { key: 'name', label: 'Name' },
+                      { key: 'email', label: 'Email' },
+                      { key: 'phoneNumber', label: 'Phone' },
+                      { key: 'role', label: 'Role' },
+                      { key: 'status', label: 'Status' }
+                    ]}
+                    customActions={[
+                      {
+                        label: 'View',
+                        className: 'action-btn-small info',
+                        onClick: handleViewRegistration
+                      },
+                      {
+                        label: 'Delete',
+                        className: 'action-btn-small danger',
+                        onClick: (registration) => handleDelete(registration, 'registration')
+                      }
+                    ]}
+                  />
+                );
+              })()}
+            </div>
+          )}
+
+          {activeTab === 'farmers' && (
+            <div className="overview-section">
+              <div className="overview-header">
+                <h2 className="overview-title">Farmer Management</h2>
+                <p className="overview-description">
+                  Manage farmer registrations and assignments.
+                </p>
+                <div className="overview-actions">
+                  <button 
+                    className="action-btn primary"
+                    onClick={() => {
+                      setEditingFarmer(null);
+                      setShowFarmerForm(true);
+                    }}
+                  >
+                    <i className="fas fa-plus"></i>
+                    Add Farmer
+                  </button>
+                  <button className="action-btn secondary" onClick={() => {
+                    console.log('=== ASSIGN FARMERS BUTTON CLICKED ===');
+                    console.log('Current farmers state:', farmers || 'undefined');
+                    console.log('Current employees state:', employees || 'undefined');
+                    setShowAssignmentModal(true);
+                  }}>
+                    <i className="fas fa-user-plus"></i>
+                    Assign Farmers
+                  </button>
         </div>
       </div>
 
@@ -484,232 +904,238 @@ const SuperAdminDashboard = () => {
         data={getFilteredFarmers()}
         columns={[
           { key: 'name', label: 'Name' },
-          { key: 'phone', label: 'Phone' },
-          { key: 'state', label: 'State' },
-          { key: 'district', label: 'District' },
-          { key: 'kycStatus', label: 'KYC Status' },
-          { key: 'assignmentStatus', label: 'Assignment Status' },
-          { key: 'assignedEmployee', label: 'Assigned Employee' }
-        ]}
-        onView={handleViewFarmer}
-        onEdit={(farmer) => {
-          // Handle edit farmer - open the farmer form in edit mode
-          console.log('Edit farmer:', farmer);
-          // For now, just show the form. In a real app, you'd pass the farmer data
-          setShowFarmerForm(true);
-          // TODO: Pass farmer data to form for editing
-        }}
-        onDelete={(farmer) => handleDelete(farmer, 'farmer')}
-        showDelete={true}
+                  { key: 'contactNumber', label: 'Phone' },
+                  { key: 'email', label: 'Email' },
+                  { key: 'accessStatus', label: 'Status' },
+                  { key: 'kycStatus', label: 'KYC Status' }
+                ]}
         customActions={[
           {
-            icon: '📁',
-            label: 'KYC Docs',
-            className: 'secondary',
-            onClick: handleKYCDocumentUpload
+                    label: 'View',
+                    className: 'action-btn-small info',
+                    onClick: handleViewFarmer
+                  },
+                  {
+                    label: 'Edit',
+                    className: 'action-btn-small secondary',
+                    onClick: handleEditFarmer
+                  },
+                  {
+                    label: 'KYC',
+                    className: 'action-btn-small primary',
+                    onClick: () => setShowKYCModal(true)
+                  },
+                  {
+                    label: 'Delete',
+                    className: 'action-btn-small danger',
+                    onClick: (farmer) => handleDelete(farmer, 'farmer')
           }
         ]}
       />
     </div>
-  );
+          )}
 
-  const renderEmployees = () => (
-    <div className="dashboard-content">
-      <div className="filters-section">
-        <h3>Employee Management</h3>
-        <div className="filters">
-          <select 
-            value={selectedEmployee} 
-            onChange={(e) => setSelectedEmployee(e.target.value)}
-          >
-            <option value="">All Employees</option>
-            {employees.map(emp => (
-              <option key={emp.id} value={emp.id}>{emp.name}</option>
-            ))}
-          </select>
+          {activeTab === 'employees' && (
+            <div className="overview-section">
+              {!showEmployeeRegistration ? (
+                <>
+                  <div className="overview-header">
+                    <h2 className="overview-title">Employee Management</h2>
+                    <p className="overview-description">
+                      Manage employee profiles and assignments.
+                    </p>
+                    <div className="overview-actions">
+                      <button className="action-btn primary" onClick={handleAddEmployee}>
+                        <i className="fas fa-plus"></i>
+                        Add Employee
+                      </button>
+                    </div>
+                  </div>
+
+                  <DataTable
+                    data={getFilteredEmployees()}
+                    columns={[
+                      { key: 'name', label: 'Name' },
+                      { key: 'contactNumber', label: 'Phone' },
+                      { key: 'email', label: 'Email' },
+                      { key: 'status', label: 'Status' },
+                      { key: 'role', label: 'Role' }
+                    ]}
+                    customActions={[
+                      {
+                        label: 'View',
+                        className: 'action-btn-small info',
+                        onClick: handleViewEmployee
+                      },
+                      {
+                        label: 'Edit',
+                        className: 'action-btn-small secondary',
+                        onClick: handleEditEmployee
+                      },
+                      {
+                        label: 'Delete',
+                        className: 'action-btn-small danger',
+                        onClick: (employee) => handleDelete(employee, 'employee')
+                      }
+                    ]}
+                  />
+                </>
+              ) : (
+                <div className="employee-registration-section">
+                  <div className="overview-header">
+                    <h2 className="overview-title">Add New Employee</h2>
+                    <p className="overview-description">
+                      Register a new employee in the system.
+                    </p>
+                    <div className="overview-actions">
+                      <button 
+                        className="action-btn secondary" 
+                        onClick={() => setShowEmployeeRegistration(false)}
+                      >
+                        <i className="fas fa-arrow-left"></i>
+                        Back to Employees
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <EmployeeRegistrationForm 
+                    isInDashboard={true}
+                    onClose={() => setShowEmployeeRegistration(false)}
+                    onSubmit={async (employeeData) => {
+                      try {
+                        const newEmployee = await employeesAPI.createEmployee(employeeData);
+                        setEmployees(prev => [...prev, newEmployee]);
+                        alert('Employee created successfully!');
+                        setShowEmployeeRegistration(false);
+                      } catch (error) {
+                        console.error('Error creating employee:', error);
+                        alert('Failed to create employee. Please try again.');
+                      }
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      <DataTable
-        data={getFilteredEmployees()}
-        columns={[
-          { key: 'name', label: 'Name' },
-          { key: 'email', label: 'Email' },
-          { key: 'phone', label: 'Phone' },
-          { key: 'department', label: 'Department' },
-          { key: 'designation', label: 'Designation' },
-          { key: 'status', label: 'Status' }
-        ]}
-        onView={handleViewEmployee}
-        onEdit={(employee) => {
-          setShowEmployeeForm(true);
-          console.log('Edit employee:', employee);
-        }}
-        onDelete={(employee) => handleDelete(employee, 'employee')}
-        showDelete={true}
-      />
-    </div>
-  );
+      {/* Modals */}
+      {showRegistrationModal && selectedRegistration && (
+        <RegistrationApprovalModal
+          registration={selectedRegistration}
+          onClose={() => setShowRegistrationModal(false)}
+          onApprove={() => handleApproveRegistration(selectedRegistration.id)}
+          onReject={() => handleRejectRegistration(selectedRegistration.id)}
+        />
+      )}
 
-  const renderAuditTrail = () => (
-    <div className="dashboard-content">
-      <h3>Audit Trail - Deleted Records</h3>
-      <div className="audit-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Entity Type</th>
-              <th>Entity Name</th>
-              <th>Deleted By</th>
-              <th>Deleted At</th>
-              <th>Reason</th>
-            </tr>
-          </thead>
-          <tbody>
-            {deletedRecords.map((record, index) => (
-              <tr key={index}>
-                <td>{record.entityType}</td>
-                <td>{record.entityName}</td>
-                <td>{record.deletedBy}</td>
-                <td>{new Date(record.deletedAt).toLocaleDateString()}</td>
-                <td>{record.reason}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+      {showFarmerDetails && selectedFarmer && (
+        <ViewFarmerRegistrationDetails
+          farmerData={selectedFarmer}
+          onClose={() => setShowFarmerDetails(false)}
+        />
+      )}
 
-  
-
-  return (
-    <div className="dashboard">
-      <div className="dashboard-header">
-        <div className="header-left">
-          <h1>Super Admin Dashboard</h1>
-          <p>Welcome back, {user?.name}</p>
-        </div>
-        <div className="header-right">
-          <button className="logout-btn" onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
-      </div>
-
-      <div className="dashboard-nav">
-        <button 
-          className={`nav-btn ${currentView === 'overview' ? 'active' : ''}`}
-          onClick={() => setCurrentView('overview')}
-        >
-          📊 Overview
-        </button>
-        <button 
-          className={`nav-btn ${currentView === 'farmers' ? 'active' : ''}`}
-          onClick={() => setCurrentView('farmers')}
-        >
-          👨‍🌾 Farmers
-        </button>
-        <button 
-          className={`nav-btn ${currentView === 'employees' ? 'active' : ''}`}
-          onClick={() => setCurrentView('employees')}
-        >
-          👥 Employees
-        </button>
-
-        <button 
-          className={`nav-btn ${currentView === 'audit' ? 'active' : ''}`}
-          onClick={() => setCurrentView('audit')}
-        >
-          📋 Audit Trail
-        </button>
-      </div>
-
-      <div className="dashboard-main">
-        {currentView === 'overview' && renderOverview()}
-        {currentView === 'farmers' && renderFarmers()}
-        {currentView === 'employees' && renderEmployees()}
-
-        {currentView === 'audit' && renderAuditTrail()}
-      </div>
+             {showAssignmentModal && (() => {
+         console.log('=== RENDERING ASSIGNMENT MODAL ===');
+         console.log('showAssignmentModal:', showAssignmentModal);
+         console.log('Employees state:', employees);
+         console.log('Employees length:', employees?.length || 0);
+         return (
+           <AssignmentModal 
+             farmers={farmers.filter(f => {
+               // Check if farmer is unassigned based on backend data structure
+               return !f.assignedEmployee || 
+                      f.assignedEmployee === 'Not Assigned' || 
+                      f.assignedEmployee === null ||
+                      f.assignedEmployee === undefined ||
+                      f.assignedEmployee === '';
+             })}
+             employees={(() => {
+               console.log('=== PASSING EMPLOYEES TO MODAL ===');
+               console.log('Employees array:', employees);
+               console.log('Employees type:', typeof employees);
+               console.log('Employees length:', employees?.length || 0);
+               console.log('Employees is array:', Array.isArray(employees));
+               if (employees && employees.length > 0) {
+                 console.log('First employee:', employees[0]);
+                 console.log('First employee name:', employees[0]?.name);
+                 console.log('First employee designation:', employees[0]?.designation);
+                 console.log('All employee names:', employees.map(emp => emp?.name));
+               } else {
+                 console.log('No employees found or employees is empty/null');
+               }
+               return employees;
+             })()}
+             onClose={() => setShowAssignmentModal(false)}
+             onAssign={handleAssignFarmers}
+           />
+         );
+      })()}
 
       {showFarmerForm && (
         <FarmerForm 
-          onClose={() => setShowFarmerForm(false)}
-          onSubmit={(farmerData) => {
-            setFarmers(prev => [...prev, { ...farmerData, id: Date.now() }]);
+          editData={editingFarmer}
+          onClose={() => {
             setShowFarmerForm(false);
+            setEditingFarmer(null);
           }}
-        />
-      )}
-
-      {showEmployeeForm && (
-        <EmployeeForm 
-          onClose={() => setShowEmployeeForm(false)}
-          onSubmit={(employeeData) => {
-            setEmployees(prev => [...prev, { ...employeeData, id: Date.now() }]);
-            setShowEmployeeForm(false);
-          }}
-        />
-      )}
-
-      {showAssignmentModal && (
-        <AssignmentModal 
-          farmers={farmers.filter(f => f.assignmentStatus === 'UNASSIGNED')}
-          employees={employees}
-          onClose={() => setShowAssignmentModal(false)}
-          onAssign={(assignments) => {
-            setFarmers(prev => prev.map(farmer => {
-              const assignment = assignments.find(a => a.farmerId === farmer.id);
-              if (assignment) {
-                return {
-                  ...farmer,
-                  assignmentStatus: 'ASSIGNED',
-                  assignedEmployee: assignment.employeeName,
-                  assignedDate: new Date().toISOString().split('T')[0]
-                };
+          onSubmit={async (farmerData) => {
+            try {
+              if (editingFarmer) {
+                const updatedFarmer = await farmersAPI.updateFarmer(editingFarmer.id, farmerData);
+                setFarmers(prev => prev.map(farmer => 
+                  farmer.id === editingFarmer.id ? updatedFarmer : farmer
+                ));
+                alert('Farmer updated successfully!');
+              } else {
+                const newFarmer = await farmersAPI.createFarmer(farmerData);
+                setFarmers(prev => [...prev, newFarmer]);
+                alert('Farmer created successfully!');
               }
-              return farmer;
-            }));
-            setShowAssignmentModal(false);
+              setShowFarmerForm(false);
+              setEditingFarmer(null);
+            } catch (error) {
+              console.error('Error saving farmer:', error);
+              alert('Failed to save farmer. Please try again.');
+            }
           }}
+        />
+      )}
+
+
+
+      {showEmployeeDetails && selectedEmployee && (
+        <ViewEditEmployeeDetails
+          employee={selectedEmployee}
+          onClose={() => setShowEmployeeDetails(false)}
+        />
+      )}
+      
+      {showKYCModal && (
+        <KYCDocumentUpload
+          onClose={() => setShowKYCModal(false)}
+          onApprove={handleApproveKYC}
+          onReject={handleRejectKYC}
+          onReferBack={handleReferBackKYC}
         />
       )}
 
       {showDeleteModal && (
         <DeleteModal
-          item={itemToDelete?.item}
-          type={itemToDelete?.type}
-          onClose={() => {
-            setShowDeleteModal(false);
-            setItemToDelete(null);
-          }}
+          onClose={() => setShowDeleteModal(false)}
           onConfirm={confirmDelete}
+          title={`Delete ${itemToDelete?.type}`}
+          message={`Are you sure you want to delete this ${itemToDelete?.type}?`}
         />
       )}
 
-      {showFarmerDetails && (
-        <ViewFarmerRegistrationDetails
-          farmerData={selectedFarmerData}
-          onClose={handleCloseFarmerDetails}
-        />
-      )}
-      {showEmployeeDetails && (
-        <ViewEditEmployeeDetails
-          employeeData={selectedEmployeeData}
-          onClose={handleCloseEmployeeDetails}
-          onUpdate={handleUpdateEmployee}
-        />
-      )}
-      
-      {showKYCDocumentUpload && (
-        <KYCDocumentUpload
-          isOpen={showKYCDocumentUpload}
-          onClose={handleCloseKYCDocumentUpload}
-          farmer={selectedFarmerForKYC}
-          onApprove={handleKYCApprove}
-          onReject={handleKYCReject}
-          onReferBack={handleKYCReferBack}
+      {showRegistrationDetailModal && selectedRegistrationForDetail && (
+        <RegistrationDetailModal
+          registration={selectedRegistrationForDetail}
+          onClose={handleCloseRegistrationDetailModal}
+          onUpdate={handleRegistrationUpdate}
         />
       )}
     </div>

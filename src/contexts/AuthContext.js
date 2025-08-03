@@ -20,14 +20,23 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     
+    console.log('=== AUTH CONTEXT INITIALIZATION ===');
+    console.log('Token found:', !!token);
+    console.log('User data found:', !!userData);
+    console.log('Raw user data:', userData);
+    
     if (token && userData) {
       try {
-        setUser(JSON.parse(userData));
+        const parsedUser = JSON.parse(userData);
+        console.log('Parsed user data:', parsedUser);
+        setUser(parsedUser);
       } catch (error) {
         console.error('Error parsing user data:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }
+    } else {
+      console.log('No token or user data found in localStorage');
     }
     setLoading(false);
   }, []);

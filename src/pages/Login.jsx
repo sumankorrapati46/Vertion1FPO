@@ -70,12 +70,22 @@ const Login = () => {
           status: userData.status
         };
         
+        // For users with temporary passwords, force password change
+        if (password.includes('Temp@')) {
+          user.forcePasswordChange = true;
+          console.log('Login - Detected temporary password, forcing password change');
+        }
+        
         console.log('Login - User data from profile:', user);
         console.log('Login - User role from profile:', userData.role);
         login(user, token);
         
         // Check if user needs to change password (first time login with temp password)
+        console.log('Login - Checking forcePasswordChange:', user.forcePasswordChange);
+        console.log('Login - Password contains Temp@:', password.includes('Temp@'));
+        
         if (user.forcePasswordChange) {
+          console.log('Login - Redirecting to change password page');
           navigate('/change-password');
           return;
         }
@@ -116,6 +126,12 @@ const Login = () => {
         // Try to get role from login response first
         let role = response.data?.role;
         let forcePasswordChange = response.data?.forcePasswordChange || false;
+        
+        // For users with temporary passwords, force password change
+        if (password.includes('Temp@')) {
+          forcePasswordChange = true;
+          console.log('Login - Detected temporary password, forcing password change');
+        }
         
         // If role is not in login response, try to get it from the backend
         if (!role) {
@@ -164,6 +180,7 @@ const Login = () => {
             'emp@hinfinity.in',
             'testemployee@hinfinity.in',
             'hari2912@gmail.com',
+            'harish134@gmail.com',
             'employee2@hinfinity.in',
             'test@employee.com'
           ];
@@ -205,7 +222,11 @@ const Login = () => {
         login(user, token);
         
         // Check if user needs to change password
+        console.log('Login - Fallback: Checking forcePasswordChange:', user.forcePasswordChange);
+        console.log('Login - Fallback: Password contains Temp@:', password.includes('Temp@'));
+        
         if (user.forcePasswordChange) {
+          console.log('Login - Fallback: Redirecting to change password page');
           navigate('/change-password');
           return;
         }
@@ -241,7 +262,10 @@ const Login = () => {
         }
       }
     } catch (err) {
-      setError('Invalid credentials or server error.');
+      console.error('Login error:', err);
+      console.error('Login error response:', err.response);
+      console.error('Login error message:', err.message);
+      setError(`Login failed: ${err.response?.data?.message || err.message || 'Invalid credentials or server error.'}`);
     } finally {
       setLoading(false);
     }

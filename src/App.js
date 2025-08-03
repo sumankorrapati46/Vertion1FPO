@@ -5,11 +5,12 @@ import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import EmployeeDashboard from './pages/EmployeeDashboard';
+import FarmerDashboard from './pages/FarmerDashboard';
 import FarmerRegistration from './pages/FarmerRegistration';
 import EmployeeRegistration from './pages/EmployeeRegistration';
 import RegistrationForm from './pages/RegistrationForm';
 import ForgotPassword from './pages/ForgotPassword';
-import ForgotUserId from './pages/ForgotUserId';
+import ForgotUserId from './pages/ForgotUserid';
 import ChangePassword from './pages/ChangePassword';
 import ChangeUserId from './pages/ChangeUserId';
 import OtpVerification from './pages/OtpVerification';
@@ -42,6 +43,7 @@ function App() {
             <Route path="/superadmin/dashboard" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><SuperAdminDashboard /></ProtectedRoute>} />
             <Route path="/super-admin/dashboard" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><SuperAdminDashboard /></ProtectedRoute>} />
             <Route path="/employee/dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><EmployeeDashboard /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['FARMER']}><FarmerDashboard /></ProtectedRoute>} />
             
             {/* Default Routes */}
             <Route path="/" element={<Navigate to="/login" replace />} />

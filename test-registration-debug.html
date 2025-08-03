@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration API Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .data-table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Registration API Debug</h1>
+    
+    <div class="test-section">
+        <h3>Test Registration List API</h3>
+        <button onclick="testRegistrationList()">Test /api/super-admin/registration-list</button>
+        <div id="registration-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Users API</h3>
+        <button onclick="testUsersAPI()">Test /api/super-admin/users</button>
+        <div id="users-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Pending Registrations API</h3>
+        <button onclick="testPendingRegistrations()">Test /api/super-admin/pending-registrations</button>
+        <div id="pending-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Farmers API</h3>
+        <button onclick="testFarmersAPI()">Test /api/super-admin/farmers</button>
+        <div id="farmers-result"></div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:8080/api';
+
+        async function testRegistrationList() {
+            const resultDiv = document.getElementById('registration-result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                const response = await fetch(`${BASE_URL}/super-admin/registration-list`);
+                const data = await response.json();
+                
+                resultDiv.className = 'test-section success';
+                resultDiv.innerHTML = `
+                    <h4>✅ Success!</h4>
+                    <p>Status: ${response.status}</p>
+                    <p>Data count: ${Array.isArray(data) ? data.length : 'Not an array'}</p>
+                    <p>Data type: ${typeof data}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    ${Array.isArray(data) && data.length > 0 ? createDataTable(data) : '<p>No data to display in table</p>'}
+                `;
+            } catch (error) {
+                resultDiv.className = 'test-section error';
+                resultDiv.innerHTML = `
+                    <h4>❌ Error!</h4>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        async function testUsersAPI() {
+            const resultDiv = document.getElementById('users-result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                const response = await fetch(`${BASE_URL}/super-admin/users`);
+                const data = await response.json();
+                
+                resultDiv.className = 'test-section success';
+                resultDiv.innerHTML = `
+                    <h4>✅ Success!</h4>
+                    <p>Status: ${response.status}</p>
+                    <p>Data count: ${Array.isArray(data) ? data.length : 'Not an array'}</p>
+                    <p>Data type: ${typeof data}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    ${Array.isArray(data) && data.length > 0 ? createDataTable(data) : '<p>No data to display in table</p>'}
+                `;
+            } catch (error) {
+                resultDiv.className = 'test-section error';
+                resultDiv.innerHTML = `
+                    <h4>❌ Error!</h4>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        async function testPendingRegistrations() {
+            const resultDiv = document.getElementById('pending-result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                const response = await fetch(`${BASE_URL}/super-admin/pending-registrations`);
+                const data = await response.json();
+                
+                resultDiv.className = 'test-section success';
+                resultDiv.innerHTML = `
+                    <h4>✅ Success!</h4>
+                    <p>Status: ${response.status}</p>
+                    <p>Data count: ${Array.isArray(data) ? data.length : 'Not an array'}</p>
+                    <p>Data type: ${typeof data}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    ${Array.isArray(data) && data.length > 0 ? createDataTable(data) : '<p>No data to display in table</p>'}
+                `;
+            } catch (error) {
+                resultDiv.className = 'test-section error';
+                resultDiv.innerHTML = `
+                    <h4>❌ Error!</h4>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        async function testFarmersAPI() {
+            const resultDiv = document.getElementById('farmers-result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                const response = await fetch(`${BASE_URL}/super-admin/farmers`);
+                const data = await response.json();
+                
+                resultDiv.className = 'test-section success';
+                resultDiv.innerHTML = `
+                    <h4>✅ Success!</h4>
+                    <p>Status: ${response.status}</p>
+                    <p>Data count: ${Array.isArray(data) ? data.length : 'Not an array'}</p>
+                    <p>Data type: ${typeof data}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    ${Array.isArray(data) && data.length > 0 ? createDataTable(data) : '<p>No data to display in table</p>'}
+                `;
+            } catch (error) {
+                resultDiv.className = 'test-section error';
+                resultDiv.innerHTML = `
+                    <h4>❌ Error!</h4>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        function createDataTable(data) {
+            if (!Array.isArray(data) || data.length === 0) return '<p>No data to display</p>';
+            
+            const firstItem = data[0];
+            const columns = Object.keys(firstItem);
+            
+            let tableHTML = '<table class="data-table"><thead><tr>';
+            columns.forEach(col => {
+                tableHTML += `<th>${col}</th>`;
+            });
+            tableHTML += '</tr></thead><tbody>';
+            
+            data.forEach(item => {
+                tableHTML += '<tr>';
+                columns.forEach(col => {
+                    const value = item[col];
+                    tableHTML += `<td>${value !== null && value !== undefined ? value : 'N/A'}</td>`;
+                });
+                tableHTML += '</tr>';
+            });
+            
+            tableHTML += '</tbody></table>';
+            return tableHTML;
+        }
+    </script>
+</body>
+</html> 

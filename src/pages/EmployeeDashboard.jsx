@@ -3,14 +3,15 @@ import { useAuth } from '../contexts/AuthContext';
 import '../styles/Dashboard.css';
 import FarmerForm from '../components/FarmerForm';
 import KYCModal from '../components/KYCModal';
-
 import ViewFarmerRegistrationDetails from '../components/ViewFarmerRegistrationDetails';
 import ViewEditEmployeeDetails from '../components/ViewEditEmployeeDetails';
 import StatsCard from '../components/StatsCard';
+import DataTable from '../components/DataTable';
+import UserProfileDropdown from '../components/UserProfileDropdown';
 
 const EmployeeDashboard = () => {
   const { user, logout } = useAuth();
-  const [currentView, setCurrentView] = useState('overview');
+  const [activeTab, setActiveTab] = useState('overview');
   const [assignedFarmers, setAssignedFarmers] = useState([]);
   const [showFarmerForm, setShowFarmerForm] = useState(false);
   const [showKYCModal, setShowKYCModal] = useState(false);
@@ -19,15 +20,47 @@ const EmployeeDashboard = () => {
   const [selectedFarmerData, setSelectedFarmerData] = useState(null);
   const [showEmployeeDetails, setShowEmployeeDetails] = useState(false);
   const [selectedEmployeeData, setSelectedEmployeeData] = useState(null);
+  const [editingFarmer, setEditingFarmer] = useState(null);
+
+  // Greeting function based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return 'Good Morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Good Afternoon';
+    } else if (hour >= 17 && hour < 21) {
+      return 'Good Evening';
+    } else {
+      return 'Good Night';
+    }
+  };
 
   const [filters, setFilters] = useState({
     kycStatus: '',
     assignedDate: ''
   });
 
-  // Mock data - replace with actual API calls
+  // Load data from API
   useEffect(() => {
-    // Mock assigned farmers data for the current employee
+    fetchAssignedFarmers();
+  }, []);
+
+  const fetchAssignedFarmers = async () => {
+    try {
+      // API call to get assigned farmers for current employee
+      // const response = await employeesAPI.getAssignedFarmers(user.id);
+      // setAssignedFarmers(response.data);
+      
+      // For now, using mock data
+      loadMockAssignedFarmers();
+    } catch (error) {
+      console.error('Error fetching assigned farmers:', error);
+      loadMockAssignedFarmers();
+    }
+  };
+
+  const loadMockAssignedFarmers = () => {
     const mockAssignedFarmers = [
       {
         id: 1,
@@ -39,7 +72,8 @@ const EmployeeDashboard = () => {
         kycStatus: 'APPROVED',
         location: 'Pune, Maharashtra',
         lastAction: '2024-01-20',
-        notes: 'All documents verified'
+        notes: 'All documents verified',
+        assignedEmployee: user?.name || 'John Doe'
       },
       {
         id: 2,
@@ -51,7 +85,8 @@ const EmployeeDashboard = () => {
         kycStatus: 'PENDING',
         location: 'Ahmedabad, Gujarat',
         lastAction: '2024-01-22',
-        notes: 'Documents pending verification'
+        notes: 'Documents pending verification',
+        assignedEmployee: user?.name || 'John Doe'
       },
       {
         id: 3,
@@ -63,7 +98,8 @@ const EmployeeDashboard = () => {
         kycStatus: 'REFER_BACK',
         location: 'Amritsar, Punjab',
         lastAction: '2024-01-25',
-        notes: 'Additional documents required'
+        notes: 'Additional documents required',
+        assignedEmployee: user?.name || 'John Doe'
       },
       {
         id: 4,
@@ -75,12 +111,39 @@ const EmployeeDashboard = () => {
         kycStatus: 'PENDING',
         location: 'Lucknow, Uttar Pradesh',
         lastAction: '2024-01-26',
-        notes: 'Initial review completed'
+        notes: 'Initial review completed',
+        assignedEmployee: user?.name || 'John Doe'
+      },
+      {
+        id: 5,
+        name: 'Lakshmi Devi',
+        phone: '9876543214',
+        state: 'Tamil Nadu',
+        district: 'Chennai',
+        assignedDate: '2024-01-12',
+        kycStatus: 'APPROVED',
+        location: 'Chennai, Tamil Nadu',
+        lastAction: '2024-01-18',
+        notes: 'All documents verified and approved',
+        assignedEmployee: user?.name || 'John Doe'
+      },
+      {
+        id: 6,
+        name: 'Krishna Reddy',
+        phone: '9876543215',
+        state: 'Andhra Pradesh',
+        district: 'Vijayawada',
+        assignedDate: '2024-01-25',
+        kycStatus: 'REJECTED',
+        location: 'Vijayawada, Andhra Pradesh',
+        lastAction: '2024-01-28',
+        notes: 'Documents incomplete - rejected',
+        assignedEmployee: user?.name || 'John Doe'
       }
     ];
 
     setAssignedFarmers(mockAssignedFarmers);
-  }, []);
+  };
 
   const getFilteredFarmers = () => {
     return assignedFarmers.filter(farmer => {
@@ -107,18 +170,47 @@ const EmployeeDashboard = () => {
     };
   };
 
-  const handleKYCUpdate = (farmerId, newStatus, reason) => {
-    setAssignedFarmers(prev => prev.map(farmer => {
-      if (farmer.id === farmerId) {
-        return {
-          ...farmer,
-          kycStatus: newStatus,
-          lastAction: new Date().toISOString().split('T')[0],
-          notes: reason || farmer.notes
-        };
-      }
-      return farmer;
-    }));
+  const getTodoList = () => {
+    const newAssignments = assignedFarmers.filter(f => {
+      // New assignments not yet viewed (assigned within last 3 days)
+      const assignedDate = new Date(f.assignedDate);
+      const today = new Date();
+      const daysDiff = (today - assignedDate) / (1000 * 60 * 60 * 24);
+      return daysDiff <= 3 && f.kycStatus === 'PENDING';
+    });
+
+    const pendingReviews = assignedFarmers.filter(f => f.kycStatus === 'PENDING');
+    const referBackCases = assignedFarmers.filter(f => f.kycStatus === 'REFER_BACK');
+
+    return {
+      newAssignments,
+      pendingReviews,
+      referBackCases
+    };
+  };
+
+  const handleKYCUpdate = async (farmerId, newStatus, reason = '') => {
+    try {
+      // API call to update KYC status
+      // await employeesAPI.updateKYCStatus(farmerId, newStatus, reason);
+      
+      // Update local state
+      setAssignedFarmers(prev => prev.map(farmer => 
+        farmer.id === farmerId 
+          ? { 
+              ...farmer, 
+              kycStatus: newStatus,
+              lastAction: new Date().toISOString().split('T')[0],
+              notes: reason || `Status updated to ${newStatus}`
+            }
+          : farmer
+      ));
+      
+      alert(`KYC status updated to ${newStatus} successfully!`);
+    } catch (error) {
+      console.error('Error updating KYC status:', error);
+      alert('Failed to update KYC status');
+    }
   };
 
   const handleLogout = () => {
@@ -126,54 +218,7 @@ const EmployeeDashboard = () => {
   };
 
   const handleViewFarmer = (farmer) => {
-    // Convert the farmer data to match the registration form structure
-    const farmerData = {
-      firstName: farmer.name.split(' ')[0] || '',
-      lastName: farmer.name.split(' ').slice(1).join(' ') || '',
-      mobileNumber: farmer.phone,
-      state: farmer.state,
-      district: farmer.district,
-      kycStatus: farmer.kycStatus,
-      status: 'ASSIGNED',
-      assignedEmployee: user?.name || 'Current Employee',
-      assignedDate: farmer.assignedDate,
-      // Add mock data for other fields
-      dateOfBirth: '1990-01-01',
-      gender: 'Male',
-      email: 'farmer@example.com',
-      maritalStatus: 'Married',
-      religion: 'Hindu',
-      caste: 'General',
-      category: 'General',
-      education: 'High School',
-      village: 'Sample Village',
-      postOffice: 'Sample Post Office',
-      policeStation: 'Sample Police Station',
-      pincode: '123456',
-      occupation: 'Farmer',
-      annualIncome: '50000',
-      landOwnership: 'Owned',
-      landArea: '5',
-      irrigationType: 'Tube Well',
-      soilType: 'Alluvial',
-      primaryCrop: 'Wheat',
-      secondaryCrop: 'Rice',
-      cropSeason: 'Rabi',
-      farmingExperience: '10',
-      bankName: 'State Bank of India',
-      branchName: 'Main Branch',
-      accountNumber: '1234567890',
-      ifscCode: 'SBIN0001234',
-      accountType: 'Savings',
-      aadhaarNumber: '123456789012',
-      panNumber: 'ABCDE1234F',
-      voterId: 'ABC1234567',
-      rationCardNumber: '123456789',
-      registrationDate: farmer.assignedDate || new Date().toISOString(),
-      photo: null
-    };
-    
-    setSelectedFarmerData(farmerData);
+    setSelectedFarmerData(farmer);
     setShowFarmerDetails(true);
   };
 
@@ -188,99 +233,158 @@ const EmployeeDashboard = () => {
   };
 
   const handleUpdateEmployee = (updatedData) => {
-    // In a real app, this would update the employee's own profile
-    console.log('Employee profile updated:', updatedData);
+    // Update employee profile
     setShowEmployeeDetails(false);
     setSelectedEmployeeData(null);
   };
 
+  const handleEditFarmer = (farmer) => {
+    setEditingFarmer(farmer);
+    setShowFarmerForm(true);
+  };
 
+  const renderOverview = () => {
+    const stats = getStats();
+    const todoList = getTodoList();
 
-  const renderOverview = () => (
-    <div className="dashboard-content">
-      <div className="stats-grid">
-        <StatsCard
-          title="Total Assigned"
-          value={getStats().totalAssigned}
-          icon="📋"
-          color="blue"
-        />
-        <StatsCard
-          title="Approved"
-          value={getStats().approved}
-          icon="✅"
-          color="green"
-        />
-        <StatsCard
-          title="Pending"
-          value={getStats().pending}
-          icon="⏳"
-          color="orange"
-        />
-        <StatsCard
-          title="Refer Back"
-          value={getStats().referBack}
-          icon="🔄"
-          color="yellow"
-        />
-      </div>
+    return (
+      <div className="overview-section">
+        <div className="overview-header">
+          <h2 className="overview-title">Employee Dashboard Overview</h2>
+          <p className="overview-description">
+            Manage your assigned farmers and KYC verification tasks efficiently.
+          </p>
+        </div>
 
-      <div className="quick-actions">
-        <h3>Quick Actions</h3>
-        <div className="action-buttons">
-          <button 
-            className="action-btn primary"
-            onClick={() => setShowFarmerForm(true)}
-          >
-            ➕ Add Farmer
-          </button>
-          <button 
-            className="action-btn secondary"
-            onClick={() => setCurrentView('assigned')}
-          >
-            📋 View Assigned Farmers
-          </button>
+        {/* Stats Cards */}
+        <div className="stats-grid">
+          <StatsCard
+            title="Total Assigned"
+            value={stats.totalAssigned}
+            change=""
+            changeType="neutral"
+            icon="👥"
+          />
+          <StatsCard
+            title="Approved"
+            value={stats.approved}
+            change=""
+            changeType="positive"
+            icon="✅"
+          />
+          <StatsCard
+            title="Pending"
+            value={stats.pending}
+            change=""
+            changeType="warning"
+            icon="⏳"
+          />
+          <StatsCard
+            title="Refer Back"
+            value={stats.referBack}
+            change=""
+            changeType="warning"
+            icon="📝"
+          />
+        </div>
+
+        {/* KYC Progress Chart */}
+        <div className="kyc-progress-section">
+          <h3>KYC Progress Summary</h3>
+          <div className="kyc-progress-grid">
+            <div className="progress-card approved">
+              <div className="progress-circle">
+                <span className="progress-number">{stats.approved}</span>
+                <span className="progress-label">Approved</span>
+              </div>
+            </div>
+            <div className="progress-card pending">
+              <div className="progress-circle">
+                <span className="progress-number">{stats.pending}</span>
+                <span className="progress-label">Pending</span>
+              </div>
+            </div>
+            <div className="progress-card refer-back">
+              <div className="progress-circle">
+                <span className="progress-number">{stats.referBack}</span>
+                <span className="progress-label">Refer Back</span>
+              </div>
+            </div>
+            <div className="progress-card rejected">
+              <div className="progress-circle">
+                <span className="progress-number">{stats.rejected}</span>
+                <span className="progress-label">Rejected</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Todo List */}
+        <div className="todo-section">
+          <h3>To-Do List</h3>
+          <div className="todo-grid">
+            <div className="todo-card">
+              <h4>New Assignments</h4>
+              <p>{todoList.newAssignments.length} new farmers assigned</p>
+              <button 
+                className="action-btn-small primary"
+                onClick={() => setActiveTab('farmers')}
+              >
+                Review New
+              </button>
+            </div>
+            <div className="todo-card">
+              <h4>Pending Reviews</h4>
+              <p>{todoList.pendingReviews.length} cases pending</p>
+              <button 
+                className="action-btn-small warning"
+                onClick={() => setActiveTab('farmers')}
+              >
+                Process Pending
+              </button>
+            </div>
+            <div className="todo-card">
+              <h4>Refer Back Cases</h4>
+              <p>{todoList.referBackCases.length} need attention</p>
+              <button 
+                className="action-btn-small info"
+                onClick={() => setActiveTab('farmers')}
+              >
+                Review Refer Back
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+    );
+  };
 
-      <div className="todo-panel">
-        <h3>To-Do List</h3>
-        <div className="todo-items">
-          {getStats().pending > 0 && (
-            <div className="todo-item">
-              <span className="todo-icon">⏳</span>
-              <span>{getStats().pending} KYC cases pending review</span>
-            </div>
-          )}
-          {getStats().referBack > 0 && (
-            <div className="todo-item">
-              <span className="todo-icon">🔄</span>
-              <span>{getStats().referBack} cases need follow-up</span>
-            </div>
-          )}
-          {assignedFarmers.filter(f => {
-            const assignedDate = new Date(f.assignedDate);
-            const daysDiff = (new Date() - assignedDate) / (1000 * 60 * 60 * 24);
-            return daysDiff > 7 && f.kycStatus === 'PENDING';
-          }).length > 0 && (
-            <div className="todo-item">
-              <span className="todo-icon">⚠️</span>
-              <span>Some KYC cases are overdue</span>
-            </div>
-          )}
+  const renderAssignedFarmers = () => {
+    const filteredFarmers = getFilteredFarmers();
+
+    return (
+      <div className="overview-section">
+        <div className="overview-header">
+          <h2 className="overview-title">Assigned Farmers</h2>
+          <p className="overview-description">
+            View and manage your assigned farmers with KYC verification tasks.
+          </p>
+          <div className="overview-actions">
+            <button 
+              className="action-btn primary"
+              onClick={() => setShowFarmerForm(true)}
+            >
+              Add Farmer
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
-  );
 
-  const renderAssignedFarmers = () => (
-    <div className="dashboard-content">
-      <div className="filters-section">
-        <h3>Assigned Farmers</h3>
-        <div className="filters">
+        {/* Filters */}
+        <div className="filters-section">
           <select 
             value={filters.kycStatus} 
             onChange={(e) => setFilters(prev => ({ ...prev, kycStatus: e.target.value }))}
+            className="filter-select"
           >
             <option value="">All KYC Status</option>
             <option value="APPROVED">Approved</option>
@@ -291,158 +395,246 @@ const EmployeeDashboard = () => {
           <select 
             value={filters.assignedDate} 
             onChange={(e) => setFilters(prev => ({ ...prev, assignedDate: e.target.value }))}
+            className="filter-select"
           >
-            <option value="">All Dates</option>
-            <option value="2024-01-15">2024-01-15</option>
-            <option value="2024-01-18">2024-01-18</option>
-            <option value="2024-01-20">2024-01-20</option>
+            <option value="">All Assignment Dates</option>
+            <option value="2024-01-15">Jan 15, 2024</option>
+            <option value="2024-01-18">Jan 18, 2024</option>
+            <option value="2024-01-20">Jan 20, 2024</option>
+            <option value="2024-01-25">Jan 25, 2024</option>
           </select>
         </div>
-      </div>
 
-      <div className="farmers-grid">
-        {getFilteredFarmers().map(farmer => (
-          <div key={farmer.id} className="farmer-card">
-            <div className="farmer-header">
-              <h4>{farmer.name}</h4>
-              <span className={`status-badge ${farmer.kycStatus.toLowerCase()}`}>
-                {farmer.kycStatus}
-              </span>
-            </div>
-            <div className="farmer-details">
-              <p><strong>Phone:</strong> {farmer.phone}</p>
-              <p><strong>Location:</strong> {farmer.location}</p>
-              <p><strong>Assigned Date:</strong> {farmer.assignedDate}</p>
-              <p><strong>Last Action:</strong> {farmer.lastAction}</p>
-              {farmer.notes && (
-                <p><strong>Notes:</strong> {farmer.notes}</p>
-              )}
-            </div>
-            <div className="farmer-actions">
-              <button 
-                className="action-btn-small primary"
-                onClick={() => {
-                  setSelectedFarmer(farmer);
-                  setShowKYCModal(true);
-                }}
-              >
-                Review KYC
-              </button>
-              
-              <button 
-                className="action-btn-small info"
-                onClick={() => handleViewFarmer(farmer)}
-              >
-                👁️ View Details
-              </button>
-            </div>
-          </div>
-        ))}
+        {/* Farmers Table */}
+        <DataTable
+          data={filteredFarmers}
+          columns={[
+            { key: 'name', label: 'Name' },
+            { key: 'phone', label: 'Phone' },
+            { key: 'location', label: 'Location' },
+            { key: 'assignedDate', label: 'Assigned Date' },
+            { key: 'kycStatus', label: 'KYC Status' },
+            { key: 'lastAction', label: 'Last Action' },
+            { key: 'notes', label: 'Notes' }
+          ]}
+          customActions={[
+            {
+              label: 'View',
+              className: 'action-btn-small info',
+              onClick: handleViewFarmer
+            },
+            {
+              label: 'Edit',
+              className: 'action-btn-small primary',
+              onClick: handleEditFarmer
+            },
+            {
+              label: 'Approve',
+              className: 'action-btn-small success',
+              onClick: (farmer) => handleKYCUpdate(farmer.id, 'APPROVED'),
+              showCondition: (farmer) => farmer.kycStatus === 'PENDING' || farmer.kycStatus === 'REFER_BACK'
+            },
+            {
+              label: 'Refer Back',
+              className: 'action-btn-small warning',
+              onClick: (farmer) => {
+                const reason = prompt('Enter reason for refer back:');
+                if (reason) {
+                  handleKYCUpdate(farmer.id, 'REFER_BACK', reason);
+                }
+              },
+              showCondition: (farmer) => farmer.kycStatus === 'PENDING'
+            },
+            {
+              label: 'Reject',
+              className: 'action-btn-small danger',
+              onClick: (farmer) => {
+                const reason = prompt('Enter reason for rejection:');
+                if (reason) {
+                  handleKYCUpdate(farmer.id, 'REJECTED', reason);
+                }
+              },
+              showCondition: (farmer) => farmer.kycStatus === 'PENDING' || farmer.kycStatus === 'REFER_BACK'
+            }
+          ]}
+        />
       </div>
-    </div>
-  );
+    );
+  };
 
-  const renderKYCProgress = () => (
-    <div className="dashboard-content">
-      <h3>KYC Progress Summary</h3>
-      <div className="kyc-progress">
-        <div className="progress-item">
-          <div className="progress-label">Approved</div>
-          <div className="progress-bar">
-            <div 
-              className="progress-fill approved" 
-              style={{ width: `${(getStats().approved / getStats().totalAssigned) * 100}%` }}
-            ></div>
-          </div>
-          <div className="progress-value">{getStats().approved}</div>
+  const renderKYCProgress = () => {
+    const stats = getStats();
+    const total = stats.totalAssigned;
+    const approvedPercentage = total > 0 ? Math.round((stats.approved / total) * 100) : 0;
+    const pendingPercentage = total > 0 ? Math.round((stats.pending / total) * 100) : 0;
+    const referBackPercentage = total > 0 ? Math.round((stats.referBack / total) * 100) : 0;
+    const rejectedPercentage = total > 0 ? Math.round((stats.rejected / total) * 100) : 0;
+
+    return (
+      <div className="overview-section">
+        <div className="overview-header">
+          <h2 className="overview-title">KYC Progress Tracking</h2>
+          <p className="overview-description">
+            Monitor your KYC verification progress and performance metrics.
+          </p>
         </div>
-        <div className="progress-item">
-          <div className="progress-label">Pending</div>
-          <div className="progress-bar">
-            <div 
-              className="progress-fill pending" 
-              style={{ width: `${(getStats().pending / getStats().totalAssigned) * 100}%` }}
-            ></div>
+
+        {/* Progress Overview */}
+        <div className="progress-overview">
+          <div className="progress-stats">
+            <div className="progress-stat">
+              <h3>Overall Progress</h3>
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill approved" 
+                  style={{ width: `${approvedPercentage}%` }}
+                ></div>
+                <div 
+                  className="progress-fill pending" 
+                  style={{ width: `${pendingPercentage}%` }}
+                ></div>
+                <div 
+                  className="progress-fill refer-back" 
+                  style={{ width: `${referBackPercentage}%` }}
+                ></div>
+                <div 
+                  className="progress-fill rejected" 
+                  style={{ width: `${rejectedPercentage}%` }}
+                ></div>
+              </div>
+              <div className="progress-labels">
+                <span>Approved: {approvedPercentage}%</span>
+                <span>Pending: {pendingPercentage}%</span>
+                <span>Refer Back: {referBackPercentage}%</span>
+                <span>Rejected: {rejectedPercentage}%</span>
+              </div>
+            </div>
           </div>
-          <div className="progress-value">{getStats().pending}</div>
         </div>
-        <div className="progress-item">
-          <div className="progress-label">Refer Back</div>
-          <div className="progress-bar">
-            <div 
-              className="progress-fill refer-back" 
-              style={{ width: `${(getStats().referBack / getStats().totalAssigned) * 100}%` }}
-            ></div>
+
+        {/* Detailed Stats */}
+        <div className="detailed-stats">
+          <div className="stat-card approved">
+            <h4>Approved Cases</h4>
+            <div className="stat-content">
+              <span className="stat-number">{stats.approved}</span>
+              <span className="stat-percentage">{approvedPercentage}%</span>
+            </div>
           </div>
-          <div className="progress-value">{getStats().referBack}</div>
-        </div>
-        <div className="progress-item">
-          <div className="progress-label">Rejected</div>
-          <div className="progress-bar">
-            <div 
-              className="progress-fill rejected" 
-              style={{ width: `${(getStats().rejected / getStats().totalAssigned) * 100}%` }}
-            ></div>
+          <div className="stat-card pending">
+            <h4>Pending Cases</h4>
+            <div className="stat-content">
+              <span className="stat-number">{stats.pending}</span>
+              <span className="stat-percentage">{pendingPercentage}%</span>
+            </div>
           </div>
-          <div className="progress-value">{getStats().rejected}</div>
+          <div className="stat-card refer-back">
+            <h4>Refer Back Cases</h4>
+            <div className="stat-content">
+              <span className="stat-number">{stats.referBack}</span>
+              <span className="stat-percentage">{referBackPercentage}%</span>
+            </div>
+          </div>
+          <div className="stat-card rejected">
+            <h4>Rejected Cases</h4>
+            <div className="stat-content">
+              <span className="stat-number">{stats.rejected}</span>
+              <span className="stat-percentage">{rejectedPercentage}%</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="dashboard">
-      <div className="dashboard-header">
-        <div className="header-left">
-          <h1>Employee Dashboard</h1>
-          <p>Welcome back, {user?.name}</p>
+      {/* Sidebar */}
+      <div className="dashboard-sidebar">
+        <div className="sidebar-header">
+          <h2>DATE Digital Agristack</h2>
+          <p>Employee Dashboard</p>
         </div>
-        <div className="header-right">
-          <button className="logout-btn" onClick={handleLogout}>
-            Logout
-          </button>
+        
+        <div className="sidebar-nav">
+          <div 
+            className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
+            onClick={() => setActiveTab('overview')}
+          >
+            <i className="fas fa-tachometer-alt"></i>
+            <span>Overview</span>
+          </div>
+          
+          <div 
+            className={`nav-item ${activeTab === 'farmers' ? 'active' : ''}`}
+            onClick={() => setActiveTab('farmers')}
+          >
+            <i className="fas fa-users"></i>
+            <span>Assigned Farmers</span>
+          </div>
+          
+          <div 
+            className={`nav-item ${activeTab === 'progress' ? 'active' : ''}`}
+            onClick={() => setActiveTab('progress')}
+          >
+            <i className="fas fa-chart-line"></i>
+            <span>KYC Progress</span>
+          </div>
         </div>
       </div>
 
-      <div className="dashboard-nav">
-        <button 
-          className={`nav-btn ${currentView === 'overview' ? 'active' : ''}`}
-          onClick={() => setCurrentView('overview')}
-        >
-          📊 Overview
-        </button>
-        <button 
-          className={`nav-btn ${currentView === 'assigned' ? 'active' : ''}`}
-          onClick={() => setCurrentView('assigned')}
-        >
-          👨‍🌾 Assigned Farmers
-        </button>
-        <button 
-          className={`nav-btn ${currentView === 'progress' ? 'active' : ''}`}
-          onClick={() => setCurrentView('progress')}
-        >
-          📈 KYC Progress
-        </button>
-      </div>
-
+      {/* Main Content */}
       <div className="dashboard-main">
-        {currentView === 'overview' && renderOverview()}
-        {currentView === 'assigned' && renderAssignedFarmers()}
-        {currentView === 'progress' && renderKYCProgress()}
+        {/* Top Header Bar */}
+        <div className="top-header"></div>
+
+        {/* Dashboard Header */}
+        <div className="dashboard-header">
+          <div className="header-left">
+            <div className="greeting-section">
+              <h2 className="greeting-text">{getGreeting()}, {user?.name || 'Employee'}! 👋</h2>
+              <p className="greeting-time">{new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}</p>
+            </div>
+            <h1 className="header-title">Employee Dashboard</h1>
+            <p className="header-subtitle">Manage assigned farmers and KYC</p>
+          </div>
+          <div className="header-right">
+            <UserProfileDropdown />
+          </div>
+        </div>
+
+        {/* Dashboard Content */}
+        <div className="dashboard-content">
+          {activeTab === 'overview' && renderOverview()}
+          {activeTab === 'farmers' && renderAssignedFarmers()}
+          {activeTab === 'progress' && renderKYCProgress()}
+        </div>
       </div>
 
+      {/* Modals */}
       {showFarmerForm && (
         <FarmerForm 
-          onClose={() => setShowFarmerForm(false)}
-          onSubmit={(farmerData) => {
-            setAssignedFarmers(prev => [...prev, { 
-              ...farmerData, 
-              id: Date.now(),
-              assignedDate: new Date().toISOString().split('T')[0],
-              kycStatus: 'PENDING',
-              lastAction: new Date().toISOString().split('T')[0]
-            }]);
+          editData={editingFarmer}
+          onClose={() => {
             setShowFarmerForm(false);
+            setEditingFarmer(null);
+          }}
+          onSubmit={async (farmerData) => {
+            try {
+              // API call to create/update farmer
+              setAssignedFarmers(prev => [...prev, { ...farmerData, id: Date.now() }]);
+              setShowFarmerForm(false);
+              setEditingFarmer(null);
+              alert('Farmer saved successfully!');
+            } catch (error) {
+              console.error('Error saving farmer:', error);
+              alert('Failed to save farmer. Please try again.');
+            }
           }}
         />
       )}
@@ -454,24 +646,26 @@ const EmployeeDashboard = () => {
             setShowKYCModal(false);
             setSelectedFarmer(null);
           }}
-          onSubmit={handleKYCUpdate}
+          onApprove={(farmerId) => handleKYCUpdate(farmerId, 'APPROVED')}
+          onReject={(farmerId, reason) => handleKYCUpdate(farmerId, 'REJECTED', reason)}
+          onReferBack={(farmerId, reason) => handleKYCUpdate(farmerId, 'REFER_BACK', reason)}
         />
       )}
 
-      {showFarmerDetails && (
+      {showFarmerDetails && selectedFarmerData && (
         <ViewFarmerRegistrationDetails
           farmerData={selectedFarmerData}
           onClose={handleCloseFarmerDetails}
         />
       )}
-      {showEmployeeDetails && (
+
+      {showEmployeeDetails && selectedEmployeeData && (
         <ViewEditEmployeeDetails
-          employeeData={selectedEmployeeData}
+          employee={selectedEmployeeData}
           onClose={handleCloseEmployeeDetails}
           onUpdate={handleUpdateEmployee}
         />
       )}
-
     </div>
   );
 };

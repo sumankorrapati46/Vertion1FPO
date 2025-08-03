@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <h1>Backend Integration Test</h1>
+    <p>This page tests the backend integration for the SuperAdminDashboard.</p>
+
+    <div class="test-section">
+        <h2>API Endpoint Tests</h2>
+        <button class="test-button" onclick="testGetAllUsers()">Test Get All Users</button>
+        <button class="test-button" onclick="testGetAllFarmers()">Test Get All Farmers</button>
+        <button class="test-button" onclick="testGetAllEmployees()">Test Get All Employees</button>
+        <button class="test-button" onclick="testGetDashboardStats()">Test Dashboard Stats</button>
+        <button class="test-button" onclick="testGetPendingRegistrations()">Test Pending Registrations</button>
+        <div id="api-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Frontend Integration Test</h2>
+        <p>To test the frontend integration:</p>
+        <ol>
+            <li>Make sure the backend server is running on port 8080</li>
+            <li>Start the frontend development server: <code>npm start</code></li>
+            <li>Navigate to <code>http://localhost:3000/super-admin/dashboard</code></li>
+            <li>Check that the data loads from the backend instead of hardcoded data</li>
+            <li>Test the registration list functionality</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>Expected Features</h2>
+        <ul>
+            <li>✅ Real data from backend instead of hardcoded data</li>
+            <li>✅ Registration list with approval/rejection functionality</li>
+            <li>✅ Farmer management with KYC status</li>
+            <li>✅ Employee management</li>
+            <li>✅ Dashboard statistics from backend</li>
+            <li>✅ Filtering and search capabilities</li>
+        </ul>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        
+        async function makeApiCall(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        function showResult(message, type = 'success') {
+            const resultsDiv = document.getElementById('api-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${type}`;
+            resultDiv.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        async function testGetAllUsers() {
+            try {
+                showResult('Testing Get All Users...', 'loading');
+                const data = await makeApiCall('/super-admin/users');
+                showResult(`✅ Get All Users: ${data.length} users found`);
+            } catch (error) {
+                showResult(`❌ Get All Users failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGetAllFarmers() {
+            try {
+                showResult('Testing Get All Farmers...', 'loading');
+                const data = await makeApiCall('/super-admin/farmers');
+                showResult(`✅ Get All Farmers: ${data.length} farmers found`);
+            } catch (error) {
+                showResult(`❌ Get All Farmers failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGetAllEmployees() {
+            try {
+                showResult('Testing Get All Employees...', 'loading');
+                const data = await makeApiCall('/super-admin/employees');
+                showResult(`✅ Get All Employees: ${data.length} employees found`);
+            } catch (error) {
+                showResult(`❌ Get All Employees failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGetDashboardStats() {
+            try {
+                showResult('Testing Dashboard Stats...', 'loading');
+                const data = await makeApiCall('/super-admin/dashboard/stats');
+                showResult(`✅ Dashboard Stats: ${JSON.stringify(data)}`);
+            } catch (error) {
+                showResult(`❌ Dashboard Stats failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGetPendingRegistrations() {
+            try {
+                showResult('Testing Pending Registrations...', 'loading');
+                const data = await makeApiCall('/super-admin/pending-registrations');
+                showResult(`✅ Pending Registrations: ${data.length} pending registrations found`);
+            } catch (error) {
+                showResult(`❌ Pending Registrations failed: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html> 

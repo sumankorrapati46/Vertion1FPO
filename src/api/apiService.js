@@ -58,19 +58,22 @@ export const authAPI = {
 
   // Send OTP
   sendOTP: async (email) => {
-    const response = await api.post('/auth/send-otp', { email });
+    const response = await api.post('/auth/send-otp', { emailOrPhone: email });
     return response.data;
   },
 
   // Verify OTP
   verifyOTP: async (otpData) => {
-    const response = await api.post('/auth/verify-otp', otpData);
+    const response = await api.post('/auth/verify-otp', { 
+      emailOrPhone: otpData.email, 
+      otp: otpData.otp 
+    });
     return response.data;
   },
 
   // Resend OTP
   resendOTP: async (email) => {
-    const response = await api.post('/auth/resend-otp', { email });
+    const response = await api.post('/auth/resend-otp', { emailOrPhone: email });
     return response.data;
   },
 
@@ -117,47 +120,239 @@ export const authAPI = {
   }
 };
 
+// Super Admin API calls
+export const superAdminAPI = {
+  // Get all users (registrations)
+  getAllUsers: async () => {
+    const response = await api.get('/super-admin/registration-list');
+    return response.data;
+  },
+
+  // Get registration list with filters
+  getRegistrationList: async (filters = {}) => {
+    const response = await api.get('/super-admin/registration-list', { params: filters });
+    return response.data;
+  },
+
+  // Get registration list by status
+  getRegistrationListByStatus: async (status) => {
+    const response = await api.get('/super-admin/registration-list/filter', { params: { status } });
+    return response.data;
+  },
+
+  // Search registrations
+  searchRegistrations: async (query) => {
+    const response = await api.get('/super-admin/registration-list/search', { params: { query } });
+    return response.data;
+  },
+
+  // Get pending registrations
+  getPendingRegistrations: async () => {
+    const response = await api.get('/super-admin/pending-registrations');
+    return response.data;
+  },
+
+  // Get approved users
+  getApprovedUsers: async () => {
+    const response = await api.get('/super-admin/approved-users');
+    return response.data;
+  },
+
+  // Get users by role
+  getUsersByRole: async (role) => {
+    const response = await api.get(`/super-admin/users/by-role/${role}`);
+    return response.data;
+  },
+
+  // Get pending users by role
+  getPendingUsersByRole: async (role) => {
+    const response = await api.get(`/super-admin/pending-users/by-role/${role}`);
+    return response.data;
+  },
+
+  // Approve user
+  approveUser: async (userId, role) => {
+    const response = await api.put(`/auth/users/${userId}/approve`, { role });
+    return response.data;
+  },
+
+  // Reject user (update status to REJECTED)
+  rejectUser: async (userId, reason) => {
+    const response = await api.put(`/auth/users/${userId}/status`, { status: 'REJECTED' });
+    return response.data;
+  },
+
+  // Delete user
+  deleteUser: async (userId) => {
+    const response = await api.delete(`/super-admin/users/${userId}`);
+    return response.data;
+  },
+
+  // Update user
+  updateUser: async (userId, userData) => {
+    const response = await api.put(`/super-admin/users/${userId}`, userData);
+    return response.data;
+  },
+
+  // Update user status
+  updateUserStatus: async (userId, status) => {
+    const response = await api.put(`/auth/users/${userId}/status`, { status });
+    return response.data;
+  },
+
+  // Get dashboard stats
+  getDashboardStats: async () => {
+    const response = await api.get('/super-admin/dashboard/stats');
+    return response.data;
+  },
+
+  // Bulk assign farmers to employee
+  bulkAssignFarmers: async (farmerIds, employeeId) => {
+    const response = await api.post('/super-admin/bulk-assign-farmers', { farmerIds, employeeId });
+    return response.data;
+  },
+
+  // Single assign farmer to employee (fallback)
+  assignFarmer: async (farmerId, employeeId) => {
+    const response = await api.post('/super-admin/assign-farmer', null, { 
+      params: { farmerId, employeeId } 
+    });
+    return response.data;
+  }
+};
+
 // Farmers API calls
 export const farmersAPI = {
   // Get all farmers
   getAllFarmers: async (filters = {}) => {
-    const response = await api.get('/farmers', { params: filters });
+    const response = await api.get('/super-admin/farmers', { params: filters });
     return response.data;
   },
 
   // Get farmer by ID
   getFarmerById: async (id) => {
-    const response = await api.get(`/farmers/${id}`);
+    const response = await api.get(`/super-admin/farmers/${id}`);
     return response.data;
   },
 
   // Create farmer
   createFarmer: async (farmerData) => {
-    const response = await api.post('/farmers', farmerData);
+    const response = await api.post('/super-admin/farmers', farmerData);
     return response.data;
   },
 
   // Update farmer
   updateFarmer: async (id, farmerData) => {
-    const response = await api.put(`/farmers/${id}`, farmerData);
+    const response = await api.put(`/super-admin/farmers/${id}`, farmerData);
     return response.data;
   },
 
   // Delete farmer
   deleteFarmer: async (id) => {
-    const response = await api.delete(`/farmers/${id}`);
+    const response = await api.delete(`/super-admin/farmers/${id}`);
     return response.data;
   },
 
   // Assign farmer to employee
   assignFarmer: async (farmerId, employeeId) => {
-    const response = await api.post(`/farmers/${farmerId}/assign`, { employeeId });
+    const response = await api.post(`/super-admin/farmers/${farmerId}/assign`, { employeeId });
     return response.data;
   },
 
   // Get farmer statistics
   getFarmerStats: async () => {
-    const response = await api.get('/farmers/stats');
+    const response = await api.get('/super-admin/farmers/stats');
+    return response.data;
+  }
+};
+
+// Admin-specific API calls
+export const adminAPI = {
+  // Get all farmers for admin
+  getAllFarmers: async (filters = {}) => {
+    const response = await api.get('/admin/farmers', { params: filters });
+    return response.data;
+  },
+
+  // Get all employees for admin
+  getAllEmployees: async (filters = {}) => {
+    const response = await api.get('/admin/employees', { params: filters });
+    return response.data;
+  },
+
+  // Get farmers with KYC status
+  getFarmersWithKyc: async () => {
+    const response = await api.get('/admin/farmers-with-kyc');
+    return response.data;
+  },
+
+  // Get employees with stats
+  getEmployeesWithStats: async () => {
+    const response = await api.get('/admin/employees-with-stats');
+    return response.data;
+  },
+
+  // Get farmers by employee
+  getFarmersByEmployee: async (employeeId) => {
+    const response = await api.get(`/admin/employees/${employeeId}/assigned-farmers`);
+    return response.data;
+  },
+
+  // Get todo list for admin
+  getTodoList: async () => {
+    const response = await api.get('/admin/todo-list');
+    return response.data;
+  },
+
+  // Get enhanced todo list
+  getEnhancedTodoList: async () => {
+    const response = await api.get('/admin/enhanced-todo-list');
+    return response.data;
+  },
+
+  // Get dashboard stats
+  getDashboardStats: async () => {
+    const response = await api.get('/admin/dashboard-stats');
+    return response.data;
+  },
+
+  // Filter farmers
+  filterFarmers: async (filters = {}) => {
+    const response = await api.get('/admin/farmers/filter', { params: filters });
+    return response.data;
+  },
+
+  // Get locations
+  getLocations: async () => {
+    const response = await api.get('/admin/locations');
+    return response.data;
+  },
+
+  // Bulk assign farmers to employee
+  bulkAssignFarmers: async (farmerIds, employeeId) => {
+    const response = await api.post('/admin/bulk-assign-farmers', { farmerIds, employeeId });
+    return response.data;
+  },
+
+  // Single assign farmer to employee (fallback)
+  assignFarmer: async (farmerId, employeeId) => {
+    const response = await api.post('/admin/assign-farmer', null, { 
+      params: { farmerId, employeeId } 
+    });
+    return response.data;
+  },
+
+  // Get assignment history
+  getAssignmentHistory: async (filters = {}) => {
+    const response = await api.get('/admin/assignment-history', { params: filters });
+    return response.data;
+  },
+
+  // Get farmers by assignment status
+  getFarmersByAssignmentStatus: async (assignmentStatus) => {
+    const response = await api.get('/admin/farmers/by-assignment-status', { 
+      params: { assignmentStatus } 
+    });
     return response.data;
   }
 };
@@ -166,43 +361,43 @@ export const farmersAPI = {
 export const employeesAPI = {
   // Get all employees
   getAllEmployees: async (filters = {}) => {
-    const response = await api.get('/employees', { params: filters });
+    const response = await api.get('/super-admin/employees', { params: filters });
     return response.data;
   },
 
   // Get employee by ID
   getEmployeeById: async (id) => {
-    const response = await api.get(`/employees/${id}`);
+    const response = await api.get(`/super-admin/employees/${id}`);
     return response.data;
   },
 
   // Create employee
   createEmployee: async (employeeData) => {
-    const response = await api.post('/employees', employeeData);
+    const response = await api.post('/super-admin/employees', employeeData);
     return response.data;
   },
 
   // Update employee
   updateEmployee: async (id, employeeData) => {
-    const response = await api.put(`/employees/${id}`, employeeData);
+    const response = await api.put(`/super-admin/employees/${id}`, employeeData);
     return response.data;
   },
 
   // Delete employee
   deleteEmployee: async (id) => {
-    const response = await api.delete(`/employees/${id}`);
+    const response = await api.delete(`/super-admin/employees/${id}`);
     return response.data;
   },
 
   // Get assigned farmers for employee
   getAssignedFarmers: async (employeeId) => {
-    const response = await api.get(`/employees/${employeeId}/assigned-farmers`);
+    const response = await api.get(`/super-admin/employees/${employeeId}/assigned-farmers`);
     return response.data;
   },
 
   // Get employee statistics
   getEmployeeStats: async () => {
-    const response = await api.get('/employees/stats');
+    const response = await api.get('/super-admin/employees/stats');
     return response.data;
   }
 };

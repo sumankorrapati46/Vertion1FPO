@@ -1,135 +1,124 @@
 import React, { useState } from 'react';
 import '../styles/Forms.css';
 
-const KYCModal = ({ farmer, onClose, onSubmit }) => {
-  const [kycStatus, setKycStatus] = useState('');
+const KYCModal = ({ farmer, onClose, onApprove, onReject, onReferBack }) => {
   const [reason, setReason] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [action, setAction] = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!kycStatus) {
-      alert('Please select a KYC status');
+  const handleSubmit = () => {
+    if (!action) {
+      alert('Please select an action');
       return;
     }
 
-    if ((kycStatus === 'REFER_BACK' || kycStatus === 'REJECTED') && !reason.trim()) {
-      alert('Please provide a reason for refer back or rejection');
+    if ((action === 'reject' || action === 'refer-back') && !reason.trim()) {
+      alert('Please provide a reason');
       return;
     }
 
-    setLoading(true);
-
-    try {
-      await onSubmit(farmer.id, kycStatus, reason);
-      onClose();
-    } catch (error) {
-      console.error('Error updating KYC status:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'APPROVED':
-        return 'green';
-      case 'PENDING':
-        return 'orange';
-      case 'REFER_BACK':
-        return 'yellow';
-      case 'REJECTED':
-        return 'red';
+    switch (action) {
+      case 'approve':
+        onApprove(farmer.id);
+        break;
+      case 'reject':
+        onReject(farmer.id, reason);
+        break;
+      case 'refer-back':
+        onReferBack(farmer.id, reason);
+        break;
       default:
-        return 'gray';
+        break;
     }
+    
+    onClose();
   };
+
+  if (!farmer) return null;
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content">
+      <div className="modal-content kyc-modal">
         <div className="modal-header">
           <h2>KYC Review - {farmer.name}</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <button className="modal-close" onClick={onClose}>×</button>
         </div>
-
-        <div className="farmer-details">
-          <div className="detail-row">
-            <span className="label">Phone:</span>
-            <span className="value">{farmer.phone}</span>
-          </div>
-          <div className="detail-row">
-            <span className="label">Location:</span>
-            <span className="value">{farmer.location}</span>
-          </div>
-          <div className="detail-row">
-            <span className="label">Assigned Date:</span>
-            <span className="value">{farmer.assignedDate}</span>
-          </div>
-          <div className="detail-row">
-            <span className="label">Current Status:</span>
-            <span className={`status-badge ${getStatusColor(farmer.kycStatus)}`}>
-              {farmer.kycStatus}
-            </span>
-          </div>
-          {farmer.notes && (
-            <div className="detail-row">
-              <span className="label">Previous Notes:</span>
-              <span className="value">{farmer.notes}</span>
+        
+        <div className="modal-body">
+          <div className="farmer-info">
+            <h3>Farmer Information</h3>
+            <div className="info-grid">
+              <div className="info-item">
+                <label>Name:</label>
+                <span>{farmer.name}</span>
+              </div>
+              <div className="info-item">
+                <label>Phone:</label>
+                <span>{farmer.phone}</span>
+              </div>
+              <div className="info-item">
+                <label>Location:</label>
+                <span>{farmer.location}</span>
+              </div>
+              <div className="info-item">
+                <label>Current Status:</label>
+                <span className={`status-badge status-${farmer.kycStatus?.toLowerCase()}`}>
+                  {farmer.kycStatus}
+                </span>
+              </div>
             </div>
-          )}
-        </div>
-
-        <form onSubmit={handleSubmit} className="form">
-          <div className="form-group">
-            <label htmlFor="kycStatus">KYC Status *</label>
-            <select
-              id="kycStatus"
-              value={kycStatus}
-              onChange={(e) => setKycStatus(e.target.value)}
-              required
-            >
-              <option value="">Select Status</option>
-              <option value="APPROVED">✅ Approve</option>
-              <option value="REFER_BACK">🔄 Refer Back</option>
-              <option value="REJECTED">❌ Reject</option>
-            </select>
           </div>
-
-          {(kycStatus === 'REFER_BACK' || kycStatus === 'REJECTED') && (
-            <div className="form-group">
-              <label htmlFor="reason">Reason *</label>
-              <textarea
-                id="reason"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder={`Enter reason for ${kycStatus.toLowerCase()}`}
-                rows="3"
-                required
-              />
-            </div>
-          )}
 
           <div className="kyc-actions">
+            <h3>KYC Action</h3>
             <div className="action-buttons">
               <button 
-                type="button" 
-                className="btn-secondary" 
-                onClick={onClose}
+                className={`action-btn ${action === 'approve' ? 'active' : ''}`}
+                onClick={() => setAction('approve')}
               >
-                Cancel
+                ✅ Approve
               </button>
               <button 
-                type="submit" 
-                className="btn-primary"
-                disabled={loading || !kycStatus}
+                className={`action-btn ${action === 'refer-back' ? 'active' : ''}`}
+                onClick={() => setAction('refer-back')}
               >
-                {loading ? 'Updating...' : 'Update KYC Status'}
+                📝 Refer Back
+              </button>
+              <button 
+                className={`action-btn ${action === 'reject' ? 'active' : ''}`}
+                onClick={() => setAction('reject')}
+              >
+                ❌ Reject
               </button>
             </div>
+
+            {(action === 'reject' || action === 'refer-back') && (
+              <div className="reason-section">
+                <label htmlFor="reason">Reason:</label>
+                <textarea
+                  id="reason"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder={`Enter reason for ${action === 'reject' ? 'rejection' : 'refer back'}...`}
+                  rows="4"
+                  className="reason-textarea"
+                />
+              </div>
+            )}
           </div>
-        </form>
+        </div>
+        
+        <div className="modal-footer">
+          <button className="action-btn secondary" onClick={onClose}>
+            Cancel
+          </button>
+          <button 
+            className="action-btn primary" 
+            onClick={handleSubmit}
+            disabled={!action || ((action === 'reject' || action === 'refer-back') && !reason.trim())}
+          >
+            Submit Action
+          </button>
+        </div>
       </div>
     </div>
   );

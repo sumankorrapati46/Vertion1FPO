@@ -7,12 +7,15 @@
   justify-content: center;
   padding: 20px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
 }
 
 .employee-wrapper.dashboard-mode {
   min-height: auto;
   background: none;
   padding: 0;
+  position: static;
+  display: block;
 }
 
 .form-full {
@@ -270,6 +273,10 @@ select:focus {
 .employee-wrapper.dashboard-mode .form-full {
   border-radius: 10px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  position: static;
+  display: block;
+  width: 100%;
+  max-width: none;
 }
 
 .employee-wrapper.dashboard-mode .employee-form {

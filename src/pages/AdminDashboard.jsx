@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { farmersAPI, employeesAPI } from '../api/apiService';
+import { farmersAPI, employeesAPI, adminAPI } from '../api/apiService';
 import '../styles/Dashboard.css';
 import FarmerForm from '../components/FarmerForm';
-import EmployeeForm from '../components/EmployeeForm';
+import EmployeeRegistrationForm from '../components/EmployeeRegistrationForm';
 import AssignmentModal from '../components/AssignmentModal';
 import KYCDocumentUpload from '../components/KYCDocumentUpload';
 import ViewFarmerRegistrationDetails from '../components/ViewFarmerRegistrationDetails';
 import ViewEditEmployeeDetails from '../components/ViewEditEmployeeDetails';
-
 import StatsCard from '../components/StatsCard';
 import DataTable from '../components/DataTable';
+import UserProfileDropdown from '../components/UserProfileDropdown';
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
-  const [currentView, setCurrentView] = useState('farmers');
+  const [activeTab, setActiveTab] = useState('overview');
   const [farmers, setFarmers] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState('');
@@ -27,19 +27,117 @@ const AdminDashboard = () => {
   const [selectedEmployeeData, setSelectedEmployeeData] = useState(null);
   const [showKYCDocumentUpload, setShowKYCDocumentUpload] = useState(false);
   const [selectedFarmerForKYC, setSelectedFarmerForKYC] = useState(null);
+  const [editingFarmer, setEditingFarmer] = useState(null);
+  const [editingEmployee, setEditingEmployee] = useState(null);
   const [filters, setFilters] = useState({
     state: '',
     district: '',
     region: '',
     kycStatus: '',
     assignmentStatus: '',
-    registrationStatus: '',
-    registrationRole: ''
+    employeeFilter: ''
   });
+
+  // Greeting function based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return 'Good Morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Good Afternoon';
+    } else if (hour >= 17 && hour < 21) {
+      return 'Good Evening';
+    } else {
+      return 'Good Night';
+    }
+  };
 
   // Load data from API
   useEffect(() => {
-    // Mock farmers data
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      // Fetch farmers and employees from API using admin endpoints with enhanced data
+      const farmersData = await adminAPI.getFarmersWithKyc();
+      const employeesData = await adminAPI.getEmployeesWithStats();
+      
+      if (farmersData && farmersData.length > 0) {
+        setFarmers(farmersData);
+      } else {
+        // Fallback to basic admin endpoints
+        try {
+          const basicFarmers = await adminAPI.getAllFarmers();
+          if (basicFarmers && basicFarmers.length > 0) {
+            setFarmers(basicFarmers);
+          } else {
+            // Fallback to super-admin endpoints
+            try {
+              const superAdminFarmers = await farmersAPI.getAllFarmers();
+              if (superAdminFarmers && superAdminFarmers.length > 0) {
+                setFarmers(superAdminFarmers);
+              } else {
+                loadMockData();
+              }
+            } catch (superAdminError) {
+              loadMockData();
+            }
+          }
+        } catch (basicError) {
+          loadMockData();
+        }
+      }
+      
+      if (employeesData && employeesData.length > 0) {
+        setEmployees(employeesData);
+      } else {
+        // Fallback to basic admin endpoints
+        try {
+          const basicEmployees = await adminAPI.getAllEmployees();
+          if (basicEmployees && basicEmployees.length > 0) {
+            setEmployees(basicEmployees);
+          } else {
+            // Fallback to super-admin endpoints
+            try {
+              const superAdminEmployees = await employeesAPI.getAllEmployees();
+              if (superAdminEmployees && superAdminEmployees.length > 0) {
+                setEmployees(superAdminEmployees);
+              } else {
+                loadMockData();
+              }
+            } catch (superAdminError) {
+              loadMockData();
+            }
+          }
+        } catch (basicError) {
+          loadMockData();
+        }
+      }
+    } catch (error) {
+      // Try basic admin endpoints as fallback
+      try {
+        const farmersData = await adminAPI.getAllFarmers();
+        const employeesData = await adminAPI.getAllEmployees();
+        
+        if (farmersData && farmersData.length > 0) {
+          setFarmers(farmersData);
+        } else {
+          loadMockData();
+        }
+        
+        if (employeesData && employeesData.length > 0) {
+          setEmployees(employeesData);
+        } else {
+          loadMockData();
+        }
+      } catch (fallbackError) {
+        loadMockData();
+      }
+    }
+  };
+
+  const loadMockData = () => {
     const mockFarmers = [
       {
         id: 1,
@@ -79,11 +177,11 @@ const AdminDashboard = () => {
       },
       {
         id: 4,
-        name: 'Ramesh Verma',
+        name: 'Priya Sharma',
         phone: '9876543213',
-        state: 'Uttar Pradesh',
-        district: 'Lucknow',
-        region: 'Central',
+        state: 'Karnataka',
+        district: 'Bangalore',
+        region: 'Southern',
         kycStatus: 'PENDING',
         assignmentStatus: 'UNASSIGNED',
         assignedEmployee: null,
@@ -91,56 +189,45 @@ const AdminDashboard = () => {
       },
       {
         id: 5,
-        name: 'Lakshmi Devi',
+        name: 'Vikram Malhotra',
         phone: '9876543214',
         state: 'Tamil Nadu',
         district: 'Chennai',
         region: 'Southern',
-        kycStatus: 'APPROVED',
-        assignmentStatus: 'ASSIGNED',
-        assignedEmployee: 'John Doe',
-        assignedDate: '2024-01-20'
+        kycStatus: 'PENDING',
+        assignmentStatus: 'UNASSIGNED',
+        assignedEmployee: null,
+        assignedDate: null
+      },
+      {
+        id: 6,
+        name: 'Sunita Devi',
+        phone: '9876543215',
+        state: 'Bihar',
+        district: 'Patna',
+        region: 'Eastern',
+        kycStatus: 'PENDING',
+        assignmentStatus: 'UNASSIGNED',
+        assignedEmployee: null,
+        assignedDate: null
       }
     ];
 
-    // Mock employees data
     const mockEmployees = [
       {
         id: 1,
         name: 'John Doe',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john@agri.com',
-        phone: '9876543200',
-        dateOfBirth: '1990-05-15',
-        gender: 'male',
-        address: '123 Main Street, City Center',
-        city: 'Mumbai',
+        phone: '9876543201',
+        email: 'john.doe@company.com',
+        designation: 'KYC Officer',
         state: 'Maharashtra',
-        pincode: '400001',
-        employeeId: 'EMP001',
-        department: 'IT',
-        designation: 'Software Engineer',
-        joiningDate: '2020-03-15',
-        salary: '75000',
-        supervisor: 'Manager Name',
-        highestQualification: 'Bachelor\'s Degree',
-        institution: 'Mumbai University',
-        graduationYear: '2012',
-        specialization: 'Computer Science',
-        emergencyName: 'Jane Doe',
-        emergencyPhone: '9876543201',
-        emergencyRelation: 'Spouse',
-        skills: 'JavaScript, React, Node.js, Python',
-        languages: 'English, Hindi, Marathi',
-        certifications: 'AWS Certified Developer, React Certification',
-        workExperience: '8 years in software development',
-        references: 'Previous Manager - John Manager (9876543210)',
-        status: 'Active',
-        totalAssigned: 25,
-        kycSummary: {
-          approved: 15,
-          pending: 8,
+        district: 'Pune',
+        region: 'Western',
+        status: 'ACTIVE',
+        assignedFarmersCount: 15,
+        kycStats: {
+          approved: 8,
+          pending: 5,
           referBack: 2,
           rejected: 0
         }
@@ -148,105 +235,119 @@ const AdminDashboard = () => {
       {
         id: 2,
         name: 'Jane Smith',
-        firstName: 'Jane',
-        lastName: 'Smith',
-        email: 'jane@agri.com',
-        phone: '9876543201',
-        dateOfBirth: '1988-08-22',
-        gender: 'female',
-        address: '456 Park Avenue, Downtown',
-        city: 'Delhi',
-        state: 'Delhi',
-        pincode: '110001',
-        employeeId: 'EMP002',
-        department: 'HR',
-        designation: 'HR Manager',
-        joiningDate: '2019-07-01',
-        salary: '85000',
-        supervisor: 'HR Director',
-        highestQualification: 'Master\'s Degree',
-        institution: 'Delhi University',
-        graduationYear: '2010',
-        specialization: 'Human Resources',
-        emergencyName: 'Mike Smith',
-        emergencyPhone: '9876543202',
-        emergencyRelation: 'Spouse',
-        skills: 'HR Management, Recruitment, Employee Relations',
-        languages: 'English, Hindi',
-        certifications: 'SHRM Certified Professional',
-        workExperience: '10 years in HR management',
-        references: 'HR Director - Sarah Johnson (9876543211)',
-        status: 'Active',
-        totalAssigned: 18,
-        kycSummary: {
-          approved: 12,
+        phone: '9876543202',
+        email: 'jane.smith@company.com',
+        designation: 'KYC Officer',
+        state: 'Gujarat',
+        district: 'Ahmedabad',
+        region: 'Western',
+        status: 'ACTIVE',
+        assignedFarmersCount: 12,
+        kycStats: {
+          approved: 6,
           pending: 4,
           referBack: 1,
           rejected: 1
+        }
+      },
+      {
+        id: 3,
+        name: 'Mike Johnson',
+        phone: '9876543203',
+        email: 'mike.johnson@company.com',
+        designation: 'KYC Officer',
+        state: 'Punjab',
+        district: 'Amritsar',
+        region: 'Northern',
+        status: 'ACTIVE',
+        assignedFarmersCount: 8,
+        kycStats: {
+          approved: 5,
+          pending: 2,
+          referBack: 1,
+          rejected: 0
+        }
+      },
+      {
+        id: 4,
+        name: 'Sarah Wilson',
+        phone: '9876543204',
+        email: 'sarah.wilson@company.com',
+        designation: 'KYC Officer',
+        state: 'Karnataka',
+        district: 'Bangalore',
+        region: 'Southern',
+        status: 'ACTIVE',
+        assignedFarmersCount: 0,
+        kycStats: {
+          approved: 0,
+          pending: 0,
+          referBack: 0,
+          rejected: 0
         }
       }
     ];
 
     setFarmers(mockFarmers);
     setEmployees(mockEmployees);
-    
-
-    
-    const loadData = async () => {
-      try {
-        // Load farmers data
-        const farmersData = await farmersAPI.getAllFarmers();
-        setFarmers(farmersData);
-
-        // Load employees data
-        const employeesData = await employeesAPI.getAllEmployees();
-        setEmployees(employeesData);
-
-
-      } catch (error) {
-        console.error('Error loading dashboard data:', error);
-        // Handle error appropriately
-      }
-    };
-
-    loadData();
-  }, []);
+  };
 
   const getFilteredFarmers = () => {
     return farmers.filter(farmer => {
       const matchesState = !filters.state || farmer.state === filters.state;
       const matchesDistrict = !filters.district || farmer.district === filters.district;
-      const matchesRegion = !filters.region || farmer.region === filters.region;
       const matchesKycStatus = !filters.kycStatus || farmer.kycStatus === filters.kycStatus;
-      const matchesAssignmentStatus = !filters.assignmentStatus || farmer.assignmentStatus === filters.assignmentStatus;
+      const matchesEmployee = !filters.employeeFilter || farmer.assignedEmployee === filters.employeeFilter;
       
-      return matchesState && matchesDistrict && matchesRegion && matchesKycStatus && matchesAssignmentStatus;
+      return matchesState && matchesDistrict && matchesKycStatus && matchesEmployee;
     });
   };
 
   const getFilteredEmployees = () => {
-    if (!selectedEmployee) return employees;
-    return employees.filter(emp => emp.id === parseInt(selectedEmployee));
+    return employees.filter(employee => {
+      const matchesDistrict = !filters.district || employee.district === filters.district;
+      return matchesDistrict;
+    });
   };
 
   const getStats = () => {
     const totalFarmers = farmers.length;
-    const unassignedFarmers = farmers.filter(f => f.assignmentStatus === 'UNASSIGNED').length;
-    const pendingKyc = farmers.filter(f => f.kycStatus === 'PENDING').length;
-    const overdueKyc = farmers.filter(f => {
-      if (f.assignedDate) {
-        const assignedDate = new Date(f.assignedDate);
-        const daysDiff = (new Date() - assignedDate) / (1000 * 60 * 60 * 24);
-        return daysDiff > 7 && f.kycStatus === 'PENDING';
-      }
-      return false;
-    }).length;
+    const totalEmployees = employees.length;
+    const unassignedFarmers = farmers.filter(f => !f.assignedEmployee || f.assignedEmployee === 'Not Assigned').length;
+    const pendingKYC = farmers.filter(f => f.kycStatus === 'PENDING' || f.kycStatus === 'NOT_STARTED').length;
+    const approvedKYC = farmers.filter(f => f.kycStatus === 'APPROVED').length;
+    const referBackKYC = farmers.filter(f => f.kycStatus === 'REFER_BACK').length;
+    const rejectedKYC = farmers.filter(f => f.kycStatus === 'REJECTED').length;
 
     return {
       totalFarmers,
+      totalEmployees,
       unassignedFarmers,
-      pendingKyc,
-      overdueKyc
+      pendingKYC,
+      approvedKYC,
+      referBackKYC,
+      rejectedKYC
+    };
+  };
+
+  const getTodoList = () => {
+    const unassignedFarmers = farmers.filter(f => !f.assignedEmployee || f.assignedEmployee === 'Not Assigned');
+    const overdueKYC = farmers.filter(f => {
+      if ((f.kycStatus === 'PENDING' || f.kycStatus === 'NOT_STARTED') && f.assignedEmployee && f.assignedEmployee !== 'Not Assigned') {
+        // For now, consider all pending KYC as overdue if assigned
+        return true;
+      }
+      return false;
+    });
+    const employeesWithLargeQueues = employees.filter(emp => {
+      const pendingCount = emp.pendingKyc || 0;
+      return pendingCount > 5; // Large queue if more than 5 pending
+    });
+
+    return {
+      unassignedFarmers,
+      overdueKYC,
+      employeesWithLargeQueues
     };
   };
 
@@ -255,55 +356,7 @@ const AdminDashboard = () => {
   };
 
   const handleViewFarmer = (farmer) => {
-    // Convert the farmer data to match the registration form structure
-    const farmerData = {
-      firstName: farmer.name.split(' ')[0] || '',
-      lastName: farmer.name.split(' ').slice(1).join(' ') || '',
-      mobileNumber: farmer.phone,
-      state: farmer.state,
-      district: farmer.district,
-      region: farmer.region,
-      kycStatus: farmer.kycStatus,
-      status: farmer.assignmentStatus,
-      assignedEmployee: farmer.assignedEmployee,
-      assignedDate: farmer.assignedDate,
-      // Add mock data for other fields
-      dateOfBirth: '1990-01-01',
-      gender: 'Male',
-      email: 'farmer@example.com',
-      maritalStatus: 'Married',
-      religion: 'Hindu',
-      caste: 'General',
-      category: 'General',
-      education: 'High School',
-      village: 'Sample Village',
-      postOffice: 'Sample Post Office',
-      policeStation: 'Sample Police Station',
-      pincode: '123456',
-      occupation: 'Farmer',
-      annualIncome: '50000',
-      landOwnership: 'Owned',
-      landArea: '5',
-      irrigationType: 'Tube Well',
-      soilType: 'Alluvial',
-      primaryCrop: 'Wheat',
-      secondaryCrop: 'Rice',
-      cropSeason: 'Rabi',
-      farmingExperience: '10',
-      bankName: 'State Bank of India',
-      branchName: 'Main Branch',
-      accountNumber: '1234567890',
-      ifscCode: 'SBIN0001234',
-      accountType: 'Savings',
-      aadhaarNumber: '123456789012',
-      panNumber: 'ABCDE1234F',
-      voterId: 'ABC1234567',
-      rationCardNumber: '123456789',
-      registrationDate: farmer.assignedDate || new Date().toISOString(),
-      photo: null
-    };
-    
-    setSelectedFarmerData(farmerData);
+    setSelectedFarmerData(farmer);
     setShowFarmerDetails(true);
   };
 
@@ -324,15 +377,11 @@ const AdminDashboard = () => {
 
   const handleUpdateEmployee = (updatedData) => {
     setEmployees(prev => prev.map(emp => 
-      emp.id === selectedEmployeeData.id ? { ...emp, ...updatedData } : emp
+      emp.id === updatedData.id ? updatedData : emp
     ));
     setShowEmployeeDetails(false);
     setSelectedEmployeeData(null);
   };
-
-
-
-
 
   const handleKYCDocumentUpload = (farmer) => {
     setSelectedFarmerForKYC(farmer);
@@ -374,102 +423,233 @@ const AdminDashboard = () => {
     setSelectedFarmerForKYC(null);
   };
 
-  const renderOverview = () => (
-    <div className="dashboard-content">
+  const handleEditFarmer = (farmer) => {
+    setEditingFarmer(farmer);
+    setShowFarmerForm(true);
+  };
+
+  const handleEditEmployee = (employee) => {
+    setEditingEmployee(employee);
+    setShowEmployeeForm(true);
+  };
+
+  const handleAssignFarmers = async (assignments) => {
+    try {
+      // Extract farmer IDs and employee ID from assignments
+      const farmerIds = assignments.map(a => a.farmerId);
+      const employeeId = assignments[0]?.employeeId;
+      
+      if (!employeeId || farmerIds.length === 0) {
+        alert('Please select an employee and at least one farmer');
+        return;
+      }
+      
+      // Try bulk assign first, then fallback to individual assignments
+      try {
+        // Call admin API to bulk assign farmers
+        await adminAPI.bulkAssignFarmers(farmerIds, employeeId);
+      } catch (bulkError) {
+        console.log('Bulk assign failed, trying individual assignments...');
+        // Fallback to individual assignments
+        for (const farmerId of farmerIds) {
+          try {
+            await adminAPI.assignFarmer(farmerId, employeeId);
+          } catch (individualError) {
+            console.error(`Failed to assign farmer ${farmerId}:`, individualError);
+          }
+        }
+      }
+      
+      // Update local state for each assignment
+      setFarmers(prev => prev.map(farmer => {
+        const assignment = assignments.find(a => a.farmerId === farmer.id);
+        if (assignment) {
+          return {
+            ...farmer,
+            assignmentStatus: 'ASSIGNED',
+            assignedEmployee: assignment.employeeName,
+            assignedDate: new Date().toISOString().split('T')[0]
+          };
+        }
+        return farmer;
+      }));
+      
+      setShowAssignmentModal(false);
+      alert('Farmers assigned successfully!');
+    } catch (error) {
+      console.error('Error assigning farmers:', error);
+      alert('Failed to assign farmers');
+    }
+  };
+
+  const renderOverview = () => {
+    const stats = getStats();
+    const todoList = getTodoList();
+
+    return (
+      <div className="overview-section">
+        <div className="overview-header">
+          <h2 className="overview-title">Admin Dashboard Overview</h2>
+          <p className="overview-description">
+            Manage farmers, employees, and KYC assignments efficiently.
+          </p>
+        </div>
+
+        {/* Stats Cards */}
       <div className="stats-grid">
         <StatsCard
           title="Total Farmers"
-          value={getStats().totalFarmers}
-          icon="👨‍🌾"
-          color="blue"
+            value={stats.totalFarmers}
+            change="+12.4%"
+            changeType="positive"
+            icon="👥"
+          />
+          <StatsCard
+            title="Total Employees"
+            value={stats.totalEmployees}
+            change="+5.2%"
+            changeType="positive"
+            icon="👨‍💼"
         />
         <StatsCard
           title="Unassigned Farmers"
-          value={getStats().unassignedFarmers}
-          icon="📋"
-          color="orange"
+            value={stats.unassignedFarmers}
+            change=""
+            changeType="neutral"
+            icon="⏳"
         />
         <StatsCard
           title="Pending KYC"
-          value={getStats().pendingKyc}
-          icon="⏳"
-          color="yellow"
-        />
-        <StatsCard
-          title="Overdue KYC"
-          value={getStats().overdueKyc}
-          icon="⚠️"
-          color="red"
+            value={stats.pendingKYC}
+            change=""
+            changeType="warning"
+            icon="📋"
         />
       </div>
 
-      <div className="quick-actions">
-        <h3>Quick Actions</h3>
-        <div className="action-buttons">
+        {/* KYC Status Breakdown */}
+        <div className="kyc-breakdown">
+          <h3>KYC Status Breakdown</h3>
+          <div className="kyc-stats-grid">
+            <div className="kyc-stat-card approved">
+              <span className="kyc-stat-number">{stats.approvedKYC}</span>
+              <span className="kyc-stat-label">Approved</span>
+            </div>
+            <div className="kyc-stat-card pending">
+              <span className="kyc-stat-number">{stats.pendingKYC}</span>
+              <span className="kyc-stat-label">Pending</span>
+            </div>
+            <div className="kyc-stat-card refer-back">
+              <span className="kyc-stat-number">{stats.referBackKYC}</span>
+              <span className="kyc-stat-label">Refer Back</span>
+            </div>
+            <div className="kyc-stat-card rejected">
+              <span className="kyc-stat-number">{stats.rejectedKYC}</span>
+              <span className="kyc-stat-label">Rejected</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Todo List */}
+        <div className="todo-section">
+          <h3>To-Do List</h3>
+          <div className="todo-grid">
+            <div className="todo-card">
+              <h4>Unassigned Farmers</h4>
+              <p>{todoList.unassignedFarmers.length} farmers need assignment</p>
+              <button 
+                className="action-btn-small primary"
+                onClick={() => setActiveTab('farmers')}
+              >
+                View Farmers
+              </button>
+            </div>
+            <div className="todo-card">
+              <h4>Overdue KYC Cases</h4>
+              <p>{todoList.overdueKYC.length} cases overdue</p>
+              <button 
+                className="action-btn-small warning"
+                onClick={() => setActiveTab('farmers')}
+              >
+                Review Cases
+              </button>
+            </div>
+            <div className="todo-card">
+              <h4>Employees with Large Queues</h4>
+              <p>{todoList.employeesWithLargeQueues.length} employees</p>
+              <button 
+                className="action-btn-small info"
+                onClick={() => setActiveTab('employees')}
+              >
+                View Employees
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+    const renderFarmers = () => {
+    const filteredFarmers = getFilteredFarmers();
+
+    return (
+      <div className="overview-section">
+        <div className="overview-header">
+          <h2 className="overview-title">Farmer Management</h2>
+          <p className="overview-description">
+            View and manage all farmer profiles with KYC status and assignments.
+          </p>
+          <div className="overview-actions">
           <button 
             className="action-btn primary"
             onClick={() => setShowFarmerForm(true)}
           >
-            ➕ Add Farmer
-          </button>
-          <button 
-            className="action-btn primary"
-            onClick={() => setShowEmployeeForm(true)}
-          >
-            ➕ Add Employee
+              Add Farmer
           </button>
           <button 
             className="action-btn secondary"
             onClick={() => setShowAssignmentModal(true)}
           >
-            🔗 Assign Farmers
+              Assign Farmers
           </button>
         </div>
       </div>
 
-      <div className="todo-panel">
-        <h3>To-Do List</h3>
-        <div className="todo-items">
-          {getStats().unassignedFarmers > 0 && (
-            <div className="todo-item">
-              <span className="todo-icon">📋</span>
-              <span>{getStats().unassignedFarmers} farmers need assignment</span>
-            </div>
-          )}
-          {getStats().overdueKyc > 0 && (
-            <div className="todo-item">
-              <span className="todo-icon">⚠️</span>
-              <span>{getStats().overdueKyc} KYC cases overdue</span>
-            </div>
-          )}
-          {employees.filter(emp => emp.kycSummary.pending > 10).map(emp => (
-            <div key={emp.id} className="todo-item">
-              <span className="todo-icon">📊</span>
-              <span>{emp.name} has {emp.kycSummary.pending} pending cases</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+        
 
-  const renderFarmers = () => (
-    <div className="dashboard-content">
+
+
+        {/* Filters */}
       <div className="filters-section">
-        <h3>Farmer Management</h3>
-        <div className="filters">
           <select 
             value={filters.state} 
             onChange={(e) => setFilters(prev => ({ ...prev, state: e.target.value }))}
+            className="filter-select"
           >
             <option value="">All States</option>
             <option value="Maharashtra">Maharashtra</option>
             <option value="Gujarat">Gujarat</option>
             <option value="Punjab">Punjab</option>
+            <option value="Uttar Pradesh">Uttar Pradesh</option>
+            <option value="Tamil Nadu">Tamil Nadu</option>
+          </select>
+          <select 
+            value={filters.district} 
+            onChange={(e) => setFilters(prev => ({ ...prev, district: e.target.value }))}
+            className="filter-select"
+          >
+            <option value="">All Districts</option>
+            <option value="Pune">Pune</option>
+            <option value="Ahmedabad">Ahmedabad</option>
+            <option value="Amritsar">Amritsar</option>
+            <option value="Lucknow">Lucknow</option>
+            <option value="Chennai">Chennai</option>
           </select>
           <select 
             value={filters.kycStatus} 
             onChange={(e) => setFilters(prev => ({ ...prev, kycStatus: e.target.value }))}
+            className="filter-select"
           >
             <option value="">All KYC Status</option>
             <option value="APPROVED">Approved</option>
@@ -480,189 +660,310 @@ const AdminDashboard = () => {
           <select 
             value={filters.assignmentStatus} 
             onChange={(e) => setFilters(prev => ({ ...prev, assignmentStatus: e.target.value }))}
+            className="filter-select"
           >
             <option value="">All Assignment Status</option>
             <option value="ASSIGNED">Assigned</option>
             <option value="UNASSIGNED">Unassigned</option>
           </select>
-        </div>
+          <select 
+            value={filters.employeeFilter} 
+            onChange={(e) => setFilters(prev => ({ ...prev, employeeFilter: e.target.value }))}
+            className="filter-select"
+          >
+            <option value="">All Employees</option>
+            {employees.map(emp => (
+              <option key={emp.id} value={emp.name}>{emp.name}</option>
+            ))}
+          </select>
       </div>
 
+        {/* Farmers Table */}
       <DataTable
-        data={getFilteredFarmers()}
+          data={filteredFarmers}
         columns={[
           { key: 'name', label: 'Name' },
-          { key: 'phone', label: 'Phone' },
+            { key: 'contactNumber', label: 'Phone' },
           { key: 'state', label: 'State' },
           { key: 'district', label: 'District' },
           { key: 'kycStatus', label: 'KYC Status' },
-          { key: 'assignmentStatus', label: 'Assignment Status' },
           { key: 'assignedEmployee', label: 'Assigned Employee' }
         ]}
-        onView={handleViewFarmer}
-        onEdit={(farmer) => {
-          // Handle edit farmer - open the farmer form in edit mode
-          console.log('Edit farmer:', farmer);
-          // For now, just show the form. In a real app, you'd pass the farmer data
-          setShowFarmerForm(true);
-          // TODO: Pass farmer data to form for editing
-        }}
         customActions={[
           {
-            icon: '📁',
-            label: 'KYC Docs',
-            className: 'secondary',
+              label: 'View',
+              className: 'action-btn-small info',
+              onClick: handleViewFarmer
+            },
+            {
+              label: 'Edit',
+              className: 'action-btn-small primary',
+              onClick: handleEditFarmer
+            },
+            {
+              label: 'KYC',
+              className: 'action-btn-small warning',
             onClick: handleKYCDocumentUpload
           }
         ]}
       />
     </div>
   );
+  };
 
-  const renderEmployees = () => (
-    <div className="dashboard-content">
-      <div className="filters-section">
-        <h3>Employee Management</h3>
-        <div className="filters">
-          <select 
-            value={selectedEmployee} 
-            onChange={(e) => setSelectedEmployee(e.target.value)}
-          >
-            <option value="">All Employees</option>
-            {employees.map(emp => (
-              <option key={emp.id} value={emp.id}>{emp.name}</option>
+  const renderEmployees = () => {
+    const filteredEmployees = getFilteredEmployees();
+
+    return (
+      <div className="overview-section">
+        <div className="overview-header">
+          <h2 className="overview-title">Employee Management</h2>
+          <p className="overview-description">
+            View and manage employee profiles with KYC assignment statistics.
+          </p>
+          <div className="overview-actions">
+            <button 
+              className="action-btn primary"
+              onClick={() => setShowEmployeeForm(true)}
+            >
+              Add Employee
+            </button>
+          </div>
+        </div>
+
+        {/* Employee Stats */}
+        <div className="employee-stats">
+          <h3>Employee KYC Progress</h3>
+          <div className="employee-stats-grid">
+            {employees.map(employee => (
+              <div key={employee.id} className="employee-stat-card">
+                <div className="employee-info">
+                  <h4>{employee.name}</h4>
+                  <p>{employee.designation} - {employee.district}</p>
+                </div>
+                <div className="employee-kyc-stats">
+                  <div className="kyc-stat">
+                    <span className="stat-number">{employee.assignedFarmersCount}</span>
+                    <span className="stat-label">Total Assigned</span>
+                  </div>
+                  <div className="kyc-stat">
+                    <span className="stat-number approved">{employee.kycStats?.approved || 0}</span>
+                    <span className="stat-label">Approved</span>
+                  </div>
+                  <div className="kyc-stat">
+                    <span className="stat-number pending">{employee.kycStats?.pending || 0}</span>
+                    <span className="stat-label">Pending</span>
+                  </div>
+                  <div className="kyc-stat">
+                    <span className="stat-number refer-back">{employee.kycStats?.referBack || 0}</span>
+                    <span className="stat-label">Refer Back</span>
+                  </div>
+                  <div className="kyc-stat">
+                    <span className="stat-number rejected">{employee.kycStats?.rejected || 0}</span>
+                    <span className="stat-label">Rejected</span>
+                  </div>
+                </div>
+              </div>
             ))}
-          </select>
         </div>
       </div>
 
+        {/* Employees Table */}
       <DataTable
-        data={getFilteredEmployees()}
+          data={filteredEmployees}
         columns={[
           { key: 'name', label: 'Name' },
+            { key: 'contactNumber', label: 'Contact' },
           { key: 'email', label: 'Email' },
-          { key: 'phone', label: 'Phone' },
-          { key: 'department', label: 'Department' },
-          { key: 'designation', label: 'Designation' },
-          { key: 'status', label: 'Status' }
-        ]}
-        onView={handleViewEmployee}
-        onEdit={(employee) => {
-          setShowEmployeeForm(true);
-          console.log('Edit employee:', employee);
-        }}
+            { key: 'state', label: 'State' },
+            { key: 'district', label: 'District' },
+            { key: 'totalAssigned', label: 'Assigned Farmers' },
+            { key: 'approvedKyc', label: 'Approved KYC' },
+            { key: 'pendingKyc', label: 'Pending KYC' }
+          ]}
+          customActions={[
+            {
+              label: 'View',
+              className: 'action-btn-small info',
+              onClick: handleViewEmployee
+            },
+            {
+              label: 'Edit',
+              className: 'action-btn-small primary',
+              onClick: handleEditEmployee
+            }
+          ]}
       />
     </div>
   );
-
-
+  };
 
   return (
     <div className="dashboard">
-      <div className="dashboard-header">
-        <div className="header-left">
-          <h1>Admin Dashboard</h1>
-          <p>Welcome back, {user?.name}</p>
+      {/* Sidebar */}
+      <div className="dashboard-sidebar">
+        <div className="sidebar-header">
+          <h2>DATE Digital Agristack</h2>
+          <p>Admin Dashboard</p>
         </div>
-        <div className="header-right">
-          <button className="logout-btn" onClick={handleLogout}>
-            Logout
-          </button>
+        
+        <div className="sidebar-nav">
+          <div 
+            className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
+            onClick={() => setActiveTab('overview')}
+          >
+            <i className="fas fa-tachometer-alt"></i>
+            <span>Overview</span>
+          </div>
+          
+          <div 
+            className={`nav-item ${activeTab === 'farmers' ? 'active' : ''}`}
+            onClick={() => setActiveTab('farmers')}
+          >
+            <i className="fas fa-users"></i>
+            <span>Farmers</span>
+          </div>
+          
+          <div 
+            className={`nav-item ${activeTab === 'employees' ? 'active' : ''}`}
+            onClick={() => setActiveTab('employees')}
+          >
+            <i className="fas fa-user-tie"></i>
+            <span>Employees</span>
+          </div>
         </div>
       </div>
 
-      <div className="dashboard-nav">
-        <button 
-          className={`nav-btn ${currentView === 'overview' ? 'active' : ''}`}
-          onClick={() => setCurrentView('overview')}
-        >
-          📊 Overview
-        </button>
-        <button 
-          className={`nav-btn ${currentView === 'farmers' ? 'active' : ''}`}
-          onClick={() => setCurrentView('farmers')}
-        >
-          👨‍🌾 Farmers
-        </button>
-        <button 
-          className={`nav-btn ${currentView === 'employees' ? 'active' : ''}`}
-          onClick={() => setCurrentView('employees')}
-        >
-          👥 Employees
-        </button>
-
-      </div>
-
+      {/* Main Content */}
       <div className="dashboard-main">
-        {currentView === 'overview' && renderOverview()}
-        {currentView === 'farmers' && renderFarmers()}
-        {currentView === 'employees' && renderEmployees()}
+        {/* Top Header Bar */}
+        <div className="top-header"></div>
 
+        {/* Dashboard Header */}
+        <div className="dashboard-header">
+          <div className="header-left">
+            <div className="greeting-section">
+              <h2 className="greeting-text">{getGreeting()}, {user?.name || 'Admin'}! 👋</h2>
+              <p className="greeting-time">{new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}</p>
+            </div>
+            <h1 className="header-title">Admin Dashboard</h1>
+            <p className="header-subtitle">Manage farmers and employees</p>
+          </div>
+          <div className="header-right">
+            <UserProfileDropdown />
+          </div>
+        </div>
+
+        {/* Dashboard Content */}
+        <div className="dashboard-content">
+          {activeTab === 'overview' && renderOverview()}
+          {activeTab === 'farmers' && renderFarmers()}
+          {activeTab === 'employees' && renderEmployees()}
+        </div>
       </div>
 
+      {/* Modals */}
       {showFarmerForm && (
         <FarmerForm 
-          onClose={() => setShowFarmerForm(false)}
-          onSubmit={(farmerData) => {
-            setFarmers(prev => [...prev, { ...farmerData, id: Date.now() }]);
+          editData={editingFarmer}
+          onClose={() => {
             setShowFarmerForm(false);
+            setEditingFarmer(null);
+          }}
+          onSubmit={async (farmerData) => {
+            try {
+              if (editingFarmer) {
+                const updatedFarmer = await farmersAPI.updateFarmer(editingFarmer.id, farmerData);
+                setFarmers(prev => prev.map(farmer => 
+                  farmer.id === editingFarmer.id ? updatedFarmer : farmer
+                ));
+                alert('Farmer updated successfully!');
+              } else {
+                const newFarmer = await farmersAPI.createFarmer(farmerData);
+                setFarmers(prev => [...prev, newFarmer]);
+                alert('Farmer created successfully!');
+              }
+              setShowFarmerForm(false);
+              setEditingFarmer(null);
+            } catch (error) {
+              console.error('Error saving farmer:', error);
+              alert('Failed to save farmer. Please try again.');
+            }
           }}
         />
       )}
 
       {showEmployeeForm && (
-        <EmployeeForm 
-          onClose={() => setShowEmployeeForm(false)}
-          onSubmit={(employeeData) => {
-            setEmployees(prev => [...prev, { ...employeeData, id: Date.now() }]);
+        <EmployeeRegistrationForm 
+          isInDashboard={true}
+          editData={editingEmployee}
+          onClose={() => {
             setShowEmployeeForm(false);
+            setEditingEmployee(null);
+          }}
+          onSubmit={async (employeeData) => {
+            try {
+              if (editingEmployee) {
+                const updatedEmployee = await employeesAPI.updateEmployee(editingEmployee.id, employeeData);
+                setEmployees(prev => prev.map(employee => 
+                  employee.id === editingEmployee.id ? updatedEmployee : employee
+                ));
+                alert('Employee updated successfully!');
+              } else {
+                const newEmployee = await employeesAPI.createEmployee(employeeData);
+                setEmployees(prev => [...prev, newEmployee]);
+                alert('Employee created successfully!');
+              }
+              setShowEmployeeForm(false);
+              setEditingEmployee(null);
+            } catch (error) {
+              console.error('Error saving employee:', error);
+              alert('Failed to save employee. Please try again.');
+            }
           }}
         />
       )}
 
       {showAssignmentModal && (
         <AssignmentModal 
-          farmers={farmers.filter(f => f.assignmentStatus === 'UNASSIGNED')}
+          farmers={farmers.filter(f => {
+            // Check if farmer is unassigned based on backend data structure
+            return !f.assignedEmployee || 
+                   f.assignedEmployee === 'Not Assigned' || 
+                   f.assignedEmployee === null ||
+                   f.assignedEmployee === undefined ||
+                   f.assignedEmployee === '';
+          })}
           employees={employees}
           onClose={() => setShowAssignmentModal(false)}
-          onAssign={(assignments) => {
-            setFarmers(prev => prev.map(farmer => {
-              const assignment = assignments.find(a => a.farmerId === farmer.id);
-              if (assignment) {
-                return {
-                  ...farmer,
-                  assignmentStatus: 'ASSIGNED',
-                  assignedEmployee: assignment.employeeName,
-                  assignedDate: new Date().toISOString().split('T')[0]
-                };
-              }
-              return farmer;
-            }));
-            setShowAssignmentModal(false);
-          }}
+          onAssign={handleAssignFarmers}
         />
       )}
 
-                       {showFarmerDetails && (
+      {showFarmerDetails && selectedFarmerData && (
                    <ViewFarmerRegistrationDetails
                      farmerData={selectedFarmerData}
                      onClose={handleCloseFarmerDetails}
                    />
                  )}
-                 {showEmployeeDetails && (
+
+      {showEmployeeDetails && selectedEmployeeData && (
                    <ViewEditEmployeeDetails
-                     employeeData={selectedEmployeeData}
+          employee={selectedEmployeeData}
                      onClose={handleCloseEmployeeDetails}
                      onUpdate={handleUpdateEmployee}
                    />
                  )}
 
-
-                 {showKYCDocumentUpload && (
+      {showKYCDocumentUpload && selectedFarmerForKYC && (
                    <KYCDocumentUpload
-                     isOpen={showKYCDocumentUpload}
+          farmer={selectedFarmerForKYC}
                      onClose={handleCloseKYCDocumentUpload}
-                     farmer={selectedFarmerForKYC}
                      onApprove={handleKYCApprove}
                      onReject={handleKYCReject}
                      onReferBack={handleKYCReferBack}

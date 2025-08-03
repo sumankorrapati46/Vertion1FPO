@@ -1,10 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/Forms.css';
 
 const AssignmentModal = ({ farmers, employees, onClose, onAssign }) => {
   const [selectedFarmers, setSelectedFarmers] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Debug logging on mount
+  useEffect(() => {
+    console.log('=== ASSIGNMENT MODAL MOUNTED ===');
+    console.log('Employees on mount:', employees);
+    console.log('Employees count on mount:', employees?.length || 0);
+    if (employees && employees.length > 0) {
+      console.log('First employee on mount:', employees[0]);
+    }
+  }, []);
+
+  // Debug logging on every render
+  console.log('=== ASSIGNMENT MODAL DEBUG ===');
+  console.log('Employees received:', employees);
+  console.log('Employees count:', employees?.length || 0);
+  console.log('Employees type:', typeof employees);
+  console.log('Employees is array:', Array.isArray(employees));
+  if (employees && employees.length > 0) {
+    console.log('First employee:', employees[0]);
+    console.log('First employee name:', employees[0]?.name);
+    console.log('First employee designation:', employees[0]?.designation);
+    console.log('All employee names:', employees.map(emp => emp?.name));
+  }
 
   const handleFarmerToggle = (farmerId) => {
     setSelectedFarmers(prev => 
@@ -74,11 +97,28 @@ const AssignmentModal = ({ farmers, employees, onClose, onAssign }) => {
                 required
               >
                 <option value="">Select Employee</option>
-                {employees.map(emp => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.name} - {emp.designation || 'Employee'}
-                  </option>
-                ))}
+                {(() => {
+                  console.log('=== RENDERING EMPLOYEE OPTIONS ===');
+                  console.log('Employees for rendering:', employees);
+                  console.log('Employees length for rendering:', employees?.length || 0);
+                  
+                  if (employees && employees.length > 0) {
+                    console.log('Rendering employee options:', employees.map(emp => ({
+                      id: emp.id,
+                      name: emp.name,
+                      designation: emp.designation,
+                      displayText: `${emp.name || 'Unknown'} - ${emp.designation || 'Employee'}`
+                    })));
+                  }
+                  
+                  return employees && employees.length > 0 ? employees.map(emp => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.name || 'Unknown'} - {emp.designation || 'Employee'}
+                    </option>
+                  )) : (
+                    <option value="" disabled>No employees available</option>
+                  );
+                })()}
               </select>
             </div>
           </div>

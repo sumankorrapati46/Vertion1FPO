@@ -1,12 +1,12 @@
 /* View Farmer Details Modal Styles */
 .view-farmer-modal {
-  max-width: 90vw;
-  max-height: 90vh;
-  width: 90vw;
-  height: 90vh;
+  max-width: 70vw;
+  max-height: 80vh;
+  width: 70vw;
+  height: 80vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
   border-radius: 15px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
@@ -52,8 +52,8 @@
 }
 
 .farmer-details-container {
-  padding: 30px;
-  max-width: 1200px;
+  padding: 25px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
@@ -89,13 +89,13 @@
   left: 0;
   width: 50px;
   height: 2px;
-  background: linear-gradient(90deg, #3498db, #9b59b6);
+  background: linear-gradient(90deg, #16a34a, #22c55e);
 }
 
 .detail-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
 }
 
 .detail-item {
@@ -123,7 +123,7 @@
   padding: 10px 15px;
   background: #f8f9fa;
   border-radius: 8px;
-  border-left: 4px solid #3498db;
+  border-left: 4px solid #16a34a;
   min-height: 20px;
   display: flex;
   align-items: center;
@@ -288,12 +288,12 @@
 }
 
 .view-farmer-modal .modal-body::-webkit-scrollbar-thumb {
-  background: rgba(52, 152, 219, 0.5);
+  background: rgba(45, 90, 45, 0.5);
   border-radius: 4px;
 }
 
 .view-farmer-modal .modal-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(52, 152, 219, 0.7);
+  background: rgba(45, 90, 45, 0.7);
 }
 
 /* Animation for sections */
