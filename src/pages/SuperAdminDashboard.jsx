@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { farmersAPI, employeesAPI, superAdminAPI } from '../api/apiService';
 import DataTable from '../components/DataTable';
-import StatsCard from '../components/StatsCard';
+
 import RegistrationApprovalModal from '../components/RegistrationApprovalModal';
 import RegistrationDetailModal from '../components/RegistrationDetailModal';
 import ViewFarmerRegistrationDetails from '../components/ViewFarmerRegistrationDetails';
@@ -16,7 +16,7 @@ import UserProfileDropdown from '../components/UserProfileDropdown';
 import '../styles/Dashboard.css';
 
 const SuperAdminDashboard = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   
   // Debug logging
   console.log('SuperAdminDashboard - User data:', user);
@@ -57,8 +57,7 @@ const SuperAdminDashboard = () => {
   };
   
   // Modal states
-  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
-  const [selectedRegistration, setSelectedRegistration] = useState(null);
+
   const [showFarmerDetails, setShowFarmerDetails] = useState(false);
   const [selectedFarmer, setSelectedFarmer] = useState(null);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
@@ -91,6 +90,7 @@ const SuperAdminDashboard = () => {
     state: '',
     district: ''
   });
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showRegistrationDetailModal, setShowRegistrationDetailModal] = useState(false);
   const [selectedRegistrationForDetail, setSelectedRegistrationForDetail] = useState(null);
 
@@ -598,6 +598,21 @@ const SuperAdminDashboard = () => {
     alert('KYC referred back for review!');
   };
 
+  const handleLogout = () => {
+    logout();
+  };
+
+  const toggleUserDropdown = () => {
+    console.log('🔍 Toggle clicked! Current state:', showUserDropdown);
+    setShowUserDropdown(!showUserDropdown);
+    console.log('🔍 New state will be:', !showUserDropdown);
+  };
+
+  const handleChangePassword = () => {
+    // Navigate to change password page
+    window.location.href = '/change-password';
+  };
+
   const handleDelete = (item, type) => {
     setItemToDelete({ item, type });
     setShowDeleteModal(true);
@@ -657,6 +672,205 @@ const SuperAdminDashboard = () => {
 
   return (
     <div className="dashboard">
+      {/* USER ICON - ALWAYS VISIBLE */}
+      <div style={{
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        background: '#15803d',
+        color: 'white',
+        padding: '12px 16px',
+        borderRadius: '8px',
+        zIndex: '10000',
+        fontSize: '14px',
+        fontWeight: 'bold',
+        border: '2px solid #22c55e',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        boxShadow: '0 4px 12px rgba(21, 128, 61, 0.3)'
+      }}
+      onClick={toggleUserDropdown}
+      >
+        <div style={{
+          width: '32px',
+          height: '32px',
+          borderRadius: '50%',
+          background: '#22c55e',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '16px',
+          fontWeight: 'bold'
+        }}>
+          {user?.name?.charAt(0) || 'U'}
+        </div>
+        <span>{user?.name || 'User'}</span>
+        <i className={`fas fa-chevron-down ${showUserDropdown ? 'fa-chevron-up' : ''}`}></i>
+      </div>
+      
+      {/* USER DROPDOWN MENU */}
+      {showUserDropdown && (
+        <div style={{
+          position: 'fixed',
+          top: '80px',
+          right: '20px',
+          background: '#ffffff',
+          border: '2px solid #15803d',
+          borderRadius: '12px',
+          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+          zIndex: '9999',
+          width: '280px',
+          padding: '16px'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid #e5e7eb',
+            marginBottom: '12px'
+          }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: '#15803d',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '20px',
+              fontWeight: 'bold',
+              color: 'white'
+            }}>
+              {user?.name?.charAt(0) || 'U'}
+            </div>
+            <div>
+              <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#1f2937' }}>
+                {user?.name || 'User'}
+              </div>
+              <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                {user?.email || 'user@example.com'}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button 
+              onClick={handleChangePassword}
+              style={{
+                background: '#f8fafc',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '14px',
+                color: '#374151'
+              }}
+            >
+              <i className="fas fa-key" style={{ color: '#15803d' }}></i>
+              Change Password
+            </button>
+            <button 
+              onClick={handleLogout}
+              style={{
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '8px',
+                padding: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '14px',
+                color: '#dc2626'
+              }}
+            >
+              <i className="fas fa-sign-out-alt"></i>
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Top Bar */}
+      <div className="top-bar"></div>
+      
+      {/* Header */}
+      <div className="dashboard-header">
+        <div className="header-left">
+          <div className="logo-section">
+            <h1 className="logo-title">DATE</h1>
+            <p className="logo-subtitle">Digital Agristack</p>
+          </div>
+        </div>
+        <div className="header-right">
+          {/* TEST BUTTON - ALWAYS VISIBLE */}
+          <button 
+            style={{
+              background: '#15803d',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              marginRight: '10px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+            onClick={toggleUserDropdown}
+          >
+            🔍 TEST USER MENU
+          </button>
+          
+          <div className="user-profile-dropdown">
+            <div className="user-profile-trigger" onClick={toggleUserDropdown}>
+              <div className="user-avatar">
+                {user?.name?.charAt(0) || 'U'}
+              </div>
+              <span className="user-email">{user?.email || 'user@example.com'}</span>
+              <i className={`fas fa-chevron-down dropdown-arrow ${showUserDropdown ? 'rotated' : ''}`}></i>
+            </div>
+            <div className="user-dropdown-menu" style={{ 
+              display: showUserDropdown ? 'block' : 'none',
+              position: 'absolute',
+              top: '100%',
+              right: '0',
+              width: '280px',
+              background: '#ffffff',
+              border: '2px solid #15803d',
+              borderRadius: '12px',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+              zIndex: '9999',
+              marginTop: '8px'
+            }}>
+              <div className="dropdown-header">
+                <div className="user-avatar-large">
+                  {user?.name?.charAt(0) || 'U'}
+                </div>
+                <div className="user-details">
+                  <div className="user-name-large">{user?.name || 'User'}</div>
+                  <div className="user-email">{user?.email || 'user@example.com'}</div>
+                </div>
+              </div>
+              <div className="dropdown-actions">
+                <button className="dropdown-action-btn" onClick={handleChangePassword}>
+                  <i className="fas fa-key"></i>
+                  Change Password
+                </button>
+                <button className="dropdown-action-btn logout" onClick={handleLogout}>
+                  <i className="fas fa-sign-out-alt"></i>
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Sidebar */}
       <div className="dashboard-sidebar">
         <div className="sidebar-header">
@@ -1343,14 +1557,6 @@ const SuperAdminDashboard = () => {
       </div>
 
       {/* Modals */}
-      {showRegistrationModal && selectedRegistration && (
-        <RegistrationApprovalModal
-          registration={selectedRegistration}
-          onClose={() => setShowRegistrationModal(false)}
-          onApprove={() => handleApproveRegistration(selectedRegistration.id)}
-          onReject={() => handleRejectRegistration(selectedRegistration.id)}
-        />
-      )}
 
       {showFarmerDetails && selectedFarmer && (
         <ViewFarmerRegistrationDetails

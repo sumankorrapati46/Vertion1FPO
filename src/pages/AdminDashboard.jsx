@@ -51,6 +51,7 @@ const AdminDashboard = () => {
     assignmentStatus: '',
     employeeFilter: ''
   });
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   // Greeting function based on time of day
   const getGreeting = () => {
@@ -505,6 +506,15 @@ const AdminDashboard = () => {
     logout();
   };
 
+  const toggleUserDropdown = () => {
+    setShowUserDropdown(!showUserDropdown);
+  };
+
+  const handleChangePassword = () => {
+    // Navigate to change password page
+    window.location.href = '/change-password';
+  };
+
   const handleViewFarmer = (farmer) => {
     setSelectedFarmerData(farmer);
     setShowFarmerDetails(true);
@@ -674,7 +684,7 @@ const AdminDashboard = () => {
           <div className="section-card">
             <div className="section-header">
               <h3>Recent Activities</h3>
-              <a href="#" className="section-link">View All</a>
+              <button className="section-link" onClick={() => console.log('View All clicked')}>View All</button>
             </div>
             <div className="activities-list">
               <div className="activity-item">
@@ -1333,6 +1343,187 @@ const AdminDashboard = () => {
 
   return (
     <div className="dashboard">
+      {/* USER ICON - ALWAYS VISIBLE */}
+      <div style={{
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        background: '#15803d',
+        color: 'white',
+        padding: '12px 16px',
+        borderRadius: '8px',
+        zIndex: '10000',
+        fontSize: '14px',
+        fontWeight: 'bold',
+        border: '2px solid #22c55e',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        boxShadow: '0 4px 12px rgba(21, 128, 61, 0.3)'
+      }}
+      onClick={toggleUserDropdown}
+      >
+        <div style={{
+          width: '32px',
+          height: '32px',
+          borderRadius: '50%',
+          background: '#22c55e',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '16px',
+          fontWeight: 'bold'
+        }}>
+          {user?.name?.charAt(0) || 'U'}
+        </div>
+        <span>{user?.name || 'User'}</span>
+        <i className={`fas fa-chevron-down ${showUserDropdown ? 'fa-chevron-up' : ''}`}></i>
+      </div>
+      
+      {/* USER DROPDOWN MENU */}
+      {showUserDropdown && (
+        <div style={{
+          position: 'fixed',
+          top: '80px',
+          right: '20px',
+          background: '#ffffff',
+          border: '2px solid #15803d',
+          borderRadius: '12px',
+          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+          zIndex: '9999',
+          width: '280px',
+          padding: '16px'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid #e5e7eb',
+            marginBottom: '12px'
+          }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: '#15803d',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '20px',
+              fontWeight: 'bold',
+              color: 'white'
+            }}>
+              {user?.name?.charAt(0) || 'U'}
+            </div>
+            <div>
+              <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#1f2937' }}>
+                {user?.name || 'User'}
+              </div>
+              <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                {user?.email || 'user@example.com'}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button 
+              onClick={handleChangePassword}
+              style={{
+                background: '#f8fafc',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '14px',
+                color: '#374151'
+              }}
+            >
+              <i className="fas fa-key" style={{ color: '#15803d' }}></i>
+              Change Password
+            </button>
+            <button 
+              onClick={handleLogout}
+              style={{
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '8px',
+                padding: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '14px',
+                color: '#dc2626'
+              }}
+            >
+              <i className="fas fa-sign-out-alt"></i>
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Top Bar */}
+      <div className="top-bar"></div>
+      
+      {/* Header */}
+      <div className="dashboard-header">
+        <div className="header-left">
+          <div className="logo-section">
+            <h1 className="logo-title">DATE</h1>
+            <p className="logo-subtitle">Digital Agristack</p>
+          </div>
+        </div>
+        <div className="header-right">
+          <div className="user-profile-dropdown">
+            <div className="user-profile-trigger" onClick={toggleUserDropdown}>
+              <div className="user-avatar">
+                {user?.name?.charAt(0) || 'U'}
+              </div>
+              <span className="user-email">{user?.email || 'user@example.com'}</span>
+              <i className={`fas fa-chevron-down dropdown-arrow ${showUserDropdown ? 'rotated' : ''}`}></i>
+            </div>
+            <div className="user-dropdown-menu" style={{ 
+              display: showUserDropdown ? 'block' : 'none',
+              position: 'absolute',
+              top: '100%',
+              right: '0',
+              width: '280px',
+              background: '#ffffff',
+              border: '2px solid #15803d',
+              borderRadius: '12px',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+              zIndex: '9999',
+              marginTop: '8px'
+            }}>
+              <div className="dropdown-header">
+                <div className="user-avatar-large">
+                  {user?.name?.charAt(0) || 'U'}
+                </div>
+                <div className="user-details">
+                  <div className="user-name-large">{user?.name || 'User'}</div>
+                  <div className="user-email">{user?.email || 'user@example.com'}</div>
+                </div>
+              </div>
+              <div className="dropdown-actions">
+                <button className="dropdown-action-btn" onClick={handleChangePassword}>
+                  <i className="fas fa-key"></i>
+                  Change Password
+                </button>
+                <button className="dropdown-action-btn logout" onClick={handleLogout}>
+                  <i className="fas fa-sign-out-alt"></i>
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Sidebar */}
       <div className="dashboard-sidebar">
         <div className="sidebar-header">
