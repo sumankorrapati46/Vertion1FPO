@@ -1,4 +1,5 @@
 import React from 'react';
+import ActionDropdown from './ActionDropdown';
 
 const DataTable = ({ data, columns, onEdit, onDelete, onView, showDelete = false, customActions = [] }) => {
   const getStatusClass = (status) => {
@@ -112,47 +113,33 @@ const DataTable = ({ data, columns, onEdit, onDelete, onView, showDelete = false
                 </td>
               ))}
               <td className="actions-cell">
-                <div className="action-buttons">
-                  {onView && (
-                    <button 
-                      className="action-btn-small info"
-                      onClick={() => onView(row)}
-                    >
-                      👁️ View
-                    </button>
-                  )}
-                  {onEdit && (
-                    <button 
-                      className="action-btn-small primary"
-                      onClick={() => onEdit(row)}
-                    >
-                      ✏️ Edit
-                    </button>
-                  )}
-                  {customActions.map((action, index) => {
-                    // Check if action should be shown based on condition
-                    if (action.showCondition && !action.showCondition(row)) {
-                      return null;
-                    }
-                    return (
-                      <button
-                        key={index}
-                        className={`action-btn-small ${action.className || 'secondary'}`}
-                        onClick={() => action.onClick(row)}
-                      >
-                        {action.icon} {action.label}
-                      </button>
-                    );
-                  })}
-                  {showDelete && onDelete && (
-                    <button 
-                      className="action-btn-small danger"
-                      onClick={() => onDelete(row)}
-                    >
-                      🗑️ Delete
-                    </button>
-                  )}
-                </div>
+                <ActionDropdown 
+                  actions={[
+                    ...(onView ? [{
+                      label: 'View',
+                      icon: '👁️',
+                      className: 'info',
+                      onClick: onView
+                    }] : []),
+                    ...(onEdit ? [{
+                      label: 'Edit',
+                      icon: '✏️',
+                      className: 'primary',
+                      onClick: onEdit
+                    }] : []),
+                    ...customActions.map(action => ({
+                      ...action,
+                      icon: action.icon || ''
+                    })),
+                    ...(showDelete && onDelete ? [{
+                      label: 'Delete',
+                      icon: '🗑️',
+                      className: 'danger',
+                      onClick: onDelete
+                    }] : [])
+                  ]}
+                  item={row}
+                />
               </td>
             </tr>
           ))}

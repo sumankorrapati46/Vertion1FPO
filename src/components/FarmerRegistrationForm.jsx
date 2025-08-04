@@ -3,7 +3,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import '../styles/FarmerRegistration.css';
 
-const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClose }) => {
+const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClose, onSubmit: onSubmitProp }) => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [photoPreviewStep0, setPhotoPreviewStep0] = useState(null);
@@ -121,18 +121,18 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
     try {
       console.log('Form submitted with data:', data);
       
-      // Here you would typically send the data to your backend
-      // For now, we'll just log it and show a success message
-      
-      if (isInDashboard) {
-        // If in dashboard mode, close the form
-        onClose && onClose();
+      // Call the onSubmit prop which should handle API call and state update
+      if (onSubmitProp) {
+        await onSubmitProp(data);
       } else {
-        // If standalone, navigate to dashboard
-        navigate('/admin/dashboard');
+        // Fallback for standalone mode
+        if (isInDashboard) {
+          onClose && onClose();
+        } else {
+          navigate('/admin/dashboard');
+        }
+        alert('Farmer registration completed successfully!');
       }
-      
-      alert('Farmer registration completed successfully!');
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('Error submitting form. Please try again.');
@@ -284,19 +284,19 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
                   placeholder="YYYY-MM-DD"
                   {...register("dateOfBirth")}
                 />
-                <p className="reg-error">{errors.dateOfBirth?.message}</p>
+                {errors.dateOfBirth?.message && <p className="reg-error">{errors.dateOfBirth.message}</p>}
  
          <label>
         Contact Number <span className="optional"></span>
         <input type="tel" maxLength={10} {...register("contactNumber")} placeholder="10-digit number" />
       </label>
-      <p className="error">{errors.contactNumber?.message}</p>
+      {errors.contactNumber?.message && <p className="error">{errors.contactNumber.message}</p>}
       <label>
  
         Father Name <span className="optional"></span>
         <input type="text" {...register("fatherName")} placeholder="Enter father's name" />
       </label>
-      <p className="error">{errors.fatherName?.message}</p>
+      {errors.fatherName?.message && <p className="error">{errors.fatherName.message}</p>}
  
       <label>
         Alternative Type <span className="optional"></span>
@@ -312,13 +312,13 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
           <option value="Other">Other</option>
         </select>
       </label>
-      <p className="error">{errors.alternativeType?.message}</p>
+      {errors.alternativeType?.message && <p className="error">{errors.alternativeType.message}</p>}
  
       <label>
         Alternative Number <span className="optional"></span>
         <input type="tel" maxLength={10} {...register("alternativeNumber")} placeholder="10-digit number" />
       </label>
-      <p className="error">{errors.alternativeNumber?.message}</p>
+      {errors.alternativeNumber?.message && <p className="error">{errors.alternativeNumber.message}</p>}
      
     </div>
   </div>
@@ -341,7 +341,7 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
   placeholder="Enter your country"
  
 />
-<p className="error">{errors.country?.message}</p>
+{errors.country?.message && <p className="error">{errors.country.message}</p>}
  
 {/* State */}
 <label>
@@ -357,7 +357,7 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
   placeholder="Enter your state"
  
 />
-<p className="error">{errors.state?.message}</p>
+{errors.state?.message && <p className="error">{errors.state.message}</p>}
  
  
    <label>
@@ -368,7 +368,7 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
   {...register("district", { required: "District is required" })}
   placeholder="Enter your district"
 />
-<p className="error">{errors.district?.message}</p>
+{errors.district?.message && <p className="error">{errors.district.message}</p>}
  
 {/* Mandal */}
 <label>
@@ -379,7 +379,7 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
   {...register("block", { required: "block is required" })}
   placeholder="Enter your block"
 />
-<p className="error">{errors.mandal?.message}</p>
+{errors.mandal?.message && <p className="error">{errors.mandal.message}</p>}
  
 {/* Village */}
 <label>
@@ -390,7 +390,7 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
   {...register("village", { required: "Village is required" })}
   placeholder="Enter your village"
 />
-<p className="error">{errors.village?.message}</p>
+{errors.village?.message && <p className="error">{errors.village.message}</p>}
  
     {/* Pincode */}
     <label>Pincode <span className="required">*</span></label>
@@ -399,7 +399,7 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
       {...register("pincode", { required: "Pincode is required" })}
       placeholder="e.g. 500001"
     />
-    <p className="error">{errors.pincode?.message}</p>
+    {errors.pincode?.message && <p className="error">{errors.pincode.message}</p>}
   </div>
 )}
  
@@ -497,7 +497,7 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
               </select>
             </label>
           )}
-          <p className="error">{errors.currentCrop?.message}</p>
+          {errors.currentCrop?.message && <p className="error">{errors.currentCrop.message}</p>}
           <label>Net Income (As per Current Crop/Yr) <span className="optional"></span>
             <input {...register("currentNetIncome")} />
           </label>
@@ -516,9 +516,7 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
           <p>{errors.currentSoilTest?.message}</p>
           <label>Soil Test Certificate
             <input type="file" {...register("currentSoilTestCertificateFileName")} />
-            {errors.currentSoilTestCertificateFileName && (
-              <p className="error">{errors.currentSoilTestCertificateFileName.message}</p>
-            )}
+            {errors.currentSoilTestCertificateFileName?.message && <p className="error">{errors.currentSoilTestCertificateFileName.message}</p>}
           </label>
         </div>
       </div>
@@ -547,7 +545,7 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
                 })}
                />
               </label>
-              <p className="error">{errors.proposedGeoTag?.message}</p>
+              {errors.proposedGeoTag?.message && <p className="error">{errors.proposedGeoTag.message}</p>}
  
  
                <label>
@@ -577,7 +575,7 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
                </select>
               </label>
                )}
-               <p className="error">{errors.cropType?.message}</p>
+               {errors.cropType?.message && <p className="error">{errors.cropType.message}</p>}
  
  
                 <label>Soil Test <span className="optional"></span>
@@ -609,13 +607,11 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
                 <label>Net Income (Per Crop/Yr) <span className="optional"></span>
                 <input type="text" {...register("netIncome")} />
                 </label>
-                <p className="error">{errors.netIncome?.message}</p>
+                {errors.netIncome?.message && <p className="error">{errors.netIncome.message}</p>}
  
                 <label>Soil Test Certificate
                  <input type="file" {...register("soilTestCertificate")} />
-                   {errors.soilTestCertificate && (
-                  <p className="error">{errors.soilTestCertificate.message}</p>
-                   )}
+                   {errors.soilTestCertificate?.message && <p className="error">{errors.soilTestCertificate.message}</p>}
                  </label>
                  </div>
                 </div>
@@ -651,22 +647,22 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
             ))}
           </select>
         </label>
-        <p className="error">{errors.currentWaterSource?.message}</p>
+        {errors.currentWaterSource?.message && <p className="error">{errors.currentWaterSource.message}</p>}
         <label>
           Borewell wise Discharge in LPH <span className="optional"></span>
           <input {...register("currentDischargeLPH")} />
         </label>
-        <p className="error">{errors.currentDischargeLPH?.message}</p>
+        {errors.currentDischargeLPH?.message && <p className="error">{errors.currentDischargeLPH.message}</p>}
         <label>
           Discharge during summer months <span className="optional"></span>
           <input {...register("currentSummerDischarge")} />
         </label>
-        <p className="error">{errors.currentSummerDischarge?.message}</p>
+        {errors.currentSummerDischarge?.message && <p className="error">{errors.currentSummerDischarge.message}</p>}
         <label>
           Borewell location <span className="optional"></span>
           <input {...register("currentBorewellLocation")} />
         </label>
-        <p className="error">{errors.currentBorewellLocation?.message}</p>
+        {errors.currentBorewellLocation?.message && <p className="error">{errors.currentBorewellLocation.message}</p>}
       </div>
     )}
  
@@ -682,22 +678,22 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
             ))}
           </select>
         </label>
-        <p className="error">{errors.proposedWaterSource?.message}</p>
+        {errors.proposedWaterSource?.message && <p className="error">{errors.proposedWaterSource.message}</p>}
         <label>
           Borewell wise Discharge in LPH <span className="optional"></span>
           <input {...register("proposedDischargeLPH")} />
         </label>
-        <p className="error">{errors.proposedDischargeLPH?.message}</p>
+        {errors.proposedDischargeLPH?.message && <p className="error">{errors.proposedDischargeLPH.message}</p>}
         <label>
           Discharge during summer months <span className="optional"></span>
           <input {...register("proposedSummerDischarge")} />
         </label>
-        <p className="error">{errors.proposedSummerDischarge?.message}</p>
+        {errors.proposedSummerDischarge?.message && <p className="error">{errors.proposedSummerDischarge.message}</p>}
         <label>
           Borewell location <span className="optional"></span>
           <input {...register("proposedBorewellLocation")} />
         </label>
-        <p className="error">{errors.proposedBorewellLocation?.message}</p>
+        {errors.proposedBorewellLocation?.message && <p className="error">{errors.proposedBorewellLocation.message}</p>}
       </div>
     )}
   </div>
@@ -709,19 +705,19 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
  
                  <label>Bank Name <span className="optional"></span></label>
                 <input type="text" {...register("bankName")} />
-                <p className="error">{errors.bankName?.message}</p>
+                {errors.bankName?.message && <p className="error">{errors.bankName.message}</p>}
  
                <label>Account Number <span className="optional"></span></label>
                 <input type="text" {...register("accountNumber")} />
-                <p className="error">{errors.accountNumber?.message}</p>
+                {errors.accountNumber?.message && <p className="error">{errors.accountNumber.message}</p>}
  
                <label>Branch Name <span className="optional"></span></label>
                 <input type="text" {...register("branchName")} />
-              <p className="error">{errors.branchName?.message}</p>
+              {errors.branchName?.message && <p className="error">{errors.branchName.message}</p>}
      
               <label>IFSC Code <span className="optional"></span></label>
                <input type="text" {...register("ifscCode")} />
-               <p className="error">{errors.ifscCode?.message}</p>
+               {errors.ifscCode?.message && <p className="error">{errors.ifscCode.message}</p>}
  
               <label>Passbook <span className="optional"></span></label>
              <input
@@ -733,7 +729,7 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
              trigger("passbookFile");
              }}
              />
-             <p className="error">{errors.passbookFile?.message}</p>
+             {errors.passbookFile?.message && <p className="error">{errors.passbookFile.message}</p>}
              </div>
   )}
  

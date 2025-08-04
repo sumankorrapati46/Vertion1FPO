@@ -354,10 +354,34 @@ export const adminAPI = {
       params: { assignmentStatus } 
     });
     return response.data;
+  },
+
+  // Get all registrations for admin
+  getAllRegistrations: async (filters = {}) => {
+    const response = await api.get('/admin/registration-list', { params: filters });
+    return response.data;
+  },
+
+  // Get registration list by status for admin
+  getRegistrationListByStatus: async (status) => {
+    const response = await api.get('/admin/registration-list/filter', { params: { status } });
+    return response.data;
+  },
+
+  // Approve registration for admin
+  approveRegistration: async (registrationId, approvalData) => {
+    const response = await api.post(`/admin/registrations/${registrationId}/approve`, approvalData);
+    return response.data;
+  },
+
+  // Reject registration for admin
+  rejectRegistration: async (registrationId, rejectionData) => {
+    const response = await api.post(`/admin/registrations/${registrationId}/reject`, rejectionData);
+    return response.data;
   }
 };
 
-// Employees API calls
+// Employees API calls (for Super Admin and Admin)
 export const employeesAPI = {
   // Get all employees
   getAllEmployees: async (filters = {}) => {
@@ -398,6 +422,59 @@ export const employeesAPI = {
   // Get employee statistics
   getEmployeeStats: async () => {
     const response = await api.get('/super-admin/employees/stats');
+    return response.data;
+  }
+};
+
+// Employee-specific API calls (for Employee role)
+export const employeeAPI = {
+  // Get assigned farmers for current employee
+  getAssignedFarmers: async (employeeId) => {
+    // Try multiple endpoint patterns
+    const endpoints = [
+      '/employees/assigned-farmers',  // Simple endpoint for current employee
+      '/employees/me/assigned-farmers',  // Using 'me' for current employee
+      '/employees/current/assigned-farmers',  // Alternative current employee endpoint
+      '/employees/1/assigned-farmers',  // Try with ID 1 for harish reddy
+      `/employees/${employeeId}/assigned-farmers`  // With specific employee ID
+    ];
+    
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`🔄 Trying endpoint: ${endpoint}`);
+        const response = await api.get(endpoint);
+        console.log(`✅ Success with endpoint: ${endpoint}`);
+        return response.data;
+      } catch (error) {
+        console.log(`❌ Failed with endpoint: ${endpoint}`, error.message);
+        // If it's a 403 error, try the next endpoint
+        if (error.response && error.response.status === 403) {
+          console.log('🔒 403 Forbidden - trying next endpoint');
+          continue;
+        }
+        // For other errors, also continue to try next endpoint
+        continue;
+      }
+    }
+    
+    throw new Error('All employee endpoints failed');
+  },
+
+  // Get employee profile
+  getProfile: async () => {
+    const response = await api.get('/employees/profile');
+    return response.data;
+  },
+
+  // Update employee profile
+  updateProfile: async (profileData) => {
+    const response = await api.put('/employees/profile', profileData);
+    return response.data;
+  },
+
+  // Get employee statistics
+  getStats: async () => {
+    const response = await api.get('/employees/stats');
     return response.data;
   }
 };

@@ -4,10 +4,17 @@ import '../styles/Forms.css';
 const KYCModal = ({ farmer, onClose, onApprove, onReject, onReferBack }) => {
   const [reason, setReason] = useState('');
   const [action, setAction] = useState('');
+  const [aadharNumber, setAadharNumber] = useState(farmer?.aadharNumber || '');
+  const [panNumber, setPanNumber] = useState(farmer?.panNumber || '');
 
   const handleSubmit = () => {
     if (!action) {
       alert('Please select an action');
+      return;
+    }
+
+    if (action === 'approve' && (!aadharNumber.trim() || !panNumber.trim())) {
+      alert('Please fill both Aadhar Number and PAN Number before approving');
       return;
     }
 
@@ -18,7 +25,7 @@ const KYCModal = ({ farmer, onClose, onApprove, onReject, onReferBack }) => {
 
     switch (action) {
       case 'approve':
-        onApprove(farmer.id);
+        onApprove(farmer.id, { aadharNumber, panNumber });
         break;
       case 'reject':
         onReject(farmer.id, reason);
@@ -68,12 +75,53 @@ const KYCModal = ({ farmer, onClose, onApprove, onReject, onReferBack }) => {
             </div>
           </div>
 
+          <div className="document-info">
+            <h3>Required Documents</h3>
+            <div className="form-grid">
+              <div className="form-group">
+                <label>Aadhar Number:</label>
+                <input
+                  type="text"
+                  value={aadharNumber}
+                  onChange={(e) => setAadharNumber(e.target.value)}
+                  placeholder="Enter 12-digit Aadhar number"
+                  maxLength="12"
+                  className={aadharNumber.length > 0 && aadharNumber.length !== 12 ? 'error' : ''}
+                />
+                {aadharNumber.length > 0 && aadharNumber.length !== 12 && (
+                  <span className="error-text">Aadhar number must be 12 digits</span>
+                )}
+              </div>
+              <div className="form-group">
+                <label>PAN Number:</label>
+                <input
+                  type="text"
+                  value={panNumber}
+                  onChange={(e) => setPanNumber(e.target.value.toUpperCase())}
+                  placeholder="Enter PAN number (e.g., ABCDE1234F)"
+                  maxLength="10"
+                  className={panNumber.length > 0 && panNumber.length !== 10 ? 'error' : ''}
+                />
+                {panNumber.length > 0 && panNumber.length !== 10 && (
+                  <span className="error-text">PAN number must be 10 characters</span>
+                )}
+              </div>
+            </div>
+            {(!aadharNumber.trim() || !panNumber.trim()) && (
+              <div className="document-warning">
+                ⚠️ Both Aadhar Number and PAN Number are required for KYC approval
+              </div>
+            )}
+          </div>
+
           <div className="kyc-actions">
             <h3>KYC Action</h3>
             <div className="action-buttons">
               <button 
                 className={`action-btn ${action === 'approve' ? 'active' : ''}`}
                 onClick={() => setAction('approve')}
+                disabled={!aadharNumber.trim() || !panNumber.trim() || aadharNumber.length !== 12 || panNumber.length !== 10}
+                title={(!aadharNumber.trim() || !panNumber.trim() || aadharNumber.length !== 12 || panNumber.length !== 10) ? 'Both Aadhar and PAN numbers must be filled correctly for approval' : ''}
               >
                 ✅ Approve
               </button>
@@ -114,7 +162,10 @@ const KYCModal = ({ farmer, onClose, onApprove, onReject, onReferBack }) => {
           <button 
             className="action-btn primary" 
             onClick={handleSubmit}
-            disabled={!action || ((action === 'reject' || action === 'refer-back') && !reason.trim())}
+            disabled={!action || 
+              ((action === 'reject' || action === 'refer-back') && !reason.trim()) ||
+              (action === 'approve' && (!aadharNumber.trim() || !panNumber.trim() || aadharNumber.length !== 12 || panNumber.length !== 10))
+            }
           >
             Submit Action
           </button>

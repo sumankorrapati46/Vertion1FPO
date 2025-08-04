@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { farmersAPI, employeesAPI, adminAPI } from '../api/apiService';
+import { farmersAPI, employeesAPI, adminAPI, superAdminAPI } from '../api/apiService';
 import '../styles/Dashboard.css';
 import FarmerForm from '../components/FarmerForm';
+import FarmerRegistrationForm from '../components/FarmerRegistrationForm';
 import EmployeeRegistrationForm from '../components/EmployeeRegistrationForm';
 import AssignmentModal from '../components/AssignmentModal';
 import KYCDocumentUpload from '../components/KYCDocumentUpload';
@@ -11,6 +12,8 @@ import ViewEditEmployeeDetails from '../components/ViewEditEmployeeDetails';
 import StatsCard from '../components/StatsCard';
 import DataTable from '../components/DataTable';
 import UserProfileDropdown from '../components/UserProfileDropdown';
+import RegistrationApprovalModal from '../components/RegistrationApprovalModal';
+import RegistrationDetailModal from '../components/RegistrationDetailModal';
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
@@ -29,6 +32,17 @@ const AdminDashboard = () => {
   const [selectedFarmerForKYC, setSelectedFarmerForKYC] = useState(null);
   const [editingFarmer, setEditingFarmer] = useState(null);
   const [editingEmployee, setEditingEmployee] = useState(null);
+  const [registrations, setRegistrations] = useState([]);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [selectedRegistration, setSelectedRegistration] = useState(null);
+  const [showRegistrationDetailModal, setShowRegistrationDetailModal] = useState(false);
+  const [selectedRegistrationForDetail, setSelectedRegistrationForDetail] = useState(null);
+  const [showEmployeeRegistration, setShowEmployeeRegistration] = useState(false);
+  const [showFarmerRegistration, setShowFarmerRegistration] = useState(false);
+  const [registrationFilters, setRegistrationFilters] = useState({
+    role: '',
+    status: ''
+  });
   const [filters, setFilters] = useState({
     state: '',
     district: '',
@@ -55,13 +69,29 @@ const AdminDashboard = () => {
   // Load data from API
   useEffect(() => {
     fetchData();
+    
+    // Listen for KYC status updates from Employee Dashboard
+    const handleKYCUpdate = (event) => {
+      console.log('🔄 Admin Dashboard: KYC status updated, refreshing data...');
+      console.log('📊 KYC Update details:', event.detail);
+      fetchData(); // Refresh data when KYC status changes
+    };
+    
+    window.addEventListener('kycStatusUpdated', handleKYCUpdate);
+    
+    return () => {
+      window.removeEventListener('kycStatusUpdated', handleKYCUpdate);
+    };
   }, []);
 
   const fetchData = async () => {
     try {
-      // Fetch farmers and employees from API using admin endpoints with enhanced data
+      console.log('🔍 Admin: Starting to fetch real data from API...');
+      
+      // Fetch farmers, employees, and registrations from API using admin endpoints
       const farmersData = await adminAPI.getFarmersWithKyc();
       const employeesData = await adminAPI.getEmployeesWithStats();
+      const registrationsData = await superAdminAPI.getRegistrationList();
       
       if (farmersData && farmersData.length > 0) {
         setFarmers(farmersData);
@@ -114,11 +144,45 @@ const AdminDashboard = () => {
           loadMockData();
         }
       }
+      
+      // Handle registrations data
+      console.log('✅ Admin API Response:', { 
+        farmersCount: farmersData?.length || 0,
+        employeesCount: employeesData?.length || 0,
+        registrationsCount: registrationsData?.length || 0,
+        registrationsData: registrationsData
+      });
+      
+      if (registrationsData && registrationsData.length > 0) {
+        console.log('✅ Setting real registrations data:', registrationsData.length, 'registrations');
+        setRegistrations(registrationsData);
+      } else {
+        console.log('❌ No registrations data from API, trying fallback...');
+        // Fallback to super admin endpoints
+        try {
+          const superAdminRegistrations = await superAdminAPI.getRegistrationList();
+          console.log('🔄 Fallback registrations data:', superAdminRegistrations);
+          if (superAdminRegistrations && superAdminRegistrations.length > 0) {
+            console.log('✅ Setting real registrations data from fallback:', superAdminRegistrations.length, 'registrations');
+            setRegistrations(superAdminRegistrations);
+          } else {
+            console.log('❌ No registrations data from fallback API, using mock data');
+            loadMockRegistrationData();
+          }
+        } catch (basicError) {
+          console.error('❌ Fallback error:', basicError);
+          console.log('❌ Using mock data due to API error');
+          loadMockRegistrationData();
+        }
+      }
     } catch (error) {
+      console.error('❌ Admin error fetching data:', error);
+      console.log('❌ Using fallback endpoints due to API error');
       // Try basic admin endpoints as fallback
       try {
         const farmersData = await adminAPI.getAllFarmers();
         const employeesData = await adminAPI.getAllEmployees();
+        const registrationsData = await superAdminAPI.getRegistrationList();
         
         if (farmersData && farmersData.length > 0) {
           setFarmers(farmersData);
@@ -131,8 +195,15 @@ const AdminDashboard = () => {
         } else {
           loadMockData();
         }
+        
+        if (registrationsData && registrationsData.length > 0) {
+          setRegistrations(registrationsData);
+        } else {
+          loadMockRegistrationData();
+        }
       } catch (fallbackError) {
         loadMockData();
+        loadMockRegistrationData();
       }
     }
   };
@@ -141,75 +212,75 @@ const AdminDashboard = () => {
     const mockFarmers = [
       {
         id: 1,
-        name: 'Rajesh Kumar',
+        name: 'vamsi krishna',
         phone: '9876543210',
-        state: 'Maharashtra',
-        district: 'Pune',
-        region: 'Western',
-        kycStatus: 'APPROVED',
+        state: 'Andhrapradesh',
+        district: 'kadapa',
+        region: 'Southern',
+        kycStatus: 'NOT_STARTED',
         assignmentStatus: 'ASSIGNED',
-        assignedEmployee: 'John Doe',
+        assignedEmployee: 'harish reddy',
         assignedDate: '2024-01-15'
       },
       {
         id: 2,
-        name: 'Suresh Patel',
+        name: 'Ainash kumar',
         phone: '9876543211',
-        state: 'Gujarat',
-        district: 'Ahmedabad',
-        region: 'Western',
-        kycStatus: 'PENDING',
-        assignmentStatus: 'UNASSIGNED',
-        assignedEmployee: null,
-        assignedDate: null
+        state: 'Andhrapradesh',
+        district: 'kadapa',
+        region: 'Southern',
+        kycStatus: 'NOT_STARTED',
+        assignmentStatus: 'ASSIGNED',
+        assignedEmployee: 'harish reddy',
+        assignedDate: '2024-01-18'
       },
       {
         id: 3,
-        name: 'Amit Singh',
+        name: 'Ramu Yadav',
         phone: '9876543212',
-        state: 'Punjab',
-        district: 'Amritsar',
-        region: 'Northern',
-        kycStatus: 'REFER_BACK',
+        state: 'Telangana',
+        district: 'Karimnagar',
+        region: 'Southern',
+        kycStatus: 'NOT_STARTED',
         assignmentStatus: 'ASSIGNED',
-        assignedEmployee: 'Jane Smith',
+        assignedEmployee: 'harish reddy',
         assignedDate: '2024-01-10'
       },
       {
         id: 4,
-        name: 'Priya Sharma',
-        phone: '9876543213',
-        state: 'Karnataka',
-        district: 'Bangalore',
+        name: 'hari chowdary',
+        phone: '6271979190',
+        state: 'Andhrapradesh',
+        district: 'Kadapa',
         region: 'Southern',
-        kycStatus: 'PENDING',
-        assignmentStatus: 'UNASSIGNED',
-        assignedEmployee: null,
-        assignedDate: null
+        kycStatus: 'NOT_STARTED',
+        assignmentStatus: 'ASSIGNED',
+        assignedEmployee: 'harish reddy',
+        assignedDate: '2024-01-20'
       },
       {
         id: 5,
-        name: 'Vikram Malhotra',
-        phone: '9876543214',
-        state: 'Tamil Nadu',
-        district: 'Chennai',
+        name: 'kumar chowdary',
+        phone: '6302949363',
+        state: 'Andhrapradesh',
+        district: 'kadpaa',
         region: 'Southern',
-        kycStatus: 'PENDING',
-        assignmentStatus: 'UNASSIGNED',
-        assignedEmployee: null,
-        assignedDate: null
+        kycStatus: 'NOT_STARTED',
+        assignmentStatus: 'ASSIGNED',
+        assignedEmployee: 'karthik kumar',
+        assignedDate: '2024-01-25'
       },
       {
         id: 6,
-        name: 'Sunita Devi',
-        phone: '9876543215',
-        state: 'Bihar',
-        district: 'Patna',
-        region: 'Eastern',
-        kycStatus: 'PENDING',
-        assignmentStatus: 'UNASSIGNED',
-        assignedEmployee: null,
-        assignedDate: null
+        name: 'dinakar lankipalli',
+        phone: '9857687867',
+        state: 'Andrapradesh',
+        district: 'Jangaon',
+        region: 'Southern',
+        kycStatus: 'NOT_STARTED',
+        assignmentStatus: 'ASSIGNED',
+        assignedEmployee: 'dinakar lankipalli',
+        assignedDate: '2024-01-12'
       }
     ];
 
@@ -292,6 +363,46 @@ const AdminDashboard = () => {
     setEmployees(mockEmployees);
   };
 
+  const loadMockRegistrationData = () => {
+    const mockRegistrations = [
+      {
+        id: 1,
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        phoneNumber: '9876543210',
+        role: 'FARMER',
+        status: 'PENDING',
+        createdAt: '2024-01-15',
+        documents: ['Aadhar Card', 'PAN Card'],
+        kycStatus: 'NOT_STARTED'
+      },
+      {
+        id: 2,
+        name: 'Jane Smith',
+        email: 'jane.smith@example.com',
+        phoneNumber: '9876543211',
+        role: 'EMPLOYEE',
+        status: 'APPROVED',
+        createdAt: '2024-01-14',
+        documents: ['Aadhar Card', 'PAN Card', 'Educational Certificate'],
+        kycStatus: 'APPROVED'
+      },
+      {
+        id: 3,
+        name: 'Bob Wilson',
+        email: 'bob.wilson@example.com',
+        phoneNumber: '9876543212',
+        role: 'FARMER',
+        status: 'REJECTED',
+        createdAt: '2024-01-13',
+        documents: ['Aadhar Card'],
+        kycStatus: 'REJECTED',
+        rejectionReason: 'Incomplete documentation'
+      }
+    ];
+    setRegistrations(mockRegistrations);
+  };
+
   const getFilteredFarmers = () => {
     return farmers.filter(farmer => {
       const matchesState = !filters.state || farmer.state === filters.state;
@@ -308,6 +419,59 @@ const AdminDashboard = () => {
       const matchesDistrict = !filters.district || employee.district === filters.district;
       return matchesDistrict;
     });
+  };
+
+  const getFilteredRegistrations = () => {
+    console.log('All registrations:', registrations);
+    // Apply filters
+    const filtered = registrations.filter(registration => {
+      const roleMatch = !registrationFilters.role || registration.role === registrationFilters.role;
+      const statusMatch = !registrationFilters.status || registration.status === registrationFilters.status;
+      return roleMatch && statusMatch;
+    });
+    console.log('Filtered registrations:', filtered);
+    return filtered;
+  };
+
+  const handleViewRegistration = (registration) => {
+    setSelectedRegistrationForDetail(registration);
+    setShowRegistrationDetailModal(true);
+  };
+
+  const handleCloseRegistrationDetailModal = () => {
+    setShowRegistrationDetailModal(false);
+    setSelectedRegistrationForDetail(null);
+  };
+
+  const handleRegistrationUpdate = () => {
+    // Refresh the registration data
+    fetchData();
+  };
+
+  const handleApproveRegistration = async (registrationId) => {
+    try {
+      await superAdminAPI.approveUser(registrationId, 'FARMER'); // Default role, can be updated
+      setRegistrations(prev => prev.map(reg => 
+        reg.id === registrationId ? { ...reg, status: 'APPROVED' } : reg
+      ));
+      alert('Registration approved successfully!');
+    } catch (error) {
+      console.error('Error approving registration:', error);
+      alert('Failed to approve registration. Please try again.');
+    }
+  };
+
+  const handleRejectRegistration = async (registrationId) => {
+    try {
+      await superAdminAPI.rejectUser(registrationId, 'Rejected by Admin');
+      setRegistrations(prev => prev.map(reg => 
+        reg.id === registrationId ? { ...reg, status: 'REJECTED' } : reg
+      ));
+      alert('Registration rejected successfully!');
+    } catch (error) {
+      console.error('Error rejecting registration:', error);
+      alert('Failed to reject registration. Please try again.');
+    }
   };
 
   const getStats = () => {
@@ -503,8 +667,8 @@ const AdminDashboard = () => {
             change="+12.4%"
             changeType="positive"
             icon="👥"
-          />
-          <StatsCard
+        />
+        <StatsCard
             title="Total Employees"
             value={stats.totalEmployees}
             change="+5.2%"
@@ -516,7 +680,7 @@ const AdminDashboard = () => {
             value={stats.unassignedFarmers}
             change=""
             changeType="neutral"
-            icon="⏳"
+          icon="⏳"
         />
         <StatsCard
           title="Pending KYC"
@@ -557,36 +721,36 @@ const AdminDashboard = () => {
             <div className="todo-card">
               <h4>Unassigned Farmers</h4>
               <p>{todoList.unassignedFarmers.length} farmers need assignment</p>
-              <button 
+          <button 
                 className="action-btn-small primary"
                 onClick={() => setActiveTab('farmers')}
-              >
+          >
                 View Farmers
-              </button>
+          </button>
             </div>
             <div className="todo-card">
               <h4>Overdue KYC Cases</h4>
               <p>{todoList.overdueKYC.length} cases overdue</p>
-              <button 
+          <button 
                 className="action-btn-small warning"
                 onClick={() => setActiveTab('farmers')}
-              >
+          >
                 Review Cases
-              </button>
+          </button>
             </div>
             <div className="todo-card">
               <h4>Employees with Large Queues</h4>
               <p>{todoList.employeesWithLargeQueues.length} employees</p>
-              <button 
+          <button 
                 className="action-btn-small info"
                 onClick={() => setActiveTab('employees')}
-              >
+          >
                 View Employees
-              </button>
-            </div>
-          </div>
+          </button>
         </div>
       </div>
+            </div>
+            </div>
     );
   };
 
@@ -595,61 +759,59 @@ const AdminDashboard = () => {
 
     return (
       <div className="overview-section">
-        <div className="overview-header">
-          <h2 className="overview-title">Farmer Management</h2>
-          <p className="overview-description">
-            View and manage all farmer profiles with KYC status and assignments.
-          </p>
-          <div className="overview-actions">
-          <button 
-            className="action-btn primary"
-            onClick={() => setShowFarmerForm(true)}
-          >
-              Add Farmer
-          </button>
-          <button 
-            className="action-btn secondary"
-            onClick={() => setShowAssignmentModal(true)}
-          >
-              Assign Farmers
-          </button>
+        {!showFarmerRegistration ? (
+          <>
+            <div className="overview-header">
+              <h2 className="overview-title">Farmer Management</h2>
+              <p className="overview-description">
+                View and manage all farmer profiles with KYC status and assignments.
+              </p>
+              <div className="overview-actions">
+                <button 
+                  className="action-btn primary"
+                  onClick={() => setShowFarmerRegistration(true)}
+                >
+                    Add Farmer
+                </button>
+                <button 
+                  className="action-btn secondary"
+                  onClick={() => setShowAssignmentModal(true)}
+                >
+                    Assign Farmers
+                </button>
+            </div>
         </div>
-      </div>
 
-        
-
-
-
-        {/* Filters */}
+            {/* Filters */}
       <div className="filters-section">
           <select 
             value={filters.state} 
             onChange={(e) => setFilters(prev => ({ ...prev, state: e.target.value }))}
-            className="filter-select"
+                className="filter-select"
           >
             <option value="">All States</option>
             <option value="Maharashtra">Maharashtra</option>
             <option value="Gujarat">Gujarat</option>
             <option value="Punjab">Punjab</option>
-            <option value="Uttar Pradesh">Uttar Pradesh</option>
-            <option value="Tamil Nadu">Tamil Nadu</option>
-          </select>
-          <select 
-            value={filters.district} 
-            onChange={(e) => setFilters(prev => ({ ...prev, district: e.target.value }))}
-            className="filter-select"
-          >
-            <option value="">All Districts</option>
-            <option value="Pune">Pune</option>
-            <option value="Ahmedabad">Ahmedabad</option>
-            <option value="Amritsar">Amritsar</option>
-            <option value="Lucknow">Lucknow</option>
-            <option value="Chennai">Chennai</option>
+                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                <option value="Tamil Nadu">Tamil Nadu</option>
+              </select>
+              <select 
+                value={filters.district} 
+                onChange={(e) => setFilters(prev => ({ ...prev, district: e.target.value }))}
+                className="filter-select"
+              >
+                <option value="">All Districts</option>
+                <option value="Pune">Pune</option>
+                <option value="Ahmedabad">Ahmedabad</option>
+                <option value="Amritsar">Amritsar</option>
+                <option value="Lucknow">Lucknow</option>
+                <option value="Chennai">Chennai</option>
           </select>
           <select 
             value={filters.kycStatus} 
             onChange={(e) => setFilters(prev => ({ ...prev, kycStatus: e.target.value }))}
-            className="filter-select"
+                className="filter-select"
           >
             <option value="">All KYC Status</option>
             <option value="APPROVED">Approved</option>
@@ -660,30 +822,30 @@ const AdminDashboard = () => {
           <select 
             value={filters.assignmentStatus} 
             onChange={(e) => setFilters(prev => ({ ...prev, assignmentStatus: e.target.value }))}
-            className="filter-select"
+                className="filter-select"
           >
             <option value="">All Assignment Status</option>
             <option value="ASSIGNED">Assigned</option>
             <option value="UNASSIGNED">Unassigned</option>
           </select>
-          <select 
-            value={filters.employeeFilter} 
-            onChange={(e) => setFilters(prev => ({ ...prev, employeeFilter: e.target.value }))}
-            className="filter-select"
-          >
-            <option value="">All Employees</option>
-            {employees.map(emp => (
-              <option key={emp.id} value={emp.name}>{emp.name}</option>
-            ))}
+              <select 
+                value={filters.employeeFilter} 
+                onChange={(e) => setFilters(prev => ({ ...prev, employeeFilter: e.target.value }))}
+                className="filter-select"
+              >
+                <option value="">All Employees</option>
+                {employees.map(emp => (
+                  <option key={emp.id} value={emp.name}>{emp.name}</option>
+                ))}
           </select>
       </div>
 
-        {/* Farmers Table */}
+            {/* Farmers Table */}
       <DataTable
-          data={filteredFarmers}
+              data={filteredFarmers}
         columns={[
           { key: 'name', label: 'Name' },
-            { key: 'contactNumber', label: 'Phone' },
+                { key: 'contactNumber', label: 'Phone' },
           { key: 'state', label: 'State' },
           { key: 'district', label: 'District' },
           { key: 'kycStatus', label: 'KYC Status' },
@@ -691,21 +853,148 @@ const AdminDashboard = () => {
         ]}
         customActions={[
           {
-              label: 'View',
-              className: 'action-btn-small info',
-              onClick: handleViewFarmer
-            },
-            {
-              label: 'Edit',
-              className: 'action-btn-small primary',
-              onClick: handleEditFarmer
-            },
-            {
-              label: 'KYC',
-              className: 'action-btn-small warning',
+                  label: 'View',
+                  className: 'action-btn-small info',
+                  onClick: handleViewFarmer
+                },
+                {
+                  label: 'Edit',
+                  className: 'action-btn-small primary',
+                  onClick: handleEditFarmer
+                },
+                {
+                  label: 'KYC',
+                  className: 'action-btn-small warning',
             onClick: handleKYCDocumentUpload
           }
         ]}
+      />
+          </>
+        ) : (
+          <div className="farmer-registration-section">
+            <div className="section-header">
+              <div>
+                <h2 className="section-title">Add New Farmer</h2>
+                <p className="section-description">
+                  Fill in the farmer details to create a new farmer account.
+                </p>
+              </div>
+              <div className="section-actions">
+                <button 
+                  className="action-btn-small secondary"
+                  onClick={() => setShowFarmerRegistration(false)}
+                >
+                  <i className="fas fa-arrow-left"></i>
+                  Back to Farmers
+                </button>
+              </div>
+            </div>
+
+            <FarmerRegistrationForm 
+              isInDashboard={true}
+              onClose={() => setShowFarmerRegistration(false)}
+              onSubmit={async (farmerData) => {
+                try {
+                  const newFarmer = await farmersAPI.createFarmer(farmerData);
+                  setFarmers(prev => [...prev, newFarmer]);
+                  alert('Farmer created successfully!');
+                  setShowFarmerRegistration(false);
+                } catch (error) {
+                  console.error('Error creating farmer:', error);
+                  alert('Failed to create farmer. Please try again.');
+                }
+              }}
+            />
+          </div>
+        )}
+    </div>
+  );
+  };
+
+  const renderRegistration = () => {
+    const filteredRegistrations = getFilteredRegistrations();
+
+    return (
+      <div className="registration-section">
+        <div className="section-header">
+          <div>
+            <h2 className="section-title">Registration Management</h2>
+            <p className="section-description">
+              Review and manage user registration requests.
+            </p>
+          </div>
+          <div className="section-actions">
+            <button 
+              className="action-btn-small primary"
+              onClick={() => {
+                console.log('🔄 Manually refreshing data...');
+                fetchData();
+              }}
+            >
+              <i className="fas fa-sync-alt"></i>
+              Refresh Data
+            </button>
+          </div>
+        </div>
+
+        {/* Filters */}
+      <div className="filters-section">
+          <div className="filter-group">
+          <select 
+              className="filter-select"
+              value={registrationFilters.role}
+              onChange={(e) => setRegistrationFilters(prev => ({ ...prev, role: e.target.value }))}
+            >
+              <option value="">All Roles</option>
+              <option value="FARMER">Farmer</option>
+              <option value="EMPLOYEE">Employee</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </div>
+          <div className="filter-group">
+            <select 
+              className="filter-select"
+              value={registrationFilters.status}
+              onChange={(e) => setRegistrationFilters(prev => ({ ...prev, status: e.target.value }))}
+            >
+              <option value="">All Status</option>
+              <option value="PENDING">Pending</option>
+              <option value="APPROVED">Approved</option>
+              <option value="REJECTED">Rejected</option>
+          </select>
+        </div>
+      </div>
+
+        {/* Registration Table */}
+      <DataTable
+          data={filteredRegistrations}
+        columns={[
+          { key: 'name', label: 'Name' },
+          { key: 'email', label: 'Email' },
+            { key: 'phoneNumber', label: 'Phone' },
+            { key: 'role', label: 'Role' },
+            { key: 'status', label: 'Status' },
+            { key: 'createdAt', label: 'Registration Date' }
+          ]}
+          customActions={[
+            {
+              label: 'View',
+              className: 'action-btn-small info',
+              onClick: handleViewRegistration
+            },
+            {
+              label: 'Approve',
+              className: 'action-btn-small success',
+              onClick: (registration) => handleApproveRegistration(registration.id),
+              show: (registration) => registration.status === 'PENDING'
+            },
+            {
+              label: 'Reject',
+              className: 'action-btn-small danger',
+              onClick: (registration) => handleRejectRegistration(registration.id),
+              show: (registration) => registration.status === 'PENDING'
+            }
+          ]}
       />
     </div>
   );
@@ -714,88 +1003,128 @@ const AdminDashboard = () => {
   const renderEmployees = () => {
     const filteredEmployees = getFilteredEmployees();
 
-    return (
+  return (
       <div className="overview-section">
-        <div className="overview-header">
-          <h2 className="overview-title">Employee Management</h2>
-          <p className="overview-description">
-            View and manage employee profiles with KYC assignment statistics.
-          </p>
-          <div className="overview-actions">
-            <button 
-              className="action-btn primary"
-              onClick={() => setShowEmployeeForm(true)}
-            >
-              Add Employee
-            </button>
-          </div>
-        </div>
-
-        {/* Employee Stats */}
-        <div className="employee-stats">
-          <h3>Employee KYC Progress</h3>
-          <div className="employee-stats-grid">
-            {employees.map(employee => (
-              <div key={employee.id} className="employee-stat-card">
-                <div className="employee-info">
-                  <h4>{employee.name}</h4>
-                  <p>{employee.designation} - {employee.district}</p>
-                </div>
-                <div className="employee-kyc-stats">
-                  <div className="kyc-stat">
-                    <span className="stat-number">{employee.assignedFarmersCount}</span>
-                    <span className="stat-label">Total Assigned</span>
-                  </div>
-                  <div className="kyc-stat">
-                    <span className="stat-number approved">{employee.kycStats?.approved || 0}</span>
-                    <span className="stat-label">Approved</span>
-                  </div>
-                  <div className="kyc-stat">
-                    <span className="stat-number pending">{employee.kycStats?.pending || 0}</span>
-                    <span className="stat-label">Pending</span>
-                  </div>
-                  <div className="kyc-stat">
-                    <span className="stat-number refer-back">{employee.kycStats?.referBack || 0}</span>
-                    <span className="stat-label">Refer Back</span>
-                  </div>
-                  <div className="kyc-stat">
-                    <span className="stat-number rejected">{employee.kycStats?.rejected || 0}</span>
-                    <span className="stat-label">Rejected</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+        {!showEmployeeRegistration ? (
+          <>
+            <div className="overview-header">
+              <h2 className="overview-title">Employee Management</h2>
+              <p className="overview-description">
+                View and manage employee profiles with KYC assignment statistics.
+              </p>
+              <div className="overview-actions">
+                <button 
+                  className="action-btn primary"
+                  onClick={() => setShowEmployeeRegistration(true)}
+                >
+                  Add Employee
+          </button>
         </div>
       </div>
 
-        {/* Employees Table */}
-      <DataTable
-          data={filteredEmployees}
-        columns={[
-          { key: 'name', label: 'Name' },
-            { key: 'contactNumber', label: 'Contact' },
-          { key: 'email', label: 'Email' },
-            { key: 'state', label: 'State' },
-            { key: 'district', label: 'District' },
-            { key: 'totalAssigned', label: 'Assigned Farmers' },
-            { key: 'approvedKyc', label: 'Approved KYC' },
-            { key: 'pendingKyc', label: 'Pending KYC' }
-          ]}
-          customActions={[
-            {
-              label: 'View',
-              className: 'action-btn-small info',
-              onClick: handleViewEmployee
-            },
-            {
-              label: 'Edit',
-              className: 'action-btn-small primary',
-              onClick: handleEditEmployee
-            }
-          ]}
-      />
-    </div>
-  );
+            {/* Employee Stats */}
+            <div className="employee-stats">
+              <h3>Employee KYC Progress</h3>
+              <div className="employee-stats-grid">
+                {employees.map(employee => (
+                  <div key={employee.id} className="employee-stat-card">
+                    <div className="employee-info">
+                      <h4>{employee.name}</h4>
+                      <p>{employee.designation} - {employee.district}</p>
+                    </div>
+                    <div className="employee-kyc-stats">
+                      <div className="kyc-stat">
+                        <span className="stat-number">{employee.assignedFarmersCount}</span>
+                        <span className="stat-label">Total Assigned</span>
+                      </div>
+                      <div className="kyc-stat">
+                        <span className="stat-number approved">{employee.kycStats?.approved || 0}</span>
+                        <span className="stat-label">Approved</span>
+                      </div>
+                      <div className="kyc-stat">
+                        <span className="stat-number pending">{employee.kycStats?.pending || 0}</span>
+                        <span className="stat-label">Pending</span>
+                      </div>
+                      <div className="kyc-stat">
+                        <span className="stat-number refer-back">{employee.kycStats?.referBack || 0}</span>
+                        <span className="stat-label">Refer Back</span>
+                      </div>
+                      <div className="kyc-stat">
+                        <span className="stat-number rejected">{employee.kycStats?.rejected || 0}</span>
+                        <span className="stat-label">Rejected</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+
+            {/* Employees Table */}
+          <DataTable
+            data={filteredEmployees}
+            columns={[
+              { key: 'name', label: 'Name' },
+              { key: 'contactNumber', label: 'Contact' },
+              { key: 'email', label: 'Email' },
+              { key: 'state', label: 'State' },
+              { key: 'district', label: 'District' },
+              { key: 'totalAssigned', label: 'Assigned Farmers' },
+              { key: 'approvedKyc', label: 'Approved KYC' },
+              { key: 'pendingKyc', label: 'Pending KYC' }
+            ]}
+            customActions={[
+              {
+                label: 'View',
+                className: 'action-btn-small info',
+                onClick: handleViewEmployee
+              },
+              {
+                label: 'Edit',
+                className: 'action-btn-small primary',
+                onClick: handleEditEmployee
+              }
+            ]}
+          />
+          </>
+        ) : (
+          <div className="employee-registration-section">
+            <div className="section-header">
+              <div>
+                <h2 className="section-title">Add New Employee</h2>
+                <p className="section-description">
+                  Fill in the employee details to create a new employee account.
+                </p>
+              </div>
+              <div className="section-actions">
+        <button 
+                  className="action-btn-small secondary"
+                  onClick={() => setShowEmployeeRegistration(false)}
+        >
+                  <i className="fas fa-arrow-left"></i>
+                  Back to Employees
+        </button>
+              </div>
+            </div>
+
+            <EmployeeRegistrationForm 
+              isInDashboard={true}
+              onClose={() => setShowEmployeeRegistration(false)}
+              onSubmit={async (employeeData) => {
+                try {
+                  const newEmployee = await employeesAPI.createEmployee(employeeData);
+                  setEmployees(prev => [...prev, newEmployee]);
+                  alert('Employee created successfully!');
+                  setShowEmployeeRegistration(false);
+                } catch (error) {
+                  console.error('Error creating employee:', error);
+                  alert('Failed to create employee. Please try again.');
+                }
+              }}
+            />
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -830,6 +1159,14 @@ const AdminDashboard = () => {
           >
             <i className="fas fa-user-tie"></i>
             <span>Employees</span>
+      </div>
+
+          <div 
+            className={`nav-item ${activeTab === 'registration' ? 'active' : ''}`}
+            onClick={() => setActiveTab('registration')}
+          >
+            <i className="fas fa-user-plus"></i>
+            <span>Registration</span>
           </div>
         </div>
       </div>
@@ -857,13 +1194,14 @@ const AdminDashboard = () => {
           <div className="header-right">
             <UserProfileDropdown />
           </div>
-        </div>
+      </div>
 
         {/* Dashboard Content */}
         <div className="dashboard-content">
           {activeTab === 'overview' && renderOverview()}
           {activeTab === 'farmers' && renderFarmers()}
           {activeTab === 'employees' && renderEmployees()}
+          {activeTab === 'registration' && renderRegistration()}
         </div>
       </div>
 
@@ -962,11 +1300,21 @@ const AdminDashboard = () => {
 
       {showKYCDocumentUpload && selectedFarmerForKYC && (
                    <KYCDocumentUpload
-          farmer={selectedFarmerForKYC}
+                     farmer={selectedFarmerForKYC}
                      onClose={handleCloseKYCDocumentUpload}
                      onApprove={handleKYCApprove}
                      onReject={handleKYCReject}
                      onReferBack={handleKYCReferBack}
+                   />
+                 )}
+
+      {showRegistrationDetailModal && selectedRegistrationForDetail && (
+        <RegistrationDetailModal
+          registration={selectedRegistrationForDetail}
+          onClose={handleCloseRegistrationDetailModal}
+          onUpdate={handleRegistrationUpdate}
+          onApprove={handleApproveRegistration}
+          onReject={handleRejectRegistration}
                    />
                  )}
                </div>

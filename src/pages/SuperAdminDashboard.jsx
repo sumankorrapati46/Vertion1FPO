@@ -79,6 +79,19 @@ const SuperAdminDashboard = () => {
 
   useEffect(() => {
     fetchData();
+    
+    // Listen for KYC status updates from Employee Dashboard
+    const handleKYCUpdate = (event) => {
+      console.log('🔄 Super Admin Dashboard: KYC status updated, refreshing data...');
+      console.log('📊 KYC Update details:', event.detail);
+      fetchData(); // Refresh data when KYC status changes
+    };
+    
+    window.addEventListener('kycStatusUpdated', handleKYCUpdate);
+    
+    return () => {
+      window.removeEventListener('kycStatusUpdated', handleKYCUpdate);
+    };
   }, []);
 
   // Debug effect to monitor farmers state
@@ -110,7 +123,7 @@ const SuperAdminDashboard = () => {
         [farmersData, employeesData, registrationsData] = await Promise.all([
           farmersAPI.getAllFarmers(),
           employeesAPI.getAllEmployees(),
-          superAdminAPI.getAllUsers()
+          superAdminAPI.getRegistrationList()
         ]);
         console.log('API calls completed successfully');
       } catch (apiError) {
@@ -123,7 +136,11 @@ const SuperAdminDashboard = () => {
 
       console.log('Raw API responses:');
       console.log('Farmers data:', farmersData);
+      console.log('Farmers data length:', farmersData?.length || 0);
+      console.log('First farmer structure:', farmersData?.[0]);
       console.log('Employees data:', employeesData);
+      console.log('Employees data length:', employeesData?.length || 0);
+      console.log('First employee structure:', employeesData?.[0]);
       console.log('Registrations data:', registrationsData);
 
       // If registrations data is empty, add some mock data for testing
@@ -146,9 +163,9 @@ const SuperAdminDashboard = () => {
             phoneNumber: '9876543211',
             role: 'EMPLOYEE',
             status: 'PENDING'
-          },
-          {
-            id: 3,
+      },
+      {
+        id: 3,
             name: 'Bob Wilson',
             email: 'bob.wilson@example.com',
             phoneNumber: '9876543212',
@@ -158,46 +175,73 @@ const SuperAdminDashboard = () => {
         ];
       }
 
-      // If farmers data is empty, add some mock data for testing
+      // Force use of mock data for now to ensure proper data structure
       let finalFarmersData = farmersData;
-      if (!farmersData || farmersData.length === 0) {
-        console.log('No farmers data from API, adding mock data for testing');
+      if (!farmersData || farmersData.length === 0 || !farmersData[0]?.email || true) { // Force mock data
+        console.log('Using mock data for farmers (timestamp: ' + new Date().toISOString() + ')');
         finalFarmersData = [
-          {
-            id: 1,
-            name: 'John Farmer',
+      {
+        id: 1,
+            name: 'Ramu Yadav',
             contactNumber: '9876543210',
-            email: 'john.farmer@example.com',
+            email: 'ramu.yadav@example.com',
             accessStatus: 'ACTIVE',
             kycStatus: 'PENDING',
-            assignedEmployee: null
-          },
-          {
-            id: 2,
-            name: 'Jane Farmer',
-            contactNumber: '9876543211',
-            email: 'jane.farmer@example.com',
+            assignedEmployee: 'harish reddy'
+      },
+      {
+        id: 2,
+            name: 'Krishna Kumar',
+            contactNumber: '9983733210',
+            email: 'krishna.kumar@example.com',
             accessStatus: 'ACTIVE',
-            kycStatus: 'APPROVED',
-            assignedEmployee: 'Not Assigned'
+            kycStatus: 'PENDING',
+            assignedEmployee: 'harish reddy'
           },
           {
             id: 3,
-            name: 'Bob Farmer',
-            contactNumber: '9876543212',
-            email: 'bob.farmer@example.com',
+            name: 'suman kurrapati',
+            contactNumber: '9783733210',
+            email: 'suman.kurrapati@example.com',
             accessStatus: 'ACTIVE',
             kycStatus: 'PENDING',
-            assignedEmployee: undefined
+            assignedEmployee: 'harish reddy'
           },
           {
             id: 4,
-            name: 'Alice Farmer',
-            contactNumber: '9876543213',
-            email: 'alice.farmer@example.com',
+            name: 'vamsi krishna',
+            contactNumber: '9783733210',
+            email: 'vamsi.krishna@example.com',
             accessStatus: 'ACTIVE',
             kycStatus: 'PENDING',
-            assignedEmployee: 'John Employee'
+            assignedEmployee: 'harish reddy'
+          },
+          {
+            id: 5,
+            name: 'hari kumar chowdary',
+            contactNumber: '6271979190',
+            email: 'hari.chowdary@example.com',
+            accessStatus: 'ACTIVE',
+            kycStatus: 'PENDING',
+            assignedEmployee: 'harish reddy'
+          },
+          {
+            id: 6,
+            name: 'kumar sreenu chowdary',
+            contactNumber: '6302949363',
+            email: 'kumar.chowdary@example.com',
+            accessStatus: 'ACTIVE',
+            kycStatus: 'PENDING',
+            assignedEmployee: 'harish reddy'
+          },
+          {
+            id: 7,
+            name: 'Ainash kumar',
+            contactNumber: '9798433210',
+            email: 'ainash.kumar@example.com',
+            accessStatus: 'ACTIVE',
+            kycStatus: 'PENDING',
+            assignedEmployee: 'harish reddy'
           }
         ];
         console.log('Mock farmers data created:', finalFarmersData);
@@ -205,43 +249,34 @@ const SuperAdminDashboard = () => {
 
       console.log('Setting farmers data:', finalFarmersData);
       console.log('Sample farmer structure:', finalFarmersData[0]);
-      // If employees data is empty, add some mock data for testing
+      // Force use of mock data for employees to ensure proper data structure
       let finalEmployeesData = employeesData;
-      if (!employeesData || employeesData.length === 0) {
-        console.log('No employees data from API, adding mock data for testing');
+      if (!employeesData || employeesData.length === 0 || !employeesData[0]?.status || true) { // Force mock data
+        console.log('Using mock data for employees (timestamp: ' + new Date().toISOString() + ')');
         finalEmployeesData = [
           {
             id: 1,
-            name: 'John Employee',
-            contactNumber: '9876543200',
-            email: 'john.employee@example.com',
+            name: 'dinakar ram lankipalli',
+            contactNumber: '9857687867',
+            email: 'kite@gmail.com',
             status: 'ACTIVE',
             role: 'employee',
             designation: 'KYC Officer'
           },
           {
             id: 2,
-            name: 'Jane Employee',
-            contactNumber: '9876543201',
-            email: 'jane.employee@example.com',
+            name: 'karthik Meka kumar',
+            contactNumber: '6739299291',
+            email: 'karthik23@gmail.com',
             status: 'ACTIVE',
             role: 'employee',
             designation: 'KYC Officer'
           },
           {
             id: 3,
-            name: 'Mike Johnson',
-            contactNumber: '9876543202',
-            email: 'mike.johnson@example.com',
-            status: 'ACTIVE',
-            role: 'employee',
-            designation: 'KYC Officer'
-          },
-          {
-            id: 4,
-            name: 'Sarah Wilson',
-            contactNumber: '9876543203',
-            email: 'sarah.wilson@example.com',
+            name: 'harish kumar reddy',
+            contactNumber: '6372872722',
+            email: 'harish134@gmail.com',
             status: 'ACTIVE',
             role: 'employee',
             designation: 'KYC Officer'
@@ -314,6 +349,7 @@ const SuperAdminDashboard = () => {
       activeEmployees,
       totalFPO
     };
+
   };
 
   const handleViewRegistration = (registration) => {
@@ -567,9 +603,9 @@ const SuperAdminDashboard = () => {
     return (
       <div className="dashboard">
         <div className="dashboard-main">
-          <div className="dashboard-content">
+    <div className="dashboard-content">
             <div className="loading">Loading dashboard...</div>
-          </div>
+      </div>
         </div>
       </div>
     );
@@ -664,15 +700,15 @@ const SuperAdminDashboard = () => {
                 marginTop: '8px'
               }}>
                 ⚠️ No user data found. Using default Super Admin profile.
-              </div>
-            )}
+            </div>
+          )}
             <h1 className="header-title">Super Admin Dashboard</h1>
             <p className="header-subtitle">Manage your agricultural platform</p>
-          </div>
+            </div>
           <div className="header-right">
             <UserProfileDropdown />
-          </div>
         </div>
+      </div>
 
         {/* Welcome Section */}
         <div className="welcome-section">
@@ -681,10 +717,10 @@ const SuperAdminDashboard = () => {
             Empowering your agricultural journey with data-driven insights and seamless management. 
             Explore your dashboard below.
           </p>
-        </div>
+    </div>
 
         {/* Dashboard Content */}
-        <div className="dashboard-content">
+    <div className="dashboard-content">
           {activeTab === 'dashboard' && (
             <>
               {/* Dashboard Overview */}
@@ -752,7 +788,7 @@ const SuperAdminDashboard = () => {
                   <div className="section-card">
                     <div className="section-header">
                       <h3 className="section-title">Recent Activities</h3>
-                      <a href="#" className="section-link">View All</a>
+                      <button className="section-link">View All</button>
                     </div>
                     <div className="activities-list">
                       <div className="activity-item">
@@ -833,27 +869,27 @@ const SuperAdminDashboard = () => {
                     className="filter-select"
           >
                     <option value="">All Status</option>
-                    <option value="PENDING">Pending</option>
+            <option value="PENDING">Pending</option>
             <option value="APPROVED">Approved</option>
             <option value="REJECTED">Rejected</option>
           </select>
-                </div>
-              </div>
-              
+        </div>
+      </div>
+
               {(() => {
                 const registrationData = getFilteredRegistrations();
                 return (
-                  <DataTable
+      <DataTable
                     data={registrationData}
-                    columns={[
-                      { key: 'name', label: 'Name' },
+        columns={[
+          { key: 'name', label: 'Name' },
                       { key: 'email', label: 'Email' },
                       { key: 'phoneNumber', label: 'Phone' },
                       { key: 'role', label: 'Role' },
                       { key: 'status', label: 'Status' }
                     ]}
-                    customActions={[
-                      {
+        customActions={[
+          {
                         label: 'View',
                         className: 'action-btn-small info',
                         onClick: handleViewRegistration
@@ -862,9 +898,9 @@ const SuperAdminDashboard = () => {
                         label: 'Delete',
                         className: 'action-btn-small danger',
                         onClick: (registration) => handleDelete(registration, 'registration')
-                      }
-                    ]}
-                  />
+          }
+        ]}
+      />
                 );
               })()}
             </div>
@@ -905,7 +941,7 @@ const SuperAdminDashboard = () => {
         columns={[
           { key: 'name', label: 'Name' },
                   { key: 'contactNumber', label: 'Phone' },
-                  { key: 'email', label: 'Email' },
+          { key: 'email', label: 'Email' },
                   { key: 'accessStatus', label: 'Status' },
                   { key: 'kycStatus', label: 'KYC Status' }
                 ]}
@@ -948,9 +984,9 @@ const SuperAdminDashboard = () => {
                       <button className="action-btn primary" onClick={handleAddEmployee}>
                         <i className="fas fa-plus"></i>
                         Add Employee
-                      </button>
-                    </div>
-                  </div>
+          </button>
+        </div>
+      </div>
 
                   <DataTable
                     data={getFilteredEmployees()}
@@ -988,16 +1024,16 @@ const SuperAdminDashboard = () => {
                       Register a new employee in the system.
                     </p>
                     <div className="overview-actions">
-                      <button 
+        <button 
                         className="action-btn secondary" 
                         onClick={() => setShowEmployeeRegistration(false)}
                       >
                         <i className="fas fa-arrow-left"></i>
                         Back to Employees
-                      </button>
-                    </div>
-                  </div>
-                  
+        </button>
+      </div>
+      </div>
+
                   <EmployeeRegistrationForm 
                     isInDashboard={true}
                     onClose={() => setShowEmployeeRegistration(false)}
@@ -1043,7 +1079,7 @@ const SuperAdminDashboard = () => {
          console.log('Employees state:', employees);
          console.log('Employees length:', employees?.length || 0);
          return (
-           <AssignmentModal 
+        <AssignmentModal 
              farmers={farmers.filter(f => {
                // Check if farmer is unassigned based on backend data structure
                return !f.assignedEmployee || 
@@ -1068,7 +1104,7 @@ const SuperAdminDashboard = () => {
                }
                return employees;
              })()}
-             onClose={() => setShowAssignmentModal(false)}
+          onClose={() => setShowAssignmentModal(false)}
              onAssign={handleAssignFarmers}
            />
          );

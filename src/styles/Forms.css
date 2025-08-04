@@ -560,4 +560,60 @@
   .farmer-info {
     font-size: 0.9rem;
   }
+}
+
+/* Document Verification Styles */
+.document-info {
+  margin: 20px 0;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #28a745;
+}
+
+.document-info h3 {
+  margin: 0 0 15px 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.document-verified {
+  color: #28a745;
+  font-weight: 600;
+  background: #d4edda;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.document-missing {
+  color: #dc3545;
+  font-weight: 600;
+  background: #f8d7da;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.document-warning {
+  margin-top: 10px;
+  padding: 10px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  color: #856404;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #6c757d;
+}
+
+.action-btn:disabled:hover {
+  background: #6c757d;
+  transform: none;
 } 
