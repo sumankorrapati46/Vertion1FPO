@@ -89,121 +89,56 @@ const AdminDashboard = () => {
       console.log('🔍 Admin: Starting to fetch real data from API...');
       
       // Fetch farmers, employees, and registrations from API using admin endpoints
-      const farmersData = await adminAPI.getFarmersWithKyc();
-      const employeesData = await adminAPI.getEmployeesWithStats();
-      const registrationsData = await superAdminAPI.getRegistrationList();
+      const [farmersData, employeesData, registrationsData] = await Promise.all([
+        adminAPI.getFarmersWithKyc(),
+        adminAPI.getEmployeesWithStats(),
+        superAdminAPI.getRegistrationList()
+      ]);
       
-      if (farmersData && farmersData.length > 0) {
-        setFarmers(farmersData);
-      } else {
-        // Fallback to basic admin endpoints
-        try {
-          const basicFarmers = await adminAPI.getAllFarmers();
-          if (basicFarmers && basicFarmers.length > 0) {
-            setFarmers(basicFarmers);
-          } else {
-            // Fallback to super-admin endpoints
-            try {
-              const superAdminFarmers = await farmersAPI.getAllFarmers();
-              if (superAdminFarmers && superAdminFarmers.length > 0) {
-                setFarmers(superAdminFarmers);
-              } else {
-                loadMockData();
-              }
-            } catch (superAdminError) {
-              loadMockData();
-            }
-          }
-        } catch (basicError) {
-          loadMockData();
-        }
-      }
-      
-      if (employeesData && employeesData.length > 0) {
-        setEmployees(employeesData);
-      } else {
-        // Fallback to basic admin endpoints
-        try {
-          const basicEmployees = await adminAPI.getAllEmployees();
-          if (basicEmployees && basicEmployees.length > 0) {
-            setEmployees(basicEmployees);
-          } else {
-            // Fallback to super-admin endpoints
-            try {
-              const superAdminEmployees = await employeesAPI.getAllEmployees();
-              if (superAdminEmployees && superAdminEmployees.length > 0) {
-                setEmployees(superAdminEmployees);
-              } else {
-                loadMockData();
-              }
-            } catch (superAdminError) {
-              loadMockData();
-            }
-          }
-        } catch (basicError) {
-          loadMockData();
-        }
-      }
-      
-      // Handle registrations data
       console.log('✅ Admin API Response:', { 
         farmersCount: farmersData?.length || 0,
         employeesCount: employeesData?.length || 0,
-        registrationsCount: registrationsData?.length || 0,
-        registrationsData: registrationsData
+        registrationsCount: registrationsData?.length || 0
       });
       
-      if (registrationsData && registrationsData.length > 0) {
-        console.log('✅ Setting real registrations data:', registrationsData.length, 'registrations');
-        setRegistrations(registrationsData);
-      } else {
-        console.log('❌ No registrations data from API, trying fallback...');
-        // Fallback to super admin endpoints
-        try {
-          const superAdminRegistrations = await superAdminAPI.getRegistrationList();
-          console.log('🔄 Fallback registrations data:', superAdminRegistrations);
-          if (superAdminRegistrations && superAdminRegistrations.length > 0) {
-            console.log('✅ Setting real registrations data from fallback:', superAdminRegistrations.length, 'registrations');
-            setRegistrations(superAdminRegistrations);
-          } else {
-            console.log('❌ No registrations data from fallback API, using mock data');
-            loadMockRegistrationData();
-          }
-        } catch (basicError) {
-          console.error('❌ Fallback error:', basicError);
-          console.log('❌ Using mock data due to API error');
-          loadMockRegistrationData();
-        }
-      }
+      // Use real data from APIs
+      setFarmers(farmersData || []);
+      setEmployees(employeesData || []);
+      setRegistrations(registrationsData || []);
+      
+      console.log('✅ Admin: Using real data from APIs');
+      console.log('- Farmers:', farmersData?.length || 0, 'records');
+      console.log('- Employees:', employeesData?.length || 0, 'records');
+      console.log('- Registrations:', registrationsData?.length || 0, 'records');
+      
     } catch (error) {
       console.error('❌ Admin error fetching data:', error);
       console.log('❌ Using fallback endpoints due to API error');
+      
       // Try basic admin endpoints as fallback
       try {
-        const farmersData = await adminAPI.getAllFarmers();
-        const employeesData = await adminAPI.getAllEmployees();
-        const registrationsData = await superAdminAPI.getRegistrationList();
+        const [fallbackFarmers, fallbackEmployees, fallbackRegistrations] = await Promise.all([
+          adminAPI.getAllFarmers(),
+          adminAPI.getAllEmployees(),
+          superAdminAPI.getRegistrationList()
+        ]);
         
-        if (farmersData && farmersData.length > 0) {
-          setFarmers(farmersData);
-        } else {
-          loadMockData();
-        }
+        console.log('✅ Fallback API Response:', {
+          farmersCount: fallbackFarmers?.length || 0,
+          employeesCount: fallbackEmployees?.length || 0,
+          registrationsCount: fallbackRegistrations?.length || 0
+        });
         
-        if (employeesData && employeesData.length > 0) {
-          setEmployees(employeesData);
-        } else {
-          loadMockData();
-        }
+        setFarmers(fallbackFarmers || []);
+        setEmployees(fallbackEmployees || []);
+        setRegistrations(fallbackRegistrations || []);
         
-        if (registrationsData && registrationsData.length > 0) {
-          setRegistrations(registrationsData);
-        } else {
-          loadMockRegistrationData();
-        }
       } catch (fallbackError) {
-        loadMockData();
-        loadMockRegistrationData();
+        console.error('❌ Fallback API also failed:', fallbackError);
+        // Set empty arrays if all APIs fail
+        setFarmers([]);
+        setEmployees([]);
+        setRegistrations([]);
       }
     }
   };
@@ -212,34 +147,34 @@ const AdminDashboard = () => {
     const mockFarmers = [
       {
         id: 1,
-        name: 'vamsi krishna',
+        name: 'Ramu Yadav',
         phone: '9876543210',
-        state: 'Andhrapradesh',
-        district: 'kadapa',
+        state: 'Telangana',
+        district: 'Karimnagar',
         region: 'Southern',
-        kycStatus: 'NOT_STARTED',
+        kycStatus: 'PENDING',
         assignmentStatus: 'ASSIGNED',
         assignedEmployee: 'harish reddy',
         assignedDate: '2024-01-15'
       },
       {
         id: 2,
-        name: 'Ainash kumar',
-        phone: '9876543211',
+        name: 'Krishna Kumar',
+        phone: '9983733210',
         state: 'Andhrapradesh',
-        district: 'kadapa',
+        district: 'rangareddy',
         region: 'Southern',
-        kycStatus: 'NOT_STARTED',
+        kycStatus: 'PENDING',
         assignmentStatus: 'ASSIGNED',
         assignedEmployee: 'harish reddy',
         assignedDate: '2024-01-18'
       },
       {
         id: 3,
-        name: 'Ramu Yadav',
-        phone: '9876543212',
-        state: 'Telangana',
-        district: 'Karimnagar',
+        name: 'suman kurrapati',
+        phone: '9783733210',
+        state: 'Andhrapradesh',
+        district: 'kadapa',
         region: 'Southern',
         kycStatus: 'NOT_STARTED',
         assignmentStatus: 'ASSIGNED',
@@ -248,10 +183,10 @@ const AdminDashboard = () => {
       },
       {
         id: 4,
-        name: 'hari chowdary',
-        phone: '6271979190',
+        name: 'vamsi krishna',
+        phone: '9783733210',
         state: 'Andhrapradesh',
-        district: 'Kadapa',
+        district: 'kadapa',
         region: 'Southern',
         kycStatus: 'NOT_STARTED',
         assignmentStatus: 'ASSIGNED',
@@ -260,7 +195,19 @@ const AdminDashboard = () => {
       },
       {
         id: 5,
-        name: 'kumar chowdary',
+        name: 'hari kumar chowdary',
+        phone: '6271979190',
+        state: 'Andhrapradesh',
+        district: 'Kadapa',
+        region: 'Southern',
+        kycStatus: 'NOT_STARTED',
+        assignmentStatus: 'ASSIGNED',
+        assignedEmployee: 'harish reddy',
+        assignedDate: '2024-01-25'
+      },
+      {
+        id: 6,
+        name: 'kumar sreenu chowdary',
         phone: '6302949363',
         state: 'Andhrapradesh',
         district: 'kadpaa',
@@ -268,18 +215,18 @@ const AdminDashboard = () => {
         kycStatus: 'NOT_STARTED',
         assignmentStatus: 'ASSIGNED',
         assignedEmployee: 'karthik kumar',
-        assignedDate: '2024-01-25'
+        assignedDate: '2024-01-12'
       },
       {
-        id: 6,
-        name: 'dinakar lankipalli',
-        phone: '9857687867',
-        state: 'Andrapradesh',
-        district: 'Jangaon',
+        id: 7,
+        name: 'Ainash kumar',
+        phone: '9798433210',
+        state: 'Andhrapradesh',
+        district: 'Kuppam',
         region: 'Southern',
         kycStatus: 'NOT_STARTED',
         assignmentStatus: 'ASSIGNED',
-        assignedEmployee: 'dinakar lankipalli',
+        assignedEmployee: 'harish reddy',
         assignedDate: '2024-01-12'
       }
     ];
@@ -367,17 +314,28 @@ const AdminDashboard = () => {
     const mockRegistrations = [
       {
         id: 1,
-        name: 'John Doe',
-        email: 'john.doe@example.com',
+        name: 'Ramu Yadav',
+        email: 'ramu.yadav@example.com',
         phoneNumber: '9876543210',
         role: 'FARMER',
         status: 'PENDING',
         createdAt: '2024-01-15',
         documents: ['Aadhar Card', 'PAN Card'],
-        kycStatus: 'NOT_STARTED'
+        kycStatus: 'PENDING'
       },
       {
         id: 2,
+        name: 'Krishna Kumar',
+        email: 'krishna.kumar@example.com',
+        phoneNumber: '9983733210',
+        role: 'FARMER',
+        status: 'PENDING',
+        createdAt: '2024-01-14',
+        documents: ['Aadhar Card', 'PAN Card'],
+        kycStatus: 'PENDING'
+      },
+      {
+        id: 3,
         name: 'Jane Smith',
         email: 'jane.smith@example.com',
         phoneNumber: '9876543211',
@@ -388,7 +346,7 @@ const AdminDashboard = () => {
         kycStatus: 'APPROVED'
       },
       {
-        id: 3,
+        id: 4,
         name: 'Bob Wilson',
         email: 'bob.wilson@example.com',
         phoneNumber: '9876543212',
@@ -404,7 +362,7 @@ const AdminDashboard = () => {
   };
 
   const getFilteredFarmers = () => {
-    return farmers.filter(farmer => {
+    return (farmers || []).filter(farmer => {
       const matchesState = !filters.state || farmer.state === filters.state;
       const matchesDistrict = !filters.district || farmer.district === filters.district;
       const matchesKycStatus = !filters.kycStatus || farmer.kycStatus === filters.kycStatus;
@@ -415,7 +373,7 @@ const AdminDashboard = () => {
   };
 
   const getFilteredEmployees = () => {
-    return employees.filter(employee => {
+    return (employees || []).filter(employee => {
       const matchesDistrict = !filters.district || employee.district === filters.district;
       return matchesDistrict;
     });
@@ -424,7 +382,7 @@ const AdminDashboard = () => {
   const getFilteredRegistrations = () => {
     console.log('All registrations:', registrations);
     // Apply filters
-    const filtered = registrations.filter(registration => {
+    const filtered = (registrations || []).filter(registration => {
       const roleMatch = !registrationFilters.role || registration.role === registrationFilters.role;
       const statusMatch = !registrationFilters.status || registration.status === registrationFilters.status;
       return roleMatch && statusMatch;
@@ -475,13 +433,36 @@ const AdminDashboard = () => {
   };
 
   const getStats = () => {
-    const totalFarmers = farmers.length;
-    const totalEmployees = employees.length;
-    const unassignedFarmers = farmers.filter(f => !f.assignedEmployee || f.assignedEmployee === 'Not Assigned').length;
-    const pendingKYC = farmers.filter(f => f.kycStatus === 'PENDING' || f.kycStatus === 'NOT_STARTED').length;
-    const approvedKYC = farmers.filter(f => f.kycStatus === 'APPROVED').length;
-    const referBackKYC = farmers.filter(f => f.kycStatus === 'REFER_BACK').length;
-    const rejectedKYC = farmers.filter(f => f.kycStatus === 'REJECTED').length;
+    const totalFarmers = farmers?.length || 0;
+    const totalEmployees = employees?.length || 0;
+    const unassignedFarmers = (farmers || []).filter(f => !f.assignedEmployee || f.assignedEmployee === 'Not Assigned').length;
+    
+    // Handle different KYC status formats
+    const pendingKYC = (farmers || []).filter(f => 
+      f.kycStatus === 'PENDING' || f.kycStatus === 'pending' || 
+      f.kycStatus === 'NOT_STARTED' || f.kycStatus === 'not_started'
+    ).length;
+    
+    const approvedKYC = (farmers || []).filter(f => 
+      f.kycStatus === 'APPROVED' || f.kycStatus === 'approved'
+    ).length;
+    
+    const referBackKYC = (farmers || []).filter(f => 
+      f.kycStatus === 'REFER_BACK' || f.kycStatus === 'refer_back'
+    ).length;
+    
+    const rejectedKYC = (farmers || []).filter(f => 
+      f.kycStatus === 'REJECTED' || f.kycStatus === 'rejected'
+    ).length;
+
+    console.log('Admin Stats calculated from real data:');
+    console.log('- Total Farmers:', totalFarmers);
+    console.log('- Total Employees:', totalEmployees);
+    console.log('- Unassigned Farmers:', unassignedFarmers);
+    console.log('- Pending KYC:', pendingKYC);
+    console.log('- Approved KYC:', approvedKYC);
+    console.log('- Refer Back KYC:', referBackKYC);
+    console.log('- Rejected KYC:', rejectedKYC);
 
     return {
       totalFarmers,
@@ -495,18 +476,23 @@ const AdminDashboard = () => {
   };
 
   const getTodoList = () => {
-    const unassignedFarmers = farmers.filter(f => !f.assignedEmployee || f.assignedEmployee === 'Not Assigned');
-    const overdueKYC = farmers.filter(f => {
+    const unassignedFarmers = (farmers || []).filter(f => !f.assignedEmployee || f.assignedEmployee === 'Not Assigned');
+    const overdueKYC = (farmers || []).filter(f => {
       if ((f.kycStatus === 'PENDING' || f.kycStatus === 'NOT_STARTED') && f.assignedEmployee && f.assignedEmployee !== 'Not Assigned') {
         // For now, consider all pending KYC as overdue if assigned
         return true;
       }
       return false;
     });
-    const employeesWithLargeQueues = employees.filter(emp => {
+    const employeesWithLargeQueues = (employees || []).filter(emp => {
       const pendingCount = emp.pendingKyc || 0;
       return pendingCount > 5; // Large queue if more than 5 pending
     });
+
+    console.log('Admin Todo list calculated from real data:');
+    console.log('- Unassigned Farmers:', unassignedFarmers.length);
+    console.log('- Overdue KYC:', overdueKYC.length);
+    console.log('- Employees with Large Queues:', employeesWithLargeQueues.length);
 
     return {
       unassignedFarmers,
@@ -646,111 +632,92 @@ const AdminDashboard = () => {
     }
   };
 
-  const renderOverview = () => {
+    const renderOverview = () => {
     const stats = getStats();
-    const todoList = getTodoList();
 
     return (
       <div className="overview-section">
         <div className="overview-header">
           <h2 className="overview-title">Admin Dashboard Overview</h2>
           <p className="overview-description">
-            Manage farmers, employees, and KYC assignments efficiently.
+            Manage farmers, employees, and assignments efficiently.
           </p>
         </div>
 
         {/* Stats Cards */}
-      <div className="stats-grid">
-        <StatsCard
-          title="Total Farmers"
+        <div className="stats-grid">
+          <StatsCard
+            title="FARMERS"
             value={stats.totalFarmers}
             change="+12.4%"
             changeType="positive"
             icon="👥"
-        />
-        <StatsCard
-            title="Total Employees"
+          />
+          <StatsCard
+            title="EMPLOYEES"
             value={stats.totalEmployees}
-            change="+5.2%"
-            changeType="positive"
+            change="-3.0%"
+            changeType="negative"
             icon="👨‍💼"
-        />
-        <StatsCard
-          title="Unassigned Farmers"
-            value={stats.unassignedFarmers}
-            change=""
+          />
+          <StatsCard
+            title="FPO"
+            value="0"
+            change="+0.0%"
             changeType="neutral"
-          icon="⏳"
-        />
-        <StatsCard
-          title="Pending KYC"
-            value={stats.pendingKYC}
-            change=""
-            changeType="warning"
-            icon="📋"
-        />
-      </div>
+            icon="🏢"
+          />
+        </div>
 
-        {/* KYC Status Breakdown */}
-        <div className="kyc-breakdown">
-          <h3>KYC Status Breakdown</h3>
-          <div className="kyc-stats-grid">
-            <div className="kyc-stat-card approved">
-              <span className="kyc-stat-number">{stats.approvedKYC}</span>
-              <span className="kyc-stat-label">Approved</span>
+        {/* Recent Activities Section */}
+        <div className="bottom-sections">
+          <div className="section-card">
+            <div className="section-header">
+              <h3>Recent Activities</h3>
+              <a href="#" className="section-link">View All</a>
             </div>
-            <div className="kyc-stat-card pending">
-              <span className="kyc-stat-number">{stats.pendingKYC}</span>
-              <span className="kyc-stat-label">Pending</span>
+            <div className="activities-list">
+              <div className="activity-item">
+                <div className="activity-content">
+                  <div className="activity-text">
+                    <span className="activity-dot success"></span>
+                    Farmer profile updated
+                  </div>
+                  <div className="activity-time">20m ago</div>
+                  <button className="activity-badge success">SUCCESS</button>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-content">
+                  <div className="activity-text">
+                    <span className="activity-dot error"></span>
+                    Employee profile updated
+                  </div>
+                  <div className="activity-time">10m ago</div>
+                  <button className="activity-badge success">SUCCESS</button>
+                </div>
+              </div>
             </div>
-            <div className="kyc-stat-card refer-back">
-              <span className="kyc-stat-number">{stats.referBackKYC}</span>
-              <span className="kyc-stat-label">Refer Back</span>
+          </div>
+
+          {/* Quick Actions Section */}
+          <div className="section-card">
+            <div className="section-header">
+              <h3>Quick Actions</h3>
             </div>
-            <div className="kyc-stat-card rejected">
-              <span className="kyc-stat-number">{stats.rejectedKYC}</span>
-              <span className="kyc-stat-label">Rejected</span>
+            <div className="quick-actions-grid">
+              <button className="quick-action-btn primary">
+                <i className="fas fa-users"></i>
+                View Users
+              </button>
+              <button className="quick-action-btn secondary">
+                <i className="fas fa-tractor"></i>
+                View Farmers
+              </button>
             </div>
           </div>
         </div>
-
-        {/* Todo List */}
-        <div className="todo-section">
-          <h3>To-Do List</h3>
-          <div className="todo-grid">
-            <div className="todo-card">
-              <h4>Unassigned Farmers</h4>
-              <p>{todoList.unassignedFarmers.length} farmers need assignment</p>
-          <button 
-                className="action-btn-small primary"
-                onClick={() => setActiveTab('farmers')}
-          >
-                View Farmers
-          </button>
-            </div>
-            <div className="todo-card">
-              <h4>Overdue KYC Cases</h4>
-              <p>{todoList.overdueKYC.length} cases overdue</p>
-          <button 
-                className="action-btn-small warning"
-                onClick={() => setActiveTab('farmers')}
-          >
-                Review Cases
-          </button>
-            </div>
-            <div className="todo-card">
-              <h4>Employees with Large Queues</h4>
-              <p>{todoList.employeesWithLargeQueues.length} employees</p>
-          <button 
-                className="action-btn-small info"
-                onClick={() => setActiveTab('employees')}
-          >
-                View Employees
-          </button>
-        </div>
       </div>
-            </div>
-            </div>
     );
   };
 
@@ -782,63 +749,108 @@ const AdminDashboard = () => {
             </div>
         </div>
 
-            {/* Filters */}
-      <div className="filters-section">
-          <select 
-            value={filters.state} 
-            onChange={(e) => setFilters(prev => ({ ...prev, state: e.target.value }))}
-                className="filter-select"
-          >
-            <option value="">All States</option>
-            <option value="Maharashtra">Maharashtra</option>
-            <option value="Gujarat">Gujarat</option>
-            <option value="Punjab">Punjab</option>
-                <option value="Uttar Pradesh">Uttar Pradesh</option>
-                <option value="Tamil Nadu">Tamil Nadu</option>
-              </select>
-              <select 
-                value={filters.district} 
-                onChange={(e) => setFilters(prev => ({ ...prev, district: e.target.value }))}
-                className="filter-select"
-              >
-                <option value="">All Districts</option>
-                <option value="Pune">Pune</option>
-                <option value="Ahmedabad">Ahmedabad</option>
-                <option value="Amritsar">Amritsar</option>
-                <option value="Lucknow">Lucknow</option>
-                <option value="Chennai">Chennai</option>
-          </select>
-          <select 
-            value={filters.kycStatus} 
-            onChange={(e) => setFilters(prev => ({ ...prev, kycStatus: e.target.value }))}
-                className="filter-select"
-          >
-            <option value="">All KYC Status</option>
-            <option value="APPROVED">Approved</option>
-            <option value="PENDING">Pending</option>
-            <option value="REFER_BACK">Refer Back</option>
-            <option value="REJECTED">Rejected</option>
-          </select>
-          <select 
-            value={filters.assignmentStatus} 
-            onChange={(e) => setFilters(prev => ({ ...prev, assignmentStatus: e.target.value }))}
-                className="filter-select"
-          >
-            <option value="">All Assignment Status</option>
-            <option value="ASSIGNED">Assigned</option>
-            <option value="UNASSIGNED">Unassigned</option>
-          </select>
-              <select 
-                value={filters.employeeFilter} 
-                onChange={(e) => setFilters(prev => ({ ...prev, employeeFilter: e.target.value }))}
-                className="filter-select"
-              >
-                <option value="">All Employees</option>
-                {employees.map(emp => (
-                  <option key={emp.id} value={emp.name}>{emp.name}</option>
-                ))}
-          </select>
-      </div>
+            {/* Enhanced Filters */}
+            <div className="filters-section">
+              <div className="filter-group">
+                <label className="filter-label">State</label>
+                <select 
+                  value={filters.state} 
+                  onChange={(e) => setFilters(prev => ({ ...prev, state: e.target.value }))}
+                  className="filter-select"
+                >
+                  <option value="">All States</option>
+                  <option value="Telangana">Telangana</option>
+                  <option value="Andhrapradesh">Andhrapradesh</option>
+                  <option value="Maharashtra">Maharashtra</option>
+                  <option value="Gujarat">Gujarat</option>
+                  <option value="Punjab">Punjab</option>
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  <option value="Tamil Nadu">Tamil Nadu</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <label className="filter-label">District</label>
+                <select 
+                  value={filters.district} 
+                  onChange={(e) => setFilters(prev => ({ ...prev, district: e.target.value }))}
+                  className="filter-select"
+                >
+                  <option value="">All Districts</option>
+                  <option value="Karimnagar">Karimnagar</option>
+                  <option value="rangareddy">Rangareddy</option>
+                  <option value="kadapa">Kadapa</option>
+                  <option value="Kadapa">Kadapa</option>
+                  <option value="kadpaa">Kadpaa</option>
+                  <option value="Kuppam">Kuppam</option>
+                  <option value="Pune">Pune</option>
+                  <option value="Ahmedabad">Ahmedabad</option>
+                  <option value="Amritsar">Amritsar</option>
+                  <option value="Lucknow">Lucknow</option>
+                  <option value="Chennai">Chennai</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <label className="filter-label">KYC Status</label>
+                <select 
+                  value={filters.kycStatus} 
+                  onChange={(e) => setFilters(prev => ({ ...prev, kycStatus: e.target.value }))}
+                  className="filter-select"
+                >
+                  <option value="">All KYC Status</option>
+                  <option value="APPROVED">Approved</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="NOT_STARTED">Not Started</option>
+                  <option value="REFER_BACK">Refer Back</option>
+                  <option value="REJECTED">Rejected</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <label className="filter-label">Assignment Status</label>
+                <select 
+                  value={filters.assignmentStatus} 
+                  onChange={(e) => setFilters(prev => ({ ...prev, assignmentStatus: e.target.value }))}
+                  className="filter-select"
+                >
+                  <option value="">All Assignment Status</option>
+                  <option value="ASSIGNED">Assigned</option>
+                  <option value="UNASSIGNED">Unassigned</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <label className="filter-label">Assigned Employee</label>
+                <select 
+                  value={filters.employeeFilter} 
+                  onChange={(e) => setFilters(prev => ({ ...prev, employeeFilter: e.target.value }))}
+                  className="filter-select"
+                >
+                  <option value="">All Employees</option>
+                  {employees.map(emp => (
+                    <option key={emp.id} value={emp.name}>{emp.name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="filter-actions">
+                <button 
+                  className="filter-btn-clear"
+                  onClick={() => setFilters({
+                    state: '',
+                    district: '',
+                    region: '',
+                    kycStatus: '',
+                    assignmentStatus: '',
+                    employeeFilter: ''
+                  })}
+                >
+                  <i className="fas fa-times"></i>
+                  Clear Filters
+                </button>
+              </div>
+            </div>
 
             {/* Farmers Table */}
       <DataTable
@@ -848,7 +860,19 @@ const AdminDashboard = () => {
                 { key: 'contactNumber', label: 'Phone' },
           { key: 'state', label: 'State' },
           { key: 'district', label: 'District' },
-          { key: 'kycStatus', label: 'KYC Status' },
+          { 
+            key: 'kycStatus', 
+            label: 'KYC Status',
+            render: (value) => {
+              if (!value) return 'NOT_STARTED';
+              if (value === 'PENDING' || value === 'pending') return 'PENDING';
+              if (value === 'APPROVED' || value === 'approved') return 'APPROVED';
+              if (value === 'REFER_BACK' || value === 'refer_back') return 'REFER_BACK';
+              if (value === 'REJECTED' || value === 'rejected') return 'REJECTED';
+              if (value === 'NOT_STARTED' || value === 'not_started') return 'NOT_STARTED';
+              return value.toUpperCase();
+            }
+          },
           { key: 'assignedEmployee', label: 'Assigned Employee' }
         ]}
         customActions={[
@@ -973,8 +997,7 @@ const AdminDashboard = () => {
           { key: 'email', label: 'Email' },
             { key: 'phoneNumber', label: 'Phone' },
             { key: 'role', label: 'Role' },
-            { key: 'status', label: 'Status' },
-            { key: 'createdAt', label: 'Registration Date' }
+            { key: 'status', label: 'Status' }
           ]}
           customActions={[
             {
@@ -1026,42 +1049,91 @@ const AdminDashboard = () => {
             <div className="employee-stats">
               <h3>Employee KYC Progress</h3>
               <div className="employee-stats-grid">
-                {employees.map(employee => (
-                  <div key={employee.id} className="employee-stat-card">
-                    <div className="employee-info">
-                      <h4>{employee.name}</h4>
-                      <p>{employee.designation} - {employee.district}</p>
+                {employees.map(employee => {
+                  // Calculate real stats from farmers data
+                  const assignedFarmers = (farmers || []).filter(f => 
+                    f.assignedEmployee === employee.name || 
+                    f.assignedEmployee === employee.contactNumber ||
+                    f.assignedEmployeeId === employee.id
+                  );
+                  
+                  const approvedCount = assignedFarmers.filter(f => 
+                    f.kycStatus === 'APPROVED' || f.kycStatus === 'approved'
+                  ).length;
+                  
+                  const pendingCount = assignedFarmers.filter(f => 
+                    f.kycStatus === 'PENDING' || f.kycStatus === 'pending' || 
+                    f.kycStatus === 'NOT_STARTED' || f.kycStatus === 'not_started'
+                  ).length;
+                  
+                  const referBackCount = assignedFarmers.filter(f => 
+                    f.kycStatus === 'REFER_BACK' || f.kycStatus === 'refer_back'
+                  ).length;
+                  
+                  const rejectedCount = assignedFarmers.filter(f => 
+                    f.kycStatus === 'REJECTED' || f.kycStatus === 'rejected'
+                  ).length;
+                  
+                  return (
+                    <div key={employee.id} className="employee-stat-card">
+                      <div className="employee-info">
+                        <h4>{employee.name}</h4>
+                        <p>{employee.designation} - {employee.district}</p>
+                      </div>
+                      <div className="employee-kyc-stats">
+                        <div className="kyc-stat">
+                          <span className="stat-number">{assignedFarmers.length}</span>
+                          <span className="stat-label">Total Assigned</span>
+                        </div>
+                        <div className="kyc-stat">
+                          <span className="stat-number approved">{approvedCount}</span>
+                          <span className="stat-label">Approved</span>
+                        </div>
+                        <div className="kyc-stat">
+                          <span className="stat-number pending">{pendingCount}</span>
+                          <span className="stat-label">Pending</span>
+                        </div>
+                        <div className="kyc-stat">
+                          <span className="stat-number refer-back">{referBackCount}</span>
+                          <span className="stat-label">Refer Back</span>
+                        </div>
+                        <div className="kyc-stat">
+                          <span className="stat-number rejected">{rejectedCount}</span>
+                          <span className="stat-label">Rejected</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="employee-kyc-stats">
-                      <div className="kyc-stat">
-                        <span className="stat-number">{employee.assignedFarmersCount}</span>
-                        <span className="stat-label">Total Assigned</span>
-                      </div>
-                      <div className="kyc-stat">
-                        <span className="stat-number approved">{employee.kycStats?.approved || 0}</span>
-                        <span className="stat-label">Approved</span>
-                      </div>
-                      <div className="kyc-stat">
-                        <span className="stat-number pending">{employee.kycStats?.pending || 0}</span>
-                        <span className="stat-label">Pending</span>
-                      </div>
-                      <div className="kyc-stat">
-                        <span className="stat-number refer-back">{employee.kycStats?.referBack || 0}</span>
-                        <span className="stat-label">Refer Back</span>
-                      </div>
-                      <div className="kyc-stat">
-                        <span className="stat-number rejected">{employee.kycStats?.rejected || 0}</span>
-                        <span className="stat-label">Rejected</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           </div>
 
             {/* Employees Table */}
           <DataTable
-            data={filteredEmployees}
+            data={filteredEmployees.map(employee => {
+              // Calculate real stats from farmers data
+              const assignedFarmers = (farmers || []).filter(f => 
+                f.assignedEmployee === employee.name || 
+                f.assignedEmployee === employee.contactNumber ||
+                f.assignedEmployeeId === employee.id
+              );
+              
+              const approvedCount = assignedFarmers.filter(f => 
+                f.kycStatus === 'APPROVED' || f.kycStatus === 'approved'
+              ).length;
+              
+              const pendingCount = assignedFarmers.filter(f => 
+                f.kycStatus === 'PENDING' || f.kycStatus === 'pending' || 
+                f.kycStatus === 'NOT_STARTED' || f.kycStatus === 'not_started'
+              ).length;
+              
+              return {
+                ...employee,
+                totalAssigned: assignedFarmers.length,
+                approvedKyc: approvedCount,
+                pendingKyc: pendingCount
+              };
+            })}
             columns={[
               { key: 'name', label: 'Name' },
               { key: 'contactNumber', label: 'Contact' },
@@ -1127,6 +1199,138 @@ const AdminDashboard = () => {
     );
   };
 
+  const renderKYCOverview = () => {
+    const stats = getStats();
+    
+    return (
+      <div className="overview-section">
+        <div className="overview-header">
+          <h2 className="overview-title">KYC Overview</h2>
+          <p className="overview-description">
+            Comprehensive view of KYC status across all farmers and employees.
+          </p>
+        </div>
+
+        {/* KYC Status Breakdown */}
+        <div className="kyc-breakdown">
+          <h3>KYC Status Breakdown</h3>
+          <div className="kyc-stats-grid">
+            <div className="kyc-stat-card approved">
+              <span className="kyc-stat-number">{stats.approvedKYC}</span>
+              <span className="kyc-stat-label">Approved</span>
+            </div>
+            <div className="kyc-stat-card pending">
+              <span className="kyc-stat-number">{stats.pendingKYC}</span>
+              <span className="kyc-stat-label">Pending</span>
+            </div>
+            <div className="kyc-stat-card refer-back">
+              <span className="kyc-stat-number">{stats.referBackKYC}</span>
+              <span className="kyc-stat-label">Refer Back</span>
+            </div>
+            <div className="kyc-stat-card rejected">
+              <span className="kyc-stat-number">{stats.rejectedKYC}</span>
+              <span className="kyc-stat-label">Rejected</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Employee KYC Progress */}
+        <div className="employee-stats">
+          <h3>Employee KYC Progress</h3>
+          <div className="employee-stats-grid">
+            {employees.map(employee => {
+              // Calculate real stats from farmers data
+              const assignedFarmers = (farmers || []).filter(f => 
+                f.assignedEmployee === employee.name || 
+                f.assignedEmployee === employee.contactNumber ||
+                f.assignedEmployeeId === employee.id
+              );
+              
+              const approvedCount = assignedFarmers.filter(f => 
+                f.kycStatus === 'APPROVED' || f.kycStatus === 'approved'
+              ).length;
+              
+              const pendingCount = assignedFarmers.filter(f => 
+                f.kycStatus === 'PENDING' || f.kycStatus === 'pending' || 
+                f.kycStatus === 'NOT_STARTED' || f.kycStatus === 'not_started'
+              ).length;
+              
+              const referBackCount = assignedFarmers.filter(f => 
+                f.kycStatus === 'REFER_BACK' || f.kycStatus === 'refer_back'
+              ).length;
+              
+              const rejectedCount = assignedFarmers.filter(f => 
+                f.kycStatus === 'REJECTED' || f.kycStatus === 'rejected'
+              ).length;
+              
+              return (
+                <div key={employee.id} className="employee-stat-card">
+                  <div className="employee-info">
+                    <h4>{employee.name}</h4>
+                    <p>{employee.designation} - {employee.district}</p>
+                  </div>
+                  <div className="employee-kyc-stats">
+                    <div className="kyc-stat">
+                      <span className="stat-number">{assignedFarmers.length}</span>
+                      <span className="stat-label">Total Assigned</span>
+                    </div>
+                    <div className="kyc-stat">
+                      <span className="stat-number approved">{approvedCount}</span>
+                      <span className="stat-label">Approved</span>
+                    </div>
+                    <div className="kyc-stat">
+                      <span className="stat-number pending">{pendingCount}</span>
+                      <span className="stat-label">Pending</span>
+                    </div>
+                    <div className="kyc-stat">
+                      <span className="stat-number refer-back">{referBackCount}</span>
+                      <span className="stat-label">Refer Back</span>
+                    </div>
+                    <div className="kyc-stat">
+                      <span className="stat-number rejected">{rejectedCount}</span>
+                      <span className="stat-label">Rejected</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* KYC Progress Overview */}
+        <div className="kyc-progress-section">
+          <h3>KYC Progress Overview</h3>
+          <div className="kyc-progress-grid">
+            <div className="progress-card approved">
+              <div className="progress-circle">
+                <div className="progress-number">{stats.approvedKYC}</div>
+              </div>
+              <div className="progress-label">Approved KYC</div>
+            </div>
+            <div className="progress-card pending">
+              <div className="progress-circle">
+                <div className="progress-number">{stats.pendingKYC}</div>
+              </div>
+              <div className="progress-label">Pending KYC</div>
+            </div>
+            <div className="progress-card refer-back">
+              <div className="progress-circle">
+                <div className="progress-number">{stats.referBackKYC}</div>
+              </div>
+              <div className="progress-label">Refer Back</div>
+            </div>
+            <div className="progress-card rejected">
+              <div className="progress-circle">
+                <div className="progress-number">{stats.rejectedKYC}</div>
+              </div>
+              <div className="progress-label">Rejected KYC</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="dashboard">
       {/* Sidebar */}
@@ -1146,6 +1350,14 @@ const AdminDashboard = () => {
           </div>
           
           <div 
+            className={`nav-item ${activeTab === 'kyc-overview' ? 'active' : ''}`}
+            onClick={() => setActiveTab('kyc-overview')}
+          >
+            <i className="fas fa-clipboard-check"></i>
+            <span>KYC Overview</span>
+          </div>
+          
+          <div 
             className={`nav-item ${activeTab === 'farmers' ? 'active' : ''}`}
             onClick={() => setActiveTab('farmers')}
           >
@@ -1159,7 +1371,7 @@ const AdminDashboard = () => {
           >
             <i className="fas fa-user-tie"></i>
             <span>Employees</span>
-      </div>
+          </div>
 
           <div 
             className={`nav-item ${activeTab === 'registration' ? 'active' : ''}`}
@@ -1189,16 +1401,22 @@ const AdminDashboard = () => {
               })}</p>
             </div>
             <h1 className="header-title">Admin Dashboard</h1>
-            <p className="header-subtitle">Manage farmers and employees</p>
+            <p className="header-subtitle">Welcome back! Here's what's happening with your agricultural data.</p>
           </div>
           <div className="header-right">
-            <UserProfileDropdown />
+            <div className="filter-buttons">
+              <button className="filter-btn">Refresh</button>
+              <button className="filter-btn active">Today</button>
+              <button className="filter-btn">This Month</button>
+              <button className="filter-btn">This Year</button>
+            </div>
           </div>
-      </div>
+        </div>
 
         {/* Dashboard Content */}
         <div className="dashboard-content">
           {activeTab === 'overview' && renderOverview()}
+          {activeTab === 'kyc-overview' && renderKYCOverview()}
           {activeTab === 'farmers' && renderFarmers()}
           {activeTab === 'employees' && renderEmployees()}
           {activeTab === 'registration' && renderRegistration()}

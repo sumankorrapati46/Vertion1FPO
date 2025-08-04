@@ -74,6 +74,23 @@ const SuperAdminDashboard = () => {
     role: '',
     status: ''
   });
+  
+  const [filters, setFilters] = useState({
+    state: '',
+    district: '',
+    region: '',
+    kycStatus: '',
+    assignmentStatus: '',
+    employeeFilter: ''
+  });
+  
+  const [employeeFilters, setEmployeeFilters] = useState({
+    status: '',
+    role: '',
+    designation: '',
+    state: '',
+    district: ''
+  });
   const [showRegistrationDetailModal, setShowRegistrationDetailModal] = useState(false);
   const [selectedRegistrationForDetail, setSelectedRegistrationForDetail] = useState(null);
 
@@ -311,11 +328,26 @@ const SuperAdminDashboard = () => {
   };
 
   const getFilteredFarmers = () => {
-    return farmers;
+    return (farmers || []).filter(farmer => {
+      const matchesState = !filters.state || farmer.state === filters.state;
+      const matchesDistrict = !filters.district || farmer.district === filters.district;
+      const matchesKycStatus = !filters.kycStatus || farmer.kycStatus === filters.kycStatus;
+      const matchesEmployee = !filters.employeeFilter || farmer.assignedEmployee === filters.employeeFilter;
+      
+      return matchesState && matchesDistrict && matchesKycStatus && matchesEmployee;
+    });
   };
 
   const getFilteredEmployees = () => {
-    return employees;
+    return (employees || []).filter(employee => {
+      const matchesStatus = !employeeFilters.status || employee.status === employeeFilters.status;
+      const matchesRole = !employeeFilters.role || employee.role === employeeFilters.role;
+      const matchesDesignation = !employeeFilters.designation || employee.designation === employeeFilters.designation;
+      const matchesState = !employeeFilters.state || employee.state === employeeFilters.state;
+      const matchesDistrict = !employeeFilters.district || employee.district === employeeFilters.district;
+      
+      return matchesStatus && matchesRole && matchesDesignation && matchesState && matchesDistrict;
+    });
   };
 
   const getFilteredRegistrations = () => {
@@ -852,7 +884,24 @@ const SuperAdminDashboard = () => {
                   Manage pending registrations and approve new users.
                 </p>
                 <div className="overview-actions">
-          <select 
+                  <button 
+                    className="action-btn primary"
+                    onClick={() => {
+                      console.log('🔄 Manually refreshing data...');
+                      fetchData();
+                    }}
+                  >
+                    <i className="fas fa-sync-alt"></i>
+                    Refresh Data
+                  </button>
+                </div>
+              </div>
+
+              {/* Enhanced Filters */}
+              <div className="filters-section">
+                <div className="filter-group">
+                  <label className="filter-label">Role</label>
+                  <select 
                     value={registrationFilters.role} 
                     onChange={(e) => setRegistrationFilters(prev => ({ ...prev, role: e.target.value }))}
                     className="filter-select"
@@ -862,45 +911,72 @@ const SuperAdminDashboard = () => {
                     <option value="EMPLOYEE">Employee</option>
                     <option value="ADMIN">Admin</option>
                     <option value="SUPER_ADMIN">Super Admin</option>
-          </select>
-          <select 
+                  </select>
+                </div>
+                
+                <div className="filter-group">
+                  <label className="filter-label">Status</label>
+                  <select 
                     value={registrationFilters.status} 
                     onChange={(e) => setRegistrationFilters(prev => ({ ...prev, status: e.target.value }))}
                     className="filter-select"
-          >
+                  >
                     <option value="">All Status</option>
-            <option value="PENDING">Pending</option>
-            <option value="APPROVED">Approved</option>
-            <option value="REJECTED">Rejected</option>
-          </select>
-        </div>
-      </div>
+                    <option value="PENDING">Pending</option>
+                    <option value="APPROVED">Approved</option>
+                    <option value="REJECTED">Rejected</option>
+                  </select>
+                </div>
+                
+                <div className="filter-actions">
+                  <button 
+                    className="filter-btn-clear"
+                    onClick={() => setRegistrationFilters({
+                      role: '',
+                      status: ''
+                    })}
+                  >
+                    <i className="fas fa-times"></i>
+                    Clear Filters
+                  </button>
+                </div>
+              </div>
 
               {(() => {
                 const registrationData = getFilteredRegistrations();
                 return (
-      <DataTable
+                  <DataTable
                     data={registrationData}
-        columns={[
-          { key: 'name', label: 'Name' },
+                    columns={[
+                      { key: 'name', label: 'Name' },
                       { key: 'email', label: 'Email' },
                       { key: 'phoneNumber', label: 'Phone' },
                       { key: 'role', label: 'Role' },
                       { key: 'status', label: 'Status' }
                     ]}
-        customActions={[
-          {
+                    customActions={[
+                      {
                         label: 'View',
-                        className: 'action-btn-small info',
+                        className: 'info',
                         onClick: handleViewRegistration
                       },
                       {
+                        label: 'Approve',
+                        className: 'approve',
+                        onClick: (registration) => handleApproveRegistration(registration.id)
+                      },
+                      {
+                        label: 'Reject',
+                        className: 'reject',
+                        onClick: (registration) => handleRejectRegistration(registration.id)
+                      },
+                      {
                         label: 'Delete',
-                        className: 'action-btn-small danger',
+                        className: 'danger',
                         onClick: (registration) => handleDelete(registration, 'registration')
-          }
-        ]}
-      />
+                      }
+                    ]}
+                  />
                 );
               })()}
             </div>
@@ -936,6 +1012,109 @@ const SuperAdminDashboard = () => {
         </div>
       </div>
 
+      {/* Enhanced Filters */}
+      <div className="filters-section">
+        <div className="filter-group">
+          <label className="filter-label">State</label>
+          <select 
+            value={filters.state} 
+            onChange={(e) => setFilters(prev => ({ ...prev, state: e.target.value }))}
+            className="filter-select"
+          >
+            <option value="">All States</option>
+            <option value="Telangana">Telangana</option>
+            <option value="Andhrapradesh">Andhrapradesh</option>
+            <option value="Maharashtra">Maharashtra</option>
+            <option value="Gujarat">Gujarat</option>
+            <option value="Punjab">Punjab</option>
+            <option value="Uttar Pradesh">Uttar Pradesh</option>
+            <option value="Tamil Nadu">Tamil Nadu</option>
+          </select>
+        </div>
+        
+        <div className="filter-group">
+          <label className="filter-label">District</label>
+          <select 
+            value={filters.district} 
+            onChange={(e) => setFilters(prev => ({ ...prev, district: e.target.value }))}
+            className="filter-select"
+          >
+            <option value="">All Districts</option>
+            <option value="Karimnagar">Karimnagar</option>
+            <option value="rangareddy">Rangareddy</option>
+            <option value="kadapa">Kadapa</option>
+            <option value="Kadapa">Kadapa</option>
+            <option value="kadpaa">Kadpaa</option>
+            <option value="Kuppam">Kuppam</option>
+            <option value="Pune">Pune</option>
+            <option value="Ahmedabad">Ahmedabad</option>
+            <option value="Amritsar">Amritsar</option>
+            <option value="Lucknow">Lucknow</option>
+            <option value="Chennai">Chennai</option>
+          </select>
+        </div>
+        
+        <div className="filter-group">
+          <label className="filter-label">KYC Status</label>
+          <select 
+            value={filters.kycStatus} 
+            onChange={(e) => setFilters(prev => ({ ...prev, kycStatus: e.target.value }))}
+            className="filter-select"
+          >
+            <option value="">All KYC Status</option>
+            <option value="APPROVED">Approved</option>
+            <option value="PENDING">Pending</option>
+            <option value="NOT_STARTED">Not Started</option>
+            <option value="REFER_BACK">Refer Back</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+        </div>
+        
+        <div className="filter-group">
+          <label className="filter-label">Assignment Status</label>
+          <select 
+            value={filters.assignmentStatus} 
+            onChange={(e) => setFilters(prev => ({ ...prev, assignmentStatus: e.target.value }))}
+            className="filter-select"
+          >
+            <option value="">All Assignment Status</option>
+            <option value="ASSIGNED">Assigned</option>
+            <option value="UNASSIGNED">Unassigned</option>
+          </select>
+        </div>
+        
+        <div className="filter-group">
+          <label className="filter-label">Assigned Employee</label>
+          <select 
+            value={filters.employeeFilter} 
+            onChange={(e) => setFilters(prev => ({ ...prev, employeeFilter: e.target.value }))}
+            className="filter-select"
+          >
+            <option value="">All Employees</option>
+            {employees.map(emp => (
+              <option key={emp.id} value={emp.name}>{emp.name}</option>
+            ))}
+          </select>
+        </div>
+        
+        <div className="filter-actions">
+          <button 
+            className="filter-btn-clear"
+            onClick={() => setFilters({
+              state: '',
+              district: '',
+              region: '',
+              kycStatus: '',
+              assignmentStatus: '',
+              employeeFilter: ''
+            })}
+          >
+            <i className="fas fa-times"></i>
+            Clear Filters
+          </button>
+        </div>
+      </div>
+
       <DataTable
         data={getFilteredFarmers()}
         columns={[
@@ -947,24 +1126,29 @@ const SuperAdminDashboard = () => {
                 ]}
         customActions={[
           {
-                    label: 'View',
-                    className: 'action-btn-small info',
-                    onClick: handleViewFarmer
-                  },
-                  {
-                    label: 'Edit',
-                    className: 'action-btn-small secondary',
-                    onClick: handleEditFarmer
-                  },
-                  {
-                    label: 'KYC',
-                    className: 'action-btn-small primary',
-                    onClick: () => setShowKYCModal(true)
-                  },
-                  {
-                    label: 'Delete',
-                    className: 'action-btn-small danger',
-                    onClick: (farmer) => handleDelete(farmer, 'farmer')
+            label: 'View',
+            className: 'info',
+            onClick: handleViewFarmer
+          },
+          {
+            label: 'Edit',
+            className: 'secondary',
+            onClick: handleEditFarmer
+          },
+          {
+            label: 'Approve',
+            className: 'approve',
+            onClick: (farmer) => handleApproveKYC(farmer.id)
+          },
+          {
+            label: 'Reject',
+            className: 'reject',
+            onClick: (farmer) => handleRejectKYC(farmer.id)
+          },
+          {
+            label: 'Delete',
+            className: 'danger',
+            onClick: (farmer) => handleDelete(farmer, 'farmer')
           }
         ]}
       />
@@ -988,6 +1172,108 @@ const SuperAdminDashboard = () => {
         </div>
       </div>
 
+                  {/* Employee Filters */}
+                  <div className="filters-section">
+                    <div className="filter-group">
+                      <label className="filter-label">Status</label>
+                      <select 
+                        value={employeeFilters.status} 
+                        onChange={(e) => setEmployeeFilters(prev => ({ ...prev, status: e.target.value }))}
+                        className="filter-select"
+                      >
+                        <option value="">All Status</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="INACTIVE">Inactive</option>
+                        <option value="PENDING">Pending</option>
+                      </select>
+                    </div>
+                    
+                    <div className="filter-group">
+                      <label className="filter-label">Role</label>
+                      <select 
+                        value={employeeFilters.role} 
+                        onChange={(e) => setEmployeeFilters(prev => ({ ...prev, role: e.target.value }))}
+                        className="filter-select"
+                      >
+                        <option value="">All Roles</option>
+                        <option value="employee">Employee</option>
+                        <option value="admin">Admin</option>
+                        <option value="super_admin">Super Admin</option>
+                      </select>
+                    </div>
+                    
+                    <div className="filter-group">
+                      <label className="filter-label">Designation</label>
+                      <select 
+                        value={employeeFilters.designation} 
+                        onChange={(e) => setEmployeeFilters(prev => ({ ...prev, designation: e.target.value }))}
+                        className="filter-select"
+                      >
+                        <option value="">All Designations</option>
+                        <option value="KYC Officer">KYC Officer</option>
+                        <option value="Field Officer">Field Officer</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Supervisor">Supervisor</option>
+                      </select>
+                    </div>
+                    
+                    <div className="filter-group">
+                      <label className="filter-label">State</label>
+                      <select 
+                        value={employeeFilters.state} 
+                        onChange={(e) => setEmployeeFilters(prev => ({ ...prev, state: e.target.value }))}
+                        className="filter-select"
+                      >
+                        <option value="">All States</option>
+                        <option value="Telangana">Telangana</option>
+                        <option value="Andhrapradesh">Andhrapradesh</option>
+                        <option value="Maharashtra">Maharashtra</option>
+                        <option value="Gujarat">Gujarat</option>
+                        <option value="Punjab">Punjab</option>
+                        <option value="Uttar Pradesh">Uttar Pradesh</option>
+                        <option value="Tamil Nadu">Tamil Nadu</option>
+                      </select>
+                    </div>
+                    
+                    <div className="filter-group">
+                      <label className="filter-label">District</label>
+                      <select 
+                        value={employeeFilters.district} 
+                        onChange={(e) => setEmployeeFilters(prev => ({ ...prev, district: e.target.value }))}
+                        className="filter-select"
+                      >
+                        <option value="">All Districts</option>
+                        <option value="Karimnagar">Karimnagar</option>
+                        <option value="rangareddy">Rangareddy</option>
+                        <option value="kadapa">Kadapa</option>
+                        <option value="Kadapa">Kadapa</option>
+                        <option value="kadpaa">Kadpaa</option>
+                        <option value="Kuppam">Kuppam</option>
+                        <option value="Pune">Pune</option>
+                        <option value="Ahmedabad">Ahmedabad</option>
+                        <option value="Amritsar">Amritsar</option>
+                        <option value="Lucknow">Lucknow</option>
+                        <option value="Chennai">Chennai</option>
+                      </select>
+                    </div>
+                    
+                    <div className="filter-actions">
+                      <button 
+                        className="filter-btn-clear"
+                        onClick={() => setEmployeeFilters({
+                          status: '',
+                          role: '',
+                          designation: '',
+                          state: '',
+                          district: ''
+                        })}
+                      >
+                        <i className="fas fa-times"></i>
+                        Clear Filters
+                      </button>
+                    </div>
+                  </div>
+
                   <DataTable
                     data={getFilteredEmployees()}
                     columns={[
@@ -1000,17 +1286,17 @@ const SuperAdminDashboard = () => {
                     customActions={[
                       {
                         label: 'View',
-                        className: 'action-btn-small info',
+                        className: 'info',
                         onClick: handleViewEmployee
                       },
                       {
                         label: 'Edit',
-                        className: 'action-btn-small secondary',
+                        className: 'secondary',
                         onClick: handleEditEmployee
                       },
                       {
                         label: 'Delete',
-                        className: 'action-btn-small danger',
+                        className: 'danger',
                         onClick: (employee) => handleDelete(employee, 'employee')
                       }
                     ]}

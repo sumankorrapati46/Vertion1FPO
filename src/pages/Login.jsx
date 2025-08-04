@@ -198,32 +198,24 @@ const Login = () => {
             role = 'EMPLOYEE';
             console.log('Login - Determined role as EMPLOYEE from specific username mapping');
             console.log('Login - Employee username detected:', userName);
-          } else if (lowerUserName.includes('admin') || lowerUserName.includes('super')) {
-            role = 'SUPER_ADMIN';
-            console.log('Login - Determined role as SUPER_ADMIN from username');
-          } else if (lowerUserName.includes('emp') || lowerUserName.includes('employee')) {
-            role = 'EMPLOYEE';
-            console.log('Login - Determined role as EMPLOYEE from username');
           } else {
+            // Default to FARMER for unknown usernames
             role = 'FARMER';
-            console.log('Login - Defaulting to FARMER role');
+            console.log('Login - Defaulting to FARMER role for unknown username');
           }
         }
         
         const user = {
           userName: userName,
+          name: response.data?.name || userName,
+          email: response.data?.email || userName,
           role: role,
-          forcePasswordChange: forcePasswordChange
+          forcePasswordChange: forcePasswordChange,
+          status: response.data?.status || 'ACTIVE'
         };
         
-        console.log('Login - Final fallback user data:', user);
-        console.log('Login - Final role determined:', role);
-        
+        console.log('Login - Fallback user data:', user);
         login(user, token);
-        
-        // Check if user needs to change password
-        console.log('Login - Fallback: Checking forcePasswordChange:', user.forcePasswordChange);
-        console.log('Login - Fallback: Password contains Temp@:', password.includes('Temp@'));
         
         if (user.forcePasswordChange) {
           console.log('Login - Fallback: Redirecting to change password page');
@@ -231,17 +223,8 @@ const Login = () => {
           return;
         }
         
-        // Role-based navigation
-        console.log('Login - Fallback: User role for navigation:', user.role);
-        console.log('Login - Fallback: User role (normalized):', user.role?.toUpperCase?.()?.trim?.());
-        console.log('Login - Fallback: User role type:', typeof user.role);
-        console.log('Login - Fallback: User role length:', user.role?.length);
-        console.log('Login - Fallback: User role includes spaces:', user.role?.includes(' '));
-        
-        const normalizedRole = user.role?.toUpperCase?.()?.trim?.() || '';
+        const normalizedRole = role?.toUpperCase?.()?.trim?.() || '';
         console.log('Login - Fallback: Normalized role:', normalizedRole);
-        console.log('Login - Fallback: Normalized role === ADMIN:', normalizedRole === 'ADMIN');
-        console.log('Login - Fallback: Normalized role === SUPER_ADMIN:', normalizedRole === 'SUPER_ADMIN');
         
         if (normalizedRole === 'SUPER_ADMIN') {
           console.log('Login - Fallback: Redirecting SUPER_ADMIN to /super-admin/dashboard');
@@ -286,14 +269,13 @@ const Login = () => {
       {/* Top Navigation Bar */}
       <nav className="nic-navbar">
         <div className="nic-logo">
-          <span>DATE</span>
+          <span>एनआईसी</span>
+          <div className="nic-text">National Informatics Centre</div>
         </div>
         <div className="nav-links">
           <a href="#dashboard">Dashboard</a>
           <span className="nav-dot">•</span>
           <a href="#enrollment">Check Enrollment Status</a>
-          <span className="nav-dot">•</span>
-          <a href="#csc">Login with CSC</a>
         </div>
       </nav>
 
@@ -302,61 +284,21 @@ const Login = () => {
         <div className="info-panel">
           <div className="agri-stack-header">
             <h1 className="agri-stack-title">
-              <span className="agri-text">Date</span>
-              <span className="agri-text">Agri</span>
+              <span className="agri-text">Digital</span>
+              <span className="stack-text">Agristack</span>
               <span className="leaf-icon">🌿</span>
-              <span className="stack-text">Stack</span>
             </h1>
             <h2 className="registry-title">India Farmer Registry</h2>
           </div>
           <div className="registry-info">
-            <h3>Digital Agristack Transaction Enterprises</h3>
-            <p className="help-desk">
-              Empowering Agricultural Excellence
+            <p className="registry-description">
+              Farmer Registry in India enables farmers to receive a unique Farmer ID to access government benefits. 
+              Register now to ensure seamless access to agricultural schemes and services!
             </p>
           </div>
           
-          {/* Enhanced Agricultural Content */}
-          <div className="agricultural-highlights">
-            <div className="highlight-item">
-              <span className="highlight-icon">🌾</span>
-              <div className="highlight-content">
-                <h4>Revolutionizing Indian Agriculture</h4>
-                <p>Connecting 140+ million farmers with cutting-edge digital solutions</p>
-              </div>
-            </div>
-            
-            <div className="highlight-item">
-              <span className="highlight-icon">📱</span>
-              <div className="highlight-content">
-                <h4>Smart Farming Technology</h4>
-                <p>AI-powered crop monitoring and precision agriculture tools</p>
-              </div>
-            </div>
-            
-            <div className="highlight-item">
-              <span className="highlight-icon">💰</span>
-              <div className="highlight-content">
-                <h4>Financial Inclusion</h4>
-                <p>Direct benefit transfers and digital payment solutions</p>
-              </div>
-            </div>
-            
-            <div className="highlight-item">
-              <span className="highlight-icon">🌱</span>
-              <div className="highlight-content">
-                <h4>Sustainable Practices</h4>
-                <p>Promoting eco-friendly farming and climate-smart agriculture</p>
-              </div>
-            </div>
-            
-            <div className="highlight-item">
-              <span className="highlight-icon">🏆</span>
-              <div className="highlight-content">
-                <h4>National Recognition</h4>
-                <p>Government of India's flagship agricultural digitization initiative</p>
-              </div>
-            </div>
+          <div className="help-desk">
+            <p>Help Desk : 1800-425-1661</p>
           </div>
         </div>
 
@@ -442,12 +384,12 @@ const Login = () => {
                 </div>
               </div>
 
-                             {/* Forgot Password Link */}
-               <div className="forgot-password">
-                 <a href="/forgot-password">Forgot Password?</a>
-                 <span className="separator">|</span>
-                 <a href="/forgot-userid">Forgot User ID?</a>
-               </div>
+              {/* Forgot Password Link */}
+              <div className="forgot-password">
+                <a href="/forgot-password">Forgot Password?</a>
+                <span className="separator">|</span>
+                <a href="/forgot-userid">Forgot User ID?</a>
+              </div>
 
               {/* Captcha Section */}
               <div className="captcha-section">
@@ -470,8 +412,6 @@ const Login = () => {
               </div>
 
               {error && <div className="error-message">{error}</div>}
-              
-
               
               <div className="login-actions-row">
                 <button type="submit" className="login-btn" disabled={loading}>
