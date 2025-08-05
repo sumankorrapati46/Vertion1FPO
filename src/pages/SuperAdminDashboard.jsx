@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { farmersAPI, employeesAPI, superAdminAPI } from '../api/apiService';
+import { farmersAPI, employeesAPI, superAdminAPI, adminAPI } from '../api/apiService';
 import DataTable from '../components/DataTable';
 
 import RegistrationApprovalModal from '../components/RegistrationApprovalModal';
@@ -101,7 +101,11 @@ const SuperAdminDashboard = () => {
     const handleKYCUpdate = (event) => {
       console.log('🔄 Super Admin Dashboard: KYC status updated, refreshing data...');
       console.log('📊 KYC Update details:', event.detail);
-      fetchData(); // Refresh data when KYC status changes
+      // Wait 2 seconds for backend to update, then refresh
+      setTimeout(() => {
+        console.log('🔄 Refreshing Super Admin data after KYC update...');
+        fetchData();
+      }, 2000);
     };
     
     window.addEventListener('kycStatusUpdated', handleKYCUpdate);
@@ -137,14 +141,32 @@ const SuperAdminDashboard = () => {
       let farmersData, employeesData, registrationsData;
       
       try {
+        console.log('🔄 Making API calls to fetch real data...');
         [farmersData, employeesData, registrationsData] = await Promise.all([
-          farmersAPI.getAllFarmers(),
+          adminAPI.getFarmersWithKyc(), // Use the same endpoint that works for AdminDashboard
           employeesAPI.getAllEmployees(),
           superAdminAPI.getRegistrationList()
         ]);
-        console.log('API calls completed successfully');
+              console.log('✅ API calls completed successfully');
+      console.log('📊 Farmers data received:', farmersData?.length || 0, 'records');
+      console.log('📊 Employees data received:', employeesData?.length || 0, 'records');
+      console.log('📊 Registrations data received:', registrationsData?.length || 0, 'records');
+      
+      // Log first farmer data structure to debug field mapping
+      if (farmersData && farmersData.length > 0) {
+        console.log('🔍 First farmer data structure:', farmersData[0]);
+        console.log('🔍 Available fields:', Object.keys(farmersData[0]));
+      }
+      
+      // Log employee data structure to debug dropdown
+      if (employeesData && employeesData.length > 0) {
+        console.log('🔍 First employee data structure:', employeesData[0]);
+        console.log('🔍 Available employee fields:', Object.keys(employeesData[0]));
+        console.log('🔍 Employee names in dropdown:', employeesData.map(emp => emp.name));
+      }
       } catch (apiError) {
-        console.error('API call failed:', apiError);
+        console.error('❌ API call failed:', apiError);
+        console.error('❌ API Error details:', apiError.response?.data || apiError.message);
         // Set empty arrays if API fails
         farmersData = [];
         employeesData = [];
@@ -192,10 +214,11 @@ const SuperAdminDashboard = () => {
         ];
       }
 
-      // Force use of mock data for now to ensure proper data structure
+      // Use real API data if available, otherwise use mock data
       let finalFarmersData = farmersData;
-      if (!farmersData || farmersData.length === 0 || !farmersData[0]?.email || true) { // Force mock data
-        console.log('Using mock data for farmers (timestamp: ' + new Date().toISOString() + ')');
+      if (!farmersData || farmersData.length === 0) {
+        console.log('⚠️ No API data available, using mock data for farmers (timestamp: ' + new Date().toISOString() + ')');
+        console.log('💡 To see real KYC updates, ensure the backend API is running and accessible');
         finalFarmersData = [
       {
         id: 1,
@@ -332,7 +355,29 @@ const SuperAdminDashboard = () => {
       const matchesState = !filters.state || farmer.state === filters.state;
       const matchesDistrict = !filters.district || farmer.district === filters.district;
       const matchesKycStatus = !filters.kycStatus || farmer.kycStatus === filters.kycStatus;
-      const matchesEmployee = !filters.employeeFilter || farmer.assignedEmployee === filters.employeeFilter;
+      
+      // Debug employee filter
+      if (filters.employeeFilter) {
+        console.log('🔍 Employee filter active:', filters.employeeFilter);
+        console.log('🔍 Farmer assignedEmployee field:', farmer.assignedEmployee);
+        console.log('🔍 Available farmer fields:', Object.keys(farmer));
+      }
+      
+      // More robust employee filter matching
+      const matchesEmployee = !filters.employeeFilter || 
+        (farmer.assignedEmployee && 
+         (farmer.assignedEmployee === filters.employeeFilter || 
+          farmer.assignedEmployee.toLowerCase().includes(filters.employeeFilter.toLowerCase()) ||
+          filters.employeeFilter.toLowerCase().includes(farmer.assignedEmployee.toLowerCase())
+         ));
+      
+      // Debug: Log all farmers and their assigned employees when filter is active
+      if (filters.employeeFilter) {
+        console.log('🔍 All farmers and their assigned employees:');
+        (farmers || []).forEach((f, index) => {
+          console.log(`  Farmer ${index + 1}: ${f.name} -> Assigned to: "${f.assignedEmployee}"`);
+        });
+      }
       
       return matchesState && matchesDistrict && matchesKycStatus && matchesEmployee;
     });
@@ -808,24 +853,12 @@ const SuperAdminDashboard = () => {
           </div>
         </div>
         <div className="header-right">
-          {/* TEST BUTTON - ALWAYS VISIBLE */}
-          <button 
-            style={{
-              background: '#15803d',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '8px',
-              marginRight: '10px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold'
-            }}
-            onClick={toggleUserDropdown}
-          >
-            🔍 TEST USER MENU
-          </button>
-          
+          <div className="filter-buttons">
+            <button className="filter-btn">Refresh</button>
+            <button className="filter-btn active">Today</button>
+            <button className="filter-btn">This Month</button>
+            <button className="filter-btn">This Year</button>
+          </div>
           <div className="user-profile-dropdown">
             <div className="user-profile-trigger" onClick={toggleUserDropdown}>
               <div className="user-avatar">
@@ -952,8 +985,13 @@ const SuperAdminDashboard = () => {
             <p className="header-subtitle">Manage your agricultural platform</p>
             </div>
           <div className="header-right">
-            <UserProfileDropdown />
-        </div>
+            <div className="filter-buttons">
+              <button className="filter-btn">Refresh</button>
+              <button className="filter-btn active">Today</button>
+              <button className="filter-btn">This Month</button>
+              <button className="filter-btn">This Year</button>
+            </div>
+          </div>
       </div>
 
         {/* Welcome Section */}
@@ -1223,6 +1261,16 @@ const SuperAdminDashboard = () => {
                     <i className="fas fa-user-plus"></i>
                     Assign Farmers
                   </button>
+                  <button 
+                    className="action-btn success"
+                    onClick={() => {
+                      console.log('🔄 Manually refreshing farmer data...');
+                      fetchData();
+                    }}
+                  >
+                    <i className="fas fa-sync-alt"></i>
+                    Refresh Data
+                  </button>
         </div>
       </div>
 
@@ -1301,13 +1349,19 @@ const SuperAdminDashboard = () => {
           <label className="filter-label">Assigned Employee</label>
           <select 
             value={filters.employeeFilter} 
-            onChange={(e) => setFilters(prev => ({ ...prev, employeeFilter: e.target.value }))}
+            onChange={(e) => {
+              console.log('🔍 Employee filter changed to:', e.target.value);
+              setFilters(prev => ({ ...prev, employeeFilter: e.target.value }));
+            }}
             className="filter-select"
           >
             <option value="">All Employees</option>
-            {employees.map(emp => (
-              <option key={emp.id} value={emp.name}>{emp.name}</option>
-            ))}
+            {employees.map(emp => {
+              console.log('🔍 Employee in dropdown:', emp);
+              return (
+                <option key={emp.id} value={emp.name}>{emp.name}</option>
+              );
+            })}
           </select>
         </div>
         
@@ -1333,11 +1387,24 @@ const SuperAdminDashboard = () => {
         data={getFilteredFarmers()}
         columns={[
           { key: 'name', label: 'Name' },
-                  { key: 'contactNumber', label: 'Phone' },
-          { key: 'email', label: 'Email' },
-                  { key: 'accessStatus', label: 'Status' },
-                  { key: 'kycStatus', label: 'KYC Status' }
-                ]}
+          { key: 'contactNumber', label: 'Phone' },
+          { key: 'state', label: 'State' },
+          { key: 'district', label: 'District' },
+          { 
+            key: 'kycStatus', 
+            label: 'KYC Status',
+            render: (value) => {
+              if (!value) return 'NOT_STARTED';
+              if (value === 'PENDING' || value === 'pending') return 'PENDING';
+              if (value === 'APPROVED' || value === 'approved') return 'APPROVED';
+              if (value === 'REFER_BACK' || value === 'refer_back') return 'REFER_BACK';
+              if (value === 'REJECTED' || value === 'rejected') return 'REJECTED';
+              if (value === 'NOT_STARTED' || value === 'not_started') return 'NOT_STARTED';
+              return value.toUpperCase();
+            }
+          },
+          { key: 'assignedEmployee', label: 'Assigned Employee' }
+        ]}
         customActions={[
           {
             label: 'View',

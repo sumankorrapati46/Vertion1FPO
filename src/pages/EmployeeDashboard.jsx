@@ -49,7 +49,7 @@ const EmployeeDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchAssignedFarmers = async () => {
+    const fetchAssignedFarmers = async () => {
     try {
       console.log('🔄 Fetching assigned farmers for employee...');
       console.log('👤 Current user:', user);
@@ -60,108 +60,34 @@ const EmployeeDashboard = () => {
         return;
       }
       
-      // Try different user ID fields - prioritize numeric IDs
-      const employeeId = user.id || user.userId || user.employeeId;
-      console.log('🆔 Using employee ID:', employeeId);
-      
-      // If no numeric ID, try to extract from name or use a default
-      let finalEmployeeId = employeeId;
-      if (!employeeId && user.name) {
-        // Try to extract ID from name if it contains numbers
-        const nameMatch = user.name.match(/\d+/);
-        if (nameMatch) {
-          finalEmployeeId = nameMatch[0];
-        } else {
-          // Use a default ID for testing
-          finalEmployeeId = '1';
-        }
-      }
-      
-      console.log('🎯 Final employee ID:', finalEmployeeId);
-      
-      // Fetch from API
-      const response = await employeeAPI.getAssignedFarmers(finalEmployeeId);
+      // Fetch from API using the correct endpoint
+      const response = await employeeAPI.getAssignedFarmers();
       console.log('✅ API Response:', response);
       
-      if (response && response.data) {
-        setAssignedFarmers(response.data);
-        console.log('✅ Assigned farmers loaded from API:', response.data.length);
+      if (response && Array.isArray(response)) {
+        // Transform the API response to match our frontend format
+        const transformedData = response.map(farmer => ({
+          id: farmer.id,
+          name: farmer.name,
+          phone: farmer.contactNumber,
+          state: farmer.state,
+          district: farmer.district,
+          location: `${farmer.district}, ${farmer.state}`,
+          kycStatus: farmer.kycStatus || 'PENDING',
+          lastAction: farmer.kycReviewedDate || farmer.kycSubmittedDate || new Date().toISOString().split('T')[0],
+          notes: `KYC Status: ${farmer.kycStatus || 'PENDING'}`,
+          assignedEmployee: user.name || 'Employee'
+        }));
+        
+        setAssignedFarmers(transformedData);
+        console.log('✅ Assigned farmers loaded from API:', transformedData.length);
       } else {
         console.log('⚠️ No API data available');
         setAssignedFarmers([]);
       }
     } catch (error) {
       console.error('❌ Error fetching assigned farmers:', error);
-      console.log('⚠️ Using test data for debugging');
-      
-      // Real assigned farmers data for harish reddy (4 farmers) - matching SuperAdmin data
-      const testData = [
-      {
-        id: 1,
-          name: 'vamsi krishna',
-        phone: '9876543210',
-          state: 'Andhrapradesh',
-          district: 'kadapa',
-        assignedDate: '2024-01-15',
-          kycStatus: 'PENDING',
-          location: 'kadapa, Andhrapradesh',
-        lastAction: '2024-01-20',
-          notes: 'Documents submitted - Aadhar: 123456789012, PAN: ABCDE1234F',
-          assignedEmployee: 'harish reddy',
-          aadharNumber: '123456789012',
-          panNumber: 'ABCDE1234F'
-      },
-      {
-        id: 2,
-          name: 'Ainash kumar',
-        phone: '9876543211',
-          state: 'Andhrapradesh',
-          district: 'kadapa',
-        assignedDate: '2024-01-18',
-          kycStatus: 'NOT_STARTED',
-          location: 'kadapa, Andhrapradesh',
-        lastAction: '2024-01-22',
-          notes: 'Newly assigned farmer',
-          assignedEmployee: 'harish reddy',
-          aadharNumber: '',
-          panNumber: ''
-      },
-      {
-        id: 3,
-          name: 'Ramu Yadav',
-        phone: '9876543212',
-          state: 'Andhrapradesh',
-          district: 'kadapa',
-          assignedDate: '2024-01-20',
-          kycStatus: 'PENDING',
-          location: 'kadapa, Andhrapradesh',
-        lastAction: '2024-01-25',
-          notes: 'Documents submitted - Aadhar: 987654321098, PAN: XYZAB1234C',
-          assignedEmployee: 'harish reddy',
-          aadharNumber: '987654321098',
-          panNumber: 'XYZAB1234C'
-      },
-      {
-        id: 4,
-          name: 'hari chowdary',
-          phone: '6271979190',
-          state: 'Andhrapradesh',
-          district: 'kadapa',
-          assignedDate: '2024-01-22',
-          kycStatus: 'NOT_STARTED',
-          location: 'kadapa, Andhrapradesh',
-          lastAction: '2024-01-28',
-          notes: 'Newly assigned farmer',
-          assignedEmployee: 'harish reddy',
-          aadharNumber: '',
-          panNumber: ''
-        }
-      ];
-      
-      console.log('📋 Using real assigned farmers data for harish reddy:', testData.length, 'farmers');
-      console.log('👥 Farmers:', testData.map(f => f.name).join(', '));
-      
-      setAssignedFarmers(testData);
+      setAssignedFarmers([]);
     }
   };
 
@@ -217,7 +143,6 @@ const EmployeeDashboard = () => {
       
       // Prepare approval data
       const approvalData = {
-        status: newStatus,
         reason: reason,
         updatedBy: user?.name || 'Employee',
         updatedAt: new Date().toISOString(),
@@ -226,32 +151,25 @@ const EmployeeDashboard = () => {
 
       console.log('📋 Approval data:', approvalData);
 
-      // Try API call first
-      let apiSuccess = false;
-      try {
-        let response;
-        switch (newStatus) {
-          case 'APPROVED':
-            response = await kycAPI.approveKYC(farmerId, approvalData);
-            break;
-          case 'REJECTED':
-            response = await kycAPI.rejectKYC(farmerId, approvalData);
-            break;
-          case 'REFER_BACK':
-            response = await kycAPI.referBackKYC(farmerId, approvalData);
-            break;
-          default:
-            response = await kycAPI.approveKYC(farmerId, approvalData);
-        }
-        
-        console.log('✅ KYC API response:', response);
-        apiSuccess = true;
-      } catch (apiError) {
-        console.error('❌ API call failed:', apiError);
-        console.log('⚠️ Proceeding with local update only');
+      // Make API call
+      let response;
+      switch (newStatus) {
+        case 'APPROVED':
+          response = await kycAPI.approveKYC(farmerId, approvalData);
+          break;
+        case 'REJECTED':
+          response = await kycAPI.rejectKYC(farmerId, approvalData);
+          break;
+        case 'REFER_BACK':
+          response = await kycAPI.referBackKYC(farmerId, approvalData);
+          break;
+        default:
+          response = await kycAPI.approveKYC(farmerId, approvalData);
       }
       
-      // Always update local state (works even if API fails)
+      console.log('✅ KYC API response:', response);
+      
+      // Update local state after successful API call
       setAssignedFarmers(prev => prev.map(farmer => 
         farmer.id === farmerId 
           ? { 
@@ -264,12 +182,8 @@ const EmployeeDashboard = () => {
           : farmer
       ));
       
-      // Show appropriate message
-      if (apiSuccess) {
-        alert(`KYC status updated to ${newStatus} successfully!`);
-      } else {
-        alert(`KYC status updated to ${newStatus} locally (API connection issue).`);
-      }
+      // Show success message
+      alert(`KYC status updated to ${newStatus} successfully!`);
       
       // Trigger a global event to notify other dashboards
       window.dispatchEvent(new CustomEvent('kycStatusUpdated', {
@@ -278,7 +192,7 @@ const EmployeeDashboard = () => {
       
     } catch (error) {
       console.error('❌ Error updating KYC status:', error);
-      alert('Failed to update KYC status. Please try again.');
+      alert(`Failed to update KYC status: ${error.response?.data || error.message}`);
     }
   };
 
@@ -1076,7 +990,12 @@ const EmployeeDashboard = () => {
             <p className="header-subtitle">Manage assigned farmers and KYC</p>
           </div>
           <div className="header-right">
-            <UserProfileDropdown />
+            <div className="filter-buttons">
+              <button className="filter-btn">Refresh</button>
+              <button className="filter-btn active">Today</button>
+              <button className="filter-btn">This Month</button>
+              <button className="filter-btn">This Year</button>
+            </div>
           </div>
         </div>
 

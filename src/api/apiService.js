@@ -430,34 +430,15 @@ export const employeesAPI = {
 export const employeeAPI = {
   // Get assigned farmers for current employee
   getAssignedFarmers: async (employeeId) => {
-    // Try multiple endpoint patterns
-    const endpoints = [
-      '/employees/assigned-farmers',  // Simple endpoint for current employee
-      '/employees/me/assigned-farmers',  // Using 'me' for current employee
-      '/employees/current/assigned-farmers',  // Alternative current employee endpoint
-      '/employees/1/assigned-farmers',  // Try with ID 1 for harish reddy
-      `/employees/${employeeId}/assigned-farmers`  // With specific employee ID
-    ];
-    
-    for (const endpoint of endpoints) {
-      try {
-        console.log(`🔄 Trying endpoint: ${endpoint}`);
-        const response = await api.get(endpoint);
-        console.log(`✅ Success with endpoint: ${endpoint}`);
-        return response.data;
-      } catch (error) {
-        console.log(`❌ Failed with endpoint: ${endpoint}`, error.message);
-        // If it's a 403 error, try the next endpoint
-        if (error.response && error.response.status === 403) {
-          console.log('🔒 403 Forbidden - trying next endpoint');
-          continue;
-        }
-        // For other errors, also continue to try next endpoint
-        continue;
-      }
+    try {
+      console.log('🔄 Fetching assigned farmers from dashboard endpoint');
+      const response = await api.get('/employees/dashboard/assigned-farmers');
+      console.log('✅ Success with dashboard endpoint');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Failed to fetch assigned farmers:', error);
+      throw error;
     }
-    
-    throw new Error('All employee endpoints failed');
   },
 
   // Get employee profile
@@ -523,7 +504,7 @@ export const kycAPI = {
       }
     });
     
-    const response = await api.post(`/kyc/${farmerId}/upload`, formData, {
+    const response = await api.post(`/employees/kyc/${farmerId}/upload`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -533,31 +514,35 @@ export const kycAPI = {
 
   // Approve KYC
   approveKYC: async (farmerId, approvalData) => {
-    const response = await api.post(`/kyc/${farmerId}/approve`, approvalData);
+    const response = await api.put(`/employees/kyc/approve/${farmerId}`);
     return response.data;
   },
 
   // Reject KYC
   rejectKYC: async (farmerId, rejectionData) => {
-    const response = await api.post(`/kyc/${farmerId}/reject`, rejectionData);
+    const response = await api.put(`/employees/kyc/reject/${farmerId}`, {
+      reason: rejectionData.reason || 'KYC rejected'
+    });
     return response.data;
   },
 
   // Refer back KYC
   referBackKYC: async (farmerId, referBackData) => {
-    const response = await api.post(`/kyc/${farmerId}/refer-back`, referBackData);
+    const response = await api.put(`/employees/kyc/refer-back/${farmerId}`, {
+      reason: referBackData.reason || 'KYC referred back'
+    });
     return response.data;
   },
 
   // Get KYC status
   getKYCStatus: async (farmerId) => {
-    const response = await api.get(`/kyc/${farmerId}/status`);
+    const response = await api.get(`/employees/kyc/${farmerId}/status`);
     return response.data;
   },
 
   // Get KYC documents
   getKYCDocuments: async (farmerId) => {
-    const response = await api.get(`/kyc/${farmerId}/documents`);
+    const response = await api.get(`/employees/kyc/${farmerId}/documents`);
     return response.data;
   }
 };

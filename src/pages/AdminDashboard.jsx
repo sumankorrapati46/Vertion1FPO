@@ -75,7 +75,11 @@ const AdminDashboard = () => {
     const handleKYCUpdate = (event) => {
       console.log('🔄 Admin Dashboard: KYC status updated, refreshing data...');
       console.log('📊 KYC Update details:', event.detail);
-      fetchData(); // Refresh data when KYC status changes
+      // Wait 2 seconds for backend to update, then refresh
+      setTimeout(() => {
+        console.log('🔄 Refreshing Admin data after KYC update...');
+        fetchData();
+      }, 2000);
     };
     
     window.addEventListener('kycStatusUpdated', handleKYCUpdate);
