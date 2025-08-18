@@ -853,12 +853,24 @@ const SuperAdminDashboard = () => {
           </div>
         </div>
         <div className="header-right">
-          <div className="filter-buttons">
-            <button className="filter-btn">Refresh</button>
-            <button className="filter-btn active">Today</button>
-            <button className="filter-btn">This Month</button>
-            <button className="filter-btn">This Year</button>
-          </div>
+          {/* TEST BUTTON - ALWAYS VISIBLE */}
+          <button 
+            style={{
+              background: '#15803d',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              marginRight: '10px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+            onClick={toggleUserDropdown}
+          >
+            🔍 TEST USER MENU
+          </button>
+          
           <div className="user-profile-dropdown">
             <div className="user-profile-trigger" onClick={toggleUserDropdown}>
               <div className="user-avatar">
@@ -915,13 +927,7 @@ const SuperAdminDashboard = () => {
         </div>
         
         <div className="sidebar-nav">
-          <div 
-            className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dashboard')}
-          >
-            <i className="fas fa-tachometer-alt"></i>
-            <span>Dashboard</span>
-      </div>
+
 
           <div 
             className={`nav-item ${activeTab === 'registration' ? 'active' : ''}`}
@@ -985,13 +991,8 @@ const SuperAdminDashboard = () => {
             <p className="header-subtitle">Manage your agricultural platform</p>
             </div>
           <div className="header-right">
-            <div className="filter-buttons">
-              <button className="filter-btn">Refresh</button>
-              <button className="filter-btn active">Today</button>
-              <button className="filter-btn">This Month</button>
-              <button className="filter-btn">This Year</button>
-            </div>
-          </div>
+            <UserProfileDropdown />
+        </div>
       </div>
 
         {/* Welcome Section */}
@@ -1117,10 +1118,7 @@ const SuperAdminDashboard = () => {
                         <i className="fas fa-chart-bar"></i>
                         Generate Report
                       </button>
-                      <button className="quick-action-btn dark">
-                        <i className="fas fa-chart-line"></i>
-                        View Analytics
-                      </button>
+
                     </div>
         </div>
       </div>

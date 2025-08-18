@@ -990,12 +990,7 @@ const EmployeeDashboard = () => {
             <p className="header-subtitle">Manage assigned farmers and KYC</p>
           </div>
           <div className="header-right">
-            <div className="filter-buttons">
-              <button className="filter-btn">Refresh</button>
-              <button className="filter-btn active">Today</button>
-              <button className="filter-btn">This Month</button>
-              <button className="filter-btn">This Year</button>
-            </div>
+            <UserProfileDropdown />
           </div>
         </div>
 

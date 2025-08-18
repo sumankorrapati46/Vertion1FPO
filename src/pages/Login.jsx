@@ -104,19 +104,15 @@ const Login = () => {
         
         if (normalizedRole === 'SUPER_ADMIN') {
           console.log('Login - Redirecting SUPER_ADMIN to /super-admin/dashboard');
-          alert('SUPER_ADMIN detected - redirecting to /super-admin/dashboard');
           navigate('/super-admin/dashboard');
         } else if (normalizedRole === 'ADMIN') {
           console.log('Login - Redirecting ADMIN to /admin/dashboard');
-          alert('ADMIN detected - redirecting to /admin/dashboard');
           navigate('/admin/dashboard');
         } else if (normalizedRole === 'EMPLOYEE') {
           console.log('Login - Redirecting EMPLOYEE to /employee/dashboard');
-          alert('EMPLOYEE detected - redirecting to /employee/dashboard');
           navigate('/employee/dashboard');
         } else {
           console.log('Login - Redirecting FARMER to /dashboard');
-          alert('FARMER detected - redirecting to /dashboard');
           navigate('/dashboard');
         }
       } catch (profileErr) {
@@ -228,19 +224,15 @@ const Login = () => {
         
         if (normalizedRole === 'SUPER_ADMIN') {
           console.log('Login - Fallback: Redirecting SUPER_ADMIN to /super-admin/dashboard');
-          alert('FALLBACK: SUPER_ADMIN detected - redirecting to /super-admin/dashboard');
           navigate('/super-admin/dashboard');
         } else if (normalizedRole === 'ADMIN') {
           console.log('Login - Fallback: Redirecting ADMIN to /admin/dashboard');
-          alert('FALLBACK: ADMIN detected - redirecting to /admin/dashboard');
           navigate('/admin/dashboard');
         } else if (normalizedRole === 'EMPLOYEE') {
           console.log('Login - Fallback: Redirecting EMPLOYEE to /employee/dashboard');
-          alert('FALLBACK: EMPLOYEE detected - redirecting to /employee/dashboard');
           navigate('/employee/dashboard');
         } else {
           console.log('Login - Fallback: Redirecting FARMER to /dashboard');
-          alert('FALLBACK: FARMER detected - redirecting to /dashboard');
           navigate('/dashboard');
         }
       }

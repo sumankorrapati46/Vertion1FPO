@@ -449,10 +449,10 @@
 
 /* Farmer Modal Specific */
 .modal-content.farmer-modal {
-  max-width: 95vw;
-  max-height: 95vh;
-  width: 95vw;
-  height: 95vh;
+  max-width: 75vw;
+  max-height: 75vh;
+  width: 75vw;
+  height: 75vh;
   display: flex;
   flex-direction: column;
 }
@@ -484,10 +484,10 @@
 
 /* Employee Modal Specific */
 .modal-content.employee-modal {
-  max-width: 95vw;
-  max-height: 95vh;
-  width: 95vw;
-  height: 95vh;
+  max-width: 75vw;
+  max-height: 75vh;
+  width: 75vw;
+  height: 75vh;
   display: flex;
   flex-direction: column;
 }

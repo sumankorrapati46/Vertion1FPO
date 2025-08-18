@@ -1536,14 +1536,16 @@ const AdminDashboard = () => {
         </div>
         
         <div className="sidebar-nav">
+
           <div 
             className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
             onClick={() => setActiveTab('overview')}
           >
-            <i className="fas fa-tachometer-alt"></i>
+            <i className="fas fa-chart-bar"></i>
             <span>Overview</span>
           </div>
           
+
           <div 
             className={`nav-item ${activeTab === 'kyc-overview' ? 'active' : ''}`}
             onClick={() => setActiveTab('kyc-overview')}
