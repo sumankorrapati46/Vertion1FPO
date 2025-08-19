@@ -117,6 +117,12 @@ export const authAPI = {
   getStates: async (countryId) => {
     const response = await api.post('/auth/states', { countryId });
     return response.data;
+  },
+
+  // Get address by pincode
+  getAddressByPincode: async (pincode) => {
+    const response = await api.get(`/auth/pincode/${pincode}`);
+    return response.data;
   }
 };
 
@@ -202,7 +208,7 @@ export const superAdminAPI = {
 
   // Get dashboard stats
   getDashboardStats: async () => {
-    const response = await api.get('/super-admin/dashboard/stats');
+    const response = await api.get('/public/dashboard/stats');
     return response.data;
   },
 
@@ -217,6 +223,18 @@ export const superAdminAPI = {
     const response = await api.post('/super-admin/assign-farmer', null, { 
       params: { farmerId, employeeId } 
     });
+    return response.data;
+  },
+
+  // Get user by ID
+  getUserById: async (userId) => {
+    const response = await api.get(`/super-admin/users/${userId}`);
+    return response.data;
+  },
+
+  // Force password change
+  forcePasswordChange: async (userId) => {
+    const response = await api.put(`/super-admin/users/${userId}/force-password-change`);
     return response.data;
   }
 };
@@ -571,7 +589,138 @@ export const dashboardAPI = {
   getEmployeeDashboardData: async (employeeId) => {
     const response = await api.get(`/dashboard/employee/${employeeId}`);
     return response.data;
+  },
+
+  // Get recent activity
+  getRecentActivity: async () => {
+    const response = await api.get('/dashboard/recent-activity');
+    return response.data;
   }
+};
+
+// Main API service object
+export const apiService = {
+  // Authentication
+  login: authAPI.login,
+  getProfile: authAPI.getProfile,
+  register: authAPI.register,
+  sendOTP: authAPI.sendOTP,
+  verifyOTP: authAPI.verifyOTP,
+  resendOTP: authAPI.resendOTP,
+  forgotPassword: authAPI.forgotPassword,
+  forgotUserId: authAPI.forgotUserId,
+  resetPassword: authAPI.resetPassword,
+  changePassword: authAPI.changePassword,
+  changeUserId: authAPI.changeUserId,
+  logout: authAPI.logout,
+
+  // User management
+  getAllUsers: superAdminAPI.getAllUsers,
+  getUserById: superAdminAPI.getUserById,
+  updateUser: superAdminAPI.updateUser,
+  deleteUser: superAdminAPI.deleteUser,
+  forcePasswordChange: superAdminAPI.forcePasswordChange,
+
+  // Farmer management
+  createFarmer: farmersAPI.createFarmer,
+  getFarmerById: farmersAPI.getFarmerById,
+  getAllFarmers: farmersAPI.getAllFarmers,
+  updateFarmer: farmersAPI.updateFarmer,
+  deleteFarmer: farmersAPI.deleteFarmer,
+  getAddressByPincode: authAPI.getAddressByPincode,
+  getFarmerDashboardData: async (email) => {
+    const response = await api.get(`/farmers/dashboard/by-email?email=${email}`);
+    return response.data;
+  },
+
+  // Employee management
+  createEmployee: employeesAPI.createEmployee,
+  getEmployeeById: employeesAPI.getEmployeeById,
+  getAllEmployees: employeesAPI.getAllEmployees,
+  updateEmployee: employeesAPI.updateEmployee,
+  deleteEmployee: employeesAPI.deleteEmployee,
+  assignFarmerToEmployee: adminAPI.assignFarmer,
+  getFarmersByEmployee: adminAPI.getFarmersByEmployee,
+  approveKyc: kycAPI.approveKYC,
+  referBackKyc: kycAPI.referBackKYC,
+  rejectKyc: kycAPI.rejectKYC,
+
+  // Dashboard
+  getDashboardStats: dashboardAPI.getDashboardStats,
+  getRecentActivity: dashboardAPI.getRecentActivity,
+  getFarmerStats: farmersAPI.getFarmerStats,
+  getEmployeeStats: employeesAPI.getEmployeeStats,
+  getKycStats: kycAPI.getKYCStatus,
+
+  // Bulk Operations
+  bulkImport: async (type, formData) => {
+    const response = await api.post(`/bulk/import/${type}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  bulkExport: async (type, filters) => {
+    const response = await api.post(`/bulk/export/${type}`, filters, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  downloadTemplate: async (type) => {
+    const response = await api.get(`/bulk/template/${type}`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  getImportStatus: async (importId) => {
+    const response = await api.get(`/bulk/import/status/${importId}`);
+    return response.data;
+  },
+
+  getImportHistory: async (userEmail) => {
+    const response = await api.get(`/bulk/import/history?userEmail=${userEmail}`);
+    return response.data;
+  },
+
+  bulkAssignFarmersToEmployee: async (farmerIds, employeeId) => {
+    const response = await api.post('/bulk/assign/farmers-to-employee', null, {
+      params: {
+        farmerIds: farmerIds.join(','),
+        employeeId,
+      },
+    });
+    return response.data;
+  },
+
+  // New: assign by farmer names and employee email
+  bulkAssignFarmersByNames: async (farmerNames, employeeEmail) => {
+    const response = await api.post('/bulk/assign/farmers-by-names', {
+      farmerNames,
+      employeeEmail,
+    });
+    return response.data;
+  },
+
+  bulkAssignFarmersByLocation: async (location, employee) => {
+    const params = { location };
+    if (typeof employee === 'string') params.employeeEmail = employee;
+    else if (employee != null) params.employeeId = employee;
+    const response = await api.post('/bulk/assign/farmers-by-location', null, { params });
+    return response.data;
+  },
+
+  bulkAssignFarmersRoundRobin: async (farmerIds) => {
+    const response = await api.post('/bulk/assign/farmers-round-robin', null, {
+      params: {
+        farmerIds: farmerIds.join(','),
+      },
+    });
+    return response.data;
+  },
 };
 
 export default api; 

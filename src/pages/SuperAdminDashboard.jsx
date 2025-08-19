@@ -9,10 +9,12 @@ import ViewFarmerRegistrationDetails from '../components/ViewFarmerRegistrationD
 import AssignmentModal from '../components/AssignmentModal';
 import FarmerForm from '../components/FarmerForm';
 import ViewEditEmployeeDetails from '../components/ViewEditEmployeeDetails';
+import ViewEmployeeDetails from '../components/ViewEmployeeDetails';
 import EmployeeRegistrationForm from '../components/EmployeeRegistrationForm';
 import KYCDocumentUpload from '../components/KYCDocumentUpload';
 import DeleteModal from '../components/DeleteModal';
 import UserProfileDropdown from '../components/UserProfileDropdown';
+import BulkOperations from '../components/BulkOperations';
 import '../styles/Dashboard.css';
 
 const SuperAdminDashboard = () => {
@@ -62,8 +64,9 @@ const SuperAdminDashboard = () => {
   const [selectedFarmer, setSelectedFarmer] = useState(null);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [showFarmerForm, setShowFarmerForm] = useState(false);
-  const [showEmployeeDetails, setShowEmployeeDetails] = useState(false);
+  const [showEmployeeDetails, setShowEmployeeDetails] = useState(false); // edit modal
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showEmployeeView, setShowEmployeeView] = useState(false); // read-only view
   const [showEmployeeRegistration, setShowEmployeeRegistration] = useState(false);
   const [showKYCModal, setShowKYCModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -289,40 +292,19 @@ const SuperAdminDashboard = () => {
 
       console.log('Setting farmers data:', finalFarmersData);
       console.log('Sample farmer structure:', finalFarmersData[0]);
-      // Force use of mock data for employees to ensure proper data structure
-      let finalEmployeesData = employeesData;
-      if (!employeesData || employeesData.length === 0 || !employeesData[0]?.status || true) { // Force mock data
-        console.log('Using mock data for employees (timestamp: ' + new Date().toISOString() + ')');
-        finalEmployeesData = [
-          {
-            id: 1,
-            name: 'dinakar ram lankipalli',
-            contactNumber: '9857687867',
-            email: 'kite@gmail.com',
-            status: 'ACTIVE',
-            role: 'employee',
-            designation: 'KYC Officer'
-          },
-          {
-            id: 2,
-            name: 'karthik Meka kumar',
-            contactNumber: '6739299291',
-            email: 'karthik23@gmail.com',
-            status: 'ACTIVE',
-            role: 'employee',
-            designation: 'KYC Officer'
-          },
-          {
-            id: 3,
-            name: 'harish kumar reddy',
-            contactNumber: '6372872722',
-            email: 'harish134@gmail.com',
-            status: 'ACTIVE',
-            role: 'employee',
-            designation: 'KYC Officer'
-          }
-        ];
-      }
+      // Normalize employees from backend instead of forcing mock data
+      let finalEmployeesData = (employeesData || []).map(e => ({
+        id: e.id,
+        name: e.name || `${[e.firstName, e.middleName, e.lastName].filter(Boolean).join(' ')}`.trim(),
+        contactNumber: e.contactNumber,
+        email: e.email,
+        status: e.status || e.accessStatus || 'ACTIVE',
+        role: (e.role && typeof e.role === 'string') ? e.role : (e.role?.name || 'employee'),
+        designation: e.designation || 'KYC Officer',
+        district: e.district,
+        state: e.state
+      }));
+      // If backend returned nothing, keep empty array (do not override with mocks)
 
       setFarmers(finalFarmersData);
       setEmployees(finalEmployeesData);
@@ -567,7 +549,7 @@ const SuperAdminDashboard = () => {
 
   const handleViewEmployee = (employee) => {
     setSelectedEmployee(employee);
-    setShowEmployeeDetails(true);
+    setShowEmployeeView(true);
   };
 
   const handleAddEmployee = () => {
@@ -954,6 +936,14 @@ const SuperAdminDashboard = () => {
             <i className="fas fa-user-tie"></i>
             <span>Employees</span>
             <i className="fas fa-chevron-down dropdown-arrow"></i>
+          </div>
+
+          <div 
+            className={`nav-item ${activeTab === 'bulk-operations' ? 'active' : ''}`}
+            onClick={() => setActiveTab('bulk-operations')}
+          >
+            <i className="fas fa-upload"></i>
+            <span>Bulk Operations</span>
           </div>
         </div>
       </div>
@@ -1618,6 +1608,10 @@ const SuperAdminDashboard = () => {
               )}
             </div>
           )}
+
+          {activeTab === 'bulk-operations' && (
+            <BulkOperations userRole="SUPER_ADMIN" />
+          )}
         </div>
       </div>
 
@@ -1698,6 +1692,10 @@ const SuperAdminDashboard = () => {
       )}
 
 
+
+      {showEmployeeView && selectedEmployee && (
+        <ViewEmployeeDetails employeeData={selectedEmployee} onClose={() => setShowEmployeeView(false)} />
+      )}
 
       {showEmployeeDetails && selectedEmployee && (
         <ViewEditEmployeeDetails

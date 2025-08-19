@@ -210,8 +210,66 @@ const EmployeeDashboard = () => {
   };
 
   const handleViewFarmer = (farmer) => {
-    setSelectedFarmerData(farmer);
-    setShowFarmerDetails(true);
+    console.log('🔍 EmployeeDashboard - Original farmer data (list item):', farmer);
+    // Fetch full details from admin endpoint (same data model)
+    fetch(`/api/admin/farmers/${farmer.id}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }})
+      .then(r => r.json())
+      .then(full => {
+        const merged = { ...full, ...farmer };
+        const farmerData = {
+          id: merged.id,
+          firstName: merged.firstName || '',
+          lastName: merged.lastName || '',
+          middleName: merged.middleName || '',
+          dateOfBirth: merged.dateOfBirth || merged.dob || '',
+          gender: merged.gender || '',
+          contactNumber: merged.contactNumber || merged.phoneNumber || merged.phone || '',
+          email: merged.email || '',
+          fatherName: merged.fatherName || merged.relationName || '',
+          nationality: merged.nationality || '',
+          alternativeContactNumber: merged.alternativeContactNumber || merged.altNumber || '',
+          alternativeRelationType: merged.alternativeRelationType || merged.altRelationType || '',
+          state: merged.state || '',
+          district: merged.district || '',
+          block: merged.block || '',
+          village: merged.village || '',
+          pincode: merged.pincode || '',
+          kycStatus: merged.kycStatus || 'PENDING',
+          assignedEmployee: merged.assignedEmployee || 'Not Assigned',
+          assignedEmployeeId: merged.assignedEmployeeId || null
+        };
+        console.log('🔍 EmployeeDashboard - Full farmer details fetched:', full);
+        console.log('🔍 EmployeeDashboard - Transformed farmer data:', farmerData);
+        setSelectedFarmerData(farmerData);
+        setShowFarmerDetails(true);
+      })
+      .catch(err => {
+        console.warn('⚠️ Failed to fetch full farmer details, using list item only:', err);
+        const farmerData = {
+          id: farmer.id,
+          firstName: farmer.firstName || '',
+          lastName: farmer.lastName || '',
+          middleName: farmer.middleName || '',
+          dateOfBirth: farmer.dateOfBirth || farmer.dob || '',
+          gender: farmer.gender || '',
+          contactNumber: farmer.contactNumber || farmer.phoneNumber || farmer.phone || '',
+          email: farmer.email || '',
+          fatherName: farmer.fatherName || farmer.relationName || '',
+          nationality: farmer.nationality || '',
+          alternativeContactNumber: farmer.alternativeContactNumber || farmer.altNumber || '',
+          alternativeRelationType: farmer.alternativeRelationType || farmer.altRelationType || '',
+          state: farmer.state || '',
+          district: farmer.district || '',
+          block: farmer.block || '',
+          village: farmer.village || '',
+          pincode: farmer.pincode || '',
+          kycStatus: farmer.kycStatus || 'PENDING',
+          assignedEmployee: farmer.assignedEmployee || 'Not Assigned',
+          assignedEmployeeId: farmer.assignedEmployeeId || null
+        };
+        setSelectedFarmerData(farmerData);
+        setShowFarmerDetails(true);
+      });
   };
 
   const handleCloseFarmerDetails = () => {

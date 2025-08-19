@@ -265,7 +265,7 @@ const Login = () => {
           <div className="nic-text">National Informatics Centre</div>
         </div>
         <div className="nav-links">
-          <a href="#dashboard">Dashboard</a>
+          <button className="link-like" onClick={() => navigate('/analytics')}>Dashboard</button>
           <span className="nav-dot">•</span>
           <a href="#enrollment">Check Enrollment Status</a>
         </div>

@@ -9,11 +9,13 @@ import AssignmentModal from '../components/AssignmentModal';
 import KYCDocumentUpload from '../components/KYCDocumentUpload';
 import ViewFarmerRegistrationDetails from '../components/ViewFarmerRegistrationDetails';
 import ViewEditEmployeeDetails from '../components/ViewEditEmployeeDetails';
+import ViewEmployeeDetails from '../components/ViewEmployeeDetails';
 import StatsCard from '../components/StatsCard';
 import DataTable from '../components/DataTable';
 import UserProfileDropdown from '../components/UserProfileDropdown';
 import RegistrationApprovalModal from '../components/RegistrationApprovalModal';
 import RegistrationDetailModal from '../components/RegistrationDetailModal';
+import BulkOperations from '../components/BulkOperations';
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
@@ -28,6 +30,7 @@ const AdminDashboard = () => {
   const [selectedFarmerData, setSelectedFarmerData] = useState(null);
   const [showEmployeeDetails, setShowEmployeeDetails] = useState(false);
   const [selectedEmployeeData, setSelectedEmployeeData] = useState(null);
+  const [showEmployeeView, setShowEmployeeView] = useState(false);
   const [showKYCDocumentUpload, setShowKYCDocumentUpload] = useState(false);
   const [selectedFarmerForKYC, setSelectedFarmerForKYC] = useState(null);
   const [editingFarmer, setEditingFarmer] = useState(null);
@@ -106,9 +109,29 @@ const AdminDashboard = () => {
         registrationsCount: registrationsData?.length || 0
       });
       
+      // Normalize employees from backend to match UI expectations
+      const normalizedEmployees = (employeesData || []).map(e => ({
+        id: e.id,
+        name: e.name || `${[e.firstName, e.middleName, e.lastName].filter(Boolean).join(' ')}`.trim(),
+        phone: e.contactNumber,
+        email: e.email,
+        designation: e.designation || 'KYC Officer',
+        state: e.state,
+        district: e.district,
+        region: e.region || 'Southern',
+        status: e.status || e.accessStatus || 'ACTIVE',
+        assignedFarmersCount: e.totalAssigned || 0,
+        kycStats: {
+          approved: e.approvedKyc || 0,
+          pending: e.pendingKyc || 0,
+          referBack: e.referBackKyc || 0,
+          rejected: e.rejectedKyc || 0
+        }
+      }));
+
       // Use real data from APIs
       setFarmers(farmersData || []);
-      setEmployees(employeesData || []);
+      setEmployees(normalizedEmployees);
       setRegistrations(registrationsData || []);
       
       console.log('✅ Admin: Using real data from APIs');
@@ -134,8 +157,28 @@ const AdminDashboard = () => {
           registrationsCount: fallbackRegistrations?.length || 0
         });
         
+        // Normalize fallback employees data too
+        const normalizedFallbackEmployees = (fallbackEmployees || []).map(e => ({
+          id: e.id,
+          name: e.name || `${[e.firstName, e.middleName, e.lastName].filter(Boolean).join(' ')}`.trim(),
+          phone: e.contactNumber,
+          email: e.email,
+          designation: e.designation || 'KYC Officer',
+          state: e.state,
+          district: e.district,
+          region: e.region || 'Southern',
+          status: e.status || e.accessStatus || 'ACTIVE',
+          assignedFarmersCount: e.totalAssigned || 0,
+          kycStats: {
+            approved: e.approvedKyc || 0,
+            pending: e.pendingKyc || 0,
+            referBack: e.referBackKyc || 0,
+            rejected: e.rejectedKyc || 0
+          }
+        }));
+
         setFarmers(fallbackFarmers || []);
-        setEmployees(fallbackEmployees || []);
+        setEmployees(normalizedFallbackEmployees);
         setRegistrations(fallbackRegistrations || []);
         
       } catch (fallbackError) {
@@ -520,8 +563,67 @@ const AdminDashboard = () => {
   };
 
   const handleViewFarmer = (farmer) => {
-    setSelectedFarmerData(farmer);
-    setShowFarmerDetails(true);
+    console.log('🔍 AdminDashboard - Original farmer data (list item):', farmer);
+    // Fetch full details first (ensures all fields like fatherName, nationality, address)
+    adminAPI.getAllFarmers && adminAPI.getAllFarmers(); // prevent tree-shaking in some bundlers
+    fetch(`/api/admin/farmers/${farmer.id}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }})
+      .then(r => r.json())
+      .then(full => {
+        const merged = { ...full, ...farmer };
+        const farmerData = {
+          id: merged.id,
+          firstName: merged.firstName || '',
+          lastName: merged.lastName || '',
+          middleName: merged.middleName || '',
+          dateOfBirth: merged.dateOfBirth || merged.dob || '',
+          gender: merged.gender || '',
+          contactNumber: merged.contactNumber || merged.phoneNumber || merged.phone || '',
+          email: merged.email || '',
+          fatherName: merged.fatherName || merged.relationName || '',
+          nationality: merged.nationality || '',
+          alternativeContactNumber: merged.alternativeContactNumber || merged.altNumber || '',
+          alternativeRelationType: merged.alternativeRelationType || merged.altRelationType || '',
+          state: merged.state || '',
+          district: merged.district || '',
+          block: merged.block || '',
+          village: merged.village || '',
+          pincode: merged.pincode || '',
+          kycStatus: merged.kycStatus || 'PENDING',
+          assignedEmployee: merged.assignedEmployee || 'Not Assigned',
+          assignedEmployeeId: merged.assignedEmployeeId || null
+        };
+        console.log('🔍 AdminDashboard - Full farmer details fetched:', full);
+        console.log('🔍 AdminDashboard - Transformed farmer data:', farmerData);
+        setSelectedFarmerData(farmerData);
+        setShowFarmerDetails(true);
+      })
+      .catch(err => {
+        console.warn('⚠️ Failed to fetch full farmer details, using list item only:', err);
+        const farmerData = {
+          id: farmer.id,
+          firstName: farmer.firstName || '',
+          lastName: farmer.lastName || '',
+          middleName: farmer.middleName || '',
+          dateOfBirth: farmer.dateOfBirth || farmer.dob || '',
+          gender: farmer.gender || '',
+          contactNumber: farmer.contactNumber || farmer.phoneNumber || farmer.phone || '',
+          email: farmer.email || '',
+          fatherName: farmer.fatherName || farmer.relationName || '',
+          nationality: farmer.nationality || '',
+          alternativeContactNumber: farmer.alternativeContactNumber || farmer.altNumber || '',
+          alternativeRelationType: farmer.alternativeRelationType || farmer.altRelationType || '',
+          state: farmer.state || '',
+          district: farmer.district || '',
+          block: farmer.block || '',
+          village: farmer.village || '',
+          pincode: farmer.pincode || '',
+          kycStatus: farmer.kycStatus || 'PENDING',
+          assignedEmployee: farmer.assignedEmployee || 'Not Assigned',
+          assignedEmployeeId: farmer.assignedEmployeeId || null
+        };
+        setSelectedFarmerData(farmerData);
+        setShowFarmerDetails(true);
+      });
   };
 
   const handleCloseFarmerDetails = () => {
@@ -531,7 +633,7 @@ const AdminDashboard = () => {
 
   const handleViewEmployee = (employee) => {
     setSelectedEmployeeData(employee);
-    setShowEmployeeDetails(true);
+    setShowEmployeeView(true); // open read-only view modal
   };
 
   const handleCloseEmployeeDetails = () => {
@@ -1577,6 +1679,14 @@ const AdminDashboard = () => {
             <i className="fas fa-user-plus"></i>
             <span>Registration</span>
           </div>
+
+          <div 
+            className={`nav-item ${activeTab === 'bulk-operations' ? 'active' : ''}`}
+            onClick={() => setActiveTab('bulk-operations')}
+          >
+            <i className="fas fa-upload"></i>
+            <span>Bulk Operations</span>
+          </div>
         </div>
       </div>
 
@@ -1617,6 +1727,7 @@ const AdminDashboard = () => {
           {activeTab === 'farmers' && renderFarmers()}
           {activeTab === 'employees' && renderEmployees()}
           {activeTab === 'registration' && renderRegistration()}
+          {activeTab === 'bulk-operations' && <BulkOperations userRole="ADMIN" />}
         </div>
       </div>
 
@@ -1705,13 +1816,17 @@ const AdminDashboard = () => {
                    />
                  )}
 
+      {showEmployeeView && selectedEmployeeData && (
+        <ViewEmployeeDetails employeeData={selectedEmployeeData} onClose={() => setShowEmployeeView(false)} />
+      )}
+
       {showEmployeeDetails && selectedEmployeeData && (
-                   <ViewEditEmployeeDetails
+        <ViewEditEmployeeDetails
           employee={selectedEmployeeData}
-                     onClose={handleCloseEmployeeDetails}
-                     onUpdate={handleUpdateEmployee}
-                   />
-                 )}
+          onClose={handleCloseEmployeeDetails}
+          onUpdate={handleUpdateEmployee}
+        />
+      )}
 
       {showKYCDocumentUpload && selectedFarmerForKYC && (
                    <KYCDocumentUpload

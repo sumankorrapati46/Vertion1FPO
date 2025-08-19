@@ -16,6 +16,7 @@ import ChangePassword from './pages/ChangePassword';
 import ChangeUserId from './pages/ChangeUserId';
 import OtpVerification from './pages/OtpVerification';
 import ProtectedRoute from './components/ProtectedRoute';
+import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import './App.css';
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
             <Route path="/super-admin/dashboard" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><SuperAdminDashboard /></ProtectedRoute>} />
             <Route path="/employee/dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><EmployeeDashboard /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['FARMER']}><FarmerDashboard /></ProtectedRoute>} />
+            <Route path="/analytics" element={<AnalyticsDashboard />} />
 
             
             {/* Default Routes */}

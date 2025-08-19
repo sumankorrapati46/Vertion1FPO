@@ -2,55 +2,74 @@ import React, { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import '../styles/ViewEditEmployeeDetails.css';
 
-const ViewEditEmployeeDetails = ({ employeeData, onClose, onUpdate }) => {
+// Accept both `employeeData` and `employee` (dashboards pass `employee`)
+const ViewEditEmployeeDetails = ({ employeeData, employee, onClose, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+
+  // Normalize incoming data from different callers/endpoints
+  const src = employeeData || employee || {};
+  const firstName = src.firstName || (src.name ? String(src.name).split(' ')[0] : '');
+  const lastName = src.lastName || (src.name ? String(src.name).split(' ').slice(1).join(' ') : '');
+  const phone = src.contactNumber || src.phone || '';
+  const dateOfBirth = src.dateOfBirth || src.dob || '';
+  const gender = src.gender || '';
+  const address = src.address || '';
+  const city = src.city || src.district || '';
+  const state = src.state || '';
+  const pincode = src.pincode || src.zipcode || '';
+  const employeeId = src.employeeId || (src.id ? `EMP${String(src.id).padStart(6, '0')}` : '');
+  const department = src.department || '';
+  const designation = src.designation || src.role || '';
+  const joiningDate = src.joiningDate || '';
+  const salary = src.salary || '';
+  const supervisor = src.supervisor || '';
 
   const methods = useForm({
     defaultValues: {
       // Personal Information
-      firstName: employeeData?.firstName || '',
-      lastName: employeeData?.lastName || '',
-      email: employeeData?.email || '',
-      phone: employeeData?.phone || '',
-      dateOfBirth: employeeData?.dateOfBirth || '',
-      gender: employeeData?.gender || '',
-      address: employeeData?.address || '',
-      city: employeeData?.city || '',
-      state: employeeData?.state || '',
-      pincode: employeeData?.pincode || '',
+      firstName,
+      lastName,
+      email: src.email || '',
+      phone,
+      dateOfBirth,
+      gender,
+      address,
+      city,
+      state,
+      pincode,
       
       // Employment Information
-      employeeId: employeeData?.employeeId || '',
-      department: employeeData?.department || '',
-      designation: employeeData?.designation || '',
-      joiningDate: employeeData?.joiningDate || '',
-      salary: employeeData?.salary || '',
-      supervisor: employeeData?.supervisor || '',
+      employeeId,
+      department,
+      designation,
+      joiningDate,
+      salary,
+      supervisor,
       
       // Educational Information
-      highestQualification: employeeData?.highestQualification || '',
-      institution: employeeData?.institution || '',
-      graduationYear: employeeData?.graduationYear || '',
-      specialization: employeeData?.specialization || '',
+      highestQualification: src.highestQualification || '',
+      institution: src.institution || '',
+      graduationYear: src.graduationYear || '',
+      specialization: src.specialization || '',
       
       // Emergency Contact
-      emergencyName: employeeData?.emergencyName || '',
-      emergencyPhone: employeeData?.emergencyPhone || '',
-      emergencyRelation: employeeData?.emergencyRelation || '',
+      emergencyName: src.emergencyName || '',
+      emergencyPhone: src.emergencyPhone || '',
+      emergencyRelation: src.emergencyRelation || '',
       
       // Documents
-      photo: employeeData?.photo || null,
-      idProof: employeeData?.idProof || null,
-      addressProof: employeeData?.addressProof || null,
-      educationalCertificates: employeeData?.educationalCertificates || null,
+      photo: src.photo || null,
+      idProof: src.idProof || null,
+      addressProof: src.addressProof || null,
+      educationalCertificates: src.educationalCertificates || null,
       
       // Additional Information
-      skills: employeeData?.skills || '',
-      languages: employeeData?.languages || '',
-      certifications: employeeData?.certifications || '',
-      workExperience: employeeData?.workExperience || '',
-      references: employeeData?.references || ''
+      skills: src.skills || '',
+      languages: src.languages || '',
+      certifications: src.certifications || '',
+      workExperience: src.workExperience || '',
+      references: src.references || ''
     }
   });
 

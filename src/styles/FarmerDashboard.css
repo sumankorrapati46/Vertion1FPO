@@ -1,0 +1,567 @@
+/* Farmer Dashboard Specific Styles */
+
+/* Profile Section */
+.profile-section {
+  padding: 20px;
+}
+
+.profile-section h2 {
+  color: #2c3e50;
+  font-size: 2rem;
+  margin-bottom: 30px;
+  font-weight: 600;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 25px;
+}
+
+.profile-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+}
+
+.profile-card h3 {
+  color: #495057;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f8f9fa;
+  font-weight: 600;
+}
+
+.info-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item label {
+  font-weight: 600;
+  color: #6c757d;
+  font-size: 0.95rem;
+  min-width: 150px;
+}
+
+.info-item span {
+  color: #2c3e50;
+  font-weight: 500;
+  text-align: right;
+  flex: 1;
+  margin-left: 15px;
+}
+
+/* KYC Section */
+.kyc-section {
+  padding: 20px;
+}
+
+.kyc-section h2 {
+  color: #2c3e50;
+  font-size: 2rem;
+  margin-bottom: 30px;
+  font-weight: 600;
+}
+
+.kyc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 25px;
+}
+
+.kyc-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+}
+
+.kyc-card h3 {
+  color: #495057;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f8f9fa;
+  font-weight: 600;
+}
+
+.kyc-status {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+.status-badge {
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.pending {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.status-badge.approved {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-badge.rejected {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.status-badge.refer_back {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.kyc-details {
+  display: grid;
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-item label {
+  font-weight: 600;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.detail-item span {
+  color: #2c3e50;
+  font-weight: 500;
+  text-align: right;
+}
+
+.error-text {
+  color: #dc3545 !important;
+}
+
+.warning-text {
+  color: #ffc107 !important;
+}
+
+.employee-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.employee-avatar {
+  width: 60px;
+  height: 60px;
+  background: #007bff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.employee-details h4 {
+  color: #2c3e50;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.employee-details p {
+  margin: 5px 0;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.employee-details strong {
+  color: #495057;
+}
+
+.no-assignment {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+}
+
+.no-assignment p {
+  margin: 10px 0;
+  font-size: 1.1rem;
+}
+
+.small-text {
+  font-size: 0.9rem !important;
+  color: #adb5bd;
+}
+
+/* Crops Section */
+.crops-section {
+  padding: 20px;
+}
+
+.crops-section h2 {
+  color: #2c3e50;
+  font-size: 2rem;
+  margin-bottom: 30px;
+  font-weight: 600;
+}
+
+.crops-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 25px;
+}
+
+.crop-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  border-left: 4px solid #28a745;
+}
+
+.crop-card h3 {
+  color: #495057;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f8f9fa;
+  font-weight: 600;
+}
+
+.crop-info {
+  display: grid;
+  gap: 15px;
+}
+
+/* Documents Section */
+.documents-section {
+  padding: 20px;
+}
+
+.documents-section h2 {
+  color: #2c3e50;
+  font-size: 2rem;
+  margin-bottom: 30px;
+  font-weight: 600;
+}
+
+.documents-grid {
+  display: grid;
+  gap: 25px;
+}
+
+.document-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+}
+
+.document-card h3 {
+  color: #495057;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f8f9fa;
+  font-weight: 600;
+}
+
+.document-list {
+  display: grid;
+  gap: 15px;
+}
+
+.document-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.doc-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  text-align: center;
+}
+
+.doc-info h4 {
+  color: #2c3e50;
+  margin-bottom: 5px;
+  font-size: 1rem;
+}
+
+.doc-info p {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Benefits Section */
+.benefits-section {
+  padding: 20px;
+}
+
+.benefits-section h2 {
+  color: #2c3e50;
+  font-size: 2rem;
+  margin-bottom: 30px;
+  font-weight: 600;
+}
+
+.benefits-grid {
+  display: grid;
+  gap: 25px;
+}
+
+.benefit-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  border-left: 4px solid #28a745;
+}
+
+.benefit-card h3 {
+  color: #495057;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f8f9fa;
+  font-weight: 600;
+}
+
+.benefit-summary {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.benefit-item {
+  text-align: center;
+  padding: 20px;
+  background: #d4edda;
+  border-radius: 8px;
+  min-width: 200px;
+}
+
+.benefit-amount {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #155724;
+  margin-bottom: 5px;
+}
+
+.benefit-label {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.benefit-note {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Support Section */
+.support-section {
+  padding: 20px;
+}
+
+.support-section h2 {
+  color: #2c3e50;
+  font-size: 2rem;
+  margin-bottom: 30px;
+  font-weight: 600;
+}
+
+.support-grid {
+  display: grid;
+  gap: 25px;
+}
+
+.support-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+}
+
+.support-card h3 {
+  color: #495057;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f8f9fa;
+  font-weight: 600;
+}
+
+.contact-info {
+  display: grid;
+  gap: 20px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.contact-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  text-align: center;
+}
+
+.contact-details h4 {
+  color: #2c3e50;
+  margin-bottom: 5px;
+  font-size: 1rem;
+}
+
+.contact-details p {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .profile-grid,
+  .kyc-grid,
+  .crops-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-card,
+  .kyc-card,
+  .crop-card,
+  .document-card,
+  .benefit-card,
+  .support-card {
+    padding: 20px;
+  }
+
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .info-item span {
+    text-align: left;
+    margin-left: 0;
+  }
+
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .detail-item span {
+    text-align: left;
+  }
+
+  .employee-info {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .benefit-item {
+    min-width: auto;
+  }
+
+  .benefit-amount {
+    font-size: 1.5rem;
+  }
+}
+
+/* Animation for section transitions */
+.profile-section,
+.kyc-section,
+.crops-section,
+.documents-section,
+.benefits-section,
+.support-section {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover effects */
+.profile-card:hover,
+.kyc-card:hover,
+.crop-card:hover,
+.document-card:hover,
+.benefit-card:hover,
+.support-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.document-item:hover,
+.contact-item:hover {
+  background: #e9ecef;
+  transition: background 0.3s ease;
+}
