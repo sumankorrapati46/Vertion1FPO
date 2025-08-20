@@ -261,8 +261,8 @@ const Login = () => {
       {/* Top Navigation Bar */}
       <nav className="nic-navbar">
         <div className="nic-logo">
-          <span>एनआईसी</span>
-          <div className="nic-text">National Informatics Centre</div>
+          <img src={logo} alt="DATE Logo" style={{ height: '32px', marginRight: '12px' }} />
+          <div className="nic-text">Digital Agristack Transaction Enterprises</div>
         </div>
         <div className="nav-links">
           <button className="link-like" onClick={() => navigate('/analytics')}>Dashboard</button>

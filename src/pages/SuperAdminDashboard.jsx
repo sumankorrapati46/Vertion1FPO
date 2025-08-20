@@ -909,7 +909,13 @@ const SuperAdminDashboard = () => {
         </div>
         
         <div className="sidebar-nav">
-
+          <div 
+            className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveTab('dashboard')}
+          >
+            <i className="fas fa-th-large"></i>
+            <span>Dashboard Overview</span>
+          </div>
 
           <div 
             className={`nav-item ${activeTab === 'registration' ? 'active' : ''}`}

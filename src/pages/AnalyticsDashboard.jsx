@@ -1,18 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { adminAPI, superAdminAPI } from '../api/apiService';
+import { useNavigate } from 'react-router-dom';
+import logo from '../assets/rightlogo.png';
 import Chart from 'chart.js/auto';
 
-const Metric = ({ label, value }) => (
+const Metric = ({ label, value, theme = 'green' }) => {
+  const themes = {
+    green: { bg: 'linear-gradient(135deg, #34d399, #10b981)', text: '#0b3b2e' },
+    blue: { bg: 'linear-gradient(135deg, #93c5fd, #3b82f6)', text: '#0b2447' },
+    purple: { bg: 'linear-gradient(135deg, #c4b5fd, #8b5cf6)', text: '#2e1065' },
+    yellow: { bg: 'linear-gradient(135deg, #fde68a, #f59e0b)', text: '#78350f' },
+    pink: { bg: 'linear-gradient(135deg, #fbcfe8, #ec4899)', text: '#831843' }
+  };
+  const t = themes[theme] || themes.green;
+  return (
   <div style={{
-    background: '#fff', borderRadius: 12, padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-    display: 'flex', flexDirection: 'column', gap: 6, minWidth: 180
+    background: t.bg, borderRadius: 16, padding: 16, boxShadow: '0 6px 20px rgba(0,0,0,0.08)',
+    display: 'flex', flexDirection: 'column', gap: 6, minWidth: 180, color: '#fff'
   }}>
-    <div style={{ color: '#6b7280', fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</div>
-    <div style={{ color: '#111827', fontSize: 24, fontWeight: 700 }}>{value ?? '-'}</div>
+    <div style={{ opacity: 0.9, fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.6 }}>{label}</div>
+    <div style={{ color: '#fff', fontSize: 28, fontWeight: 800 }}>{value ?? '-'}</div>
   </div>
-);
+  );
+};
 
 const AnalyticsDashboard = ({ role = 'SUPER_ADMIN' }) => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [topBottom, setTopBottom] = useState({ top: [], bottom: [] });
   const [modeSplit, setModeSplit] = useState([]);
@@ -99,26 +112,56 @@ const AnalyticsDashboard = ({ role = 'SUPER_ADMIN' }) => {
 
   return (
     <div style={{ padding: 20, background: '#f3f4f6', minHeight: '100vh' }}>
-      <h2 style={{ margin: '8px 0 16px', color: '#111827' }}>Analytical Dashboard</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <img src={logo} alt="DATE Logo" style={{ height: 36 }} />
+          <h2 style={{ margin: 0, color: '#111827' }}>Analytical Dashboard</h2>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={fetchAll}
+            style={{ padding: '8px 12px', background: '#10b981', color: '#fff', borderRadius: 8, border: 'none', cursor: 'pointer' }}
+          >Refresh</button>
+          <button
+            onClick={() => { if (window.history.length > 1) navigate(-1); else navigate('/login'); }}
+            style={{ padding: '8px 12px', background: '#374151', color: '#fff', borderRadius: 8, border: 'none', cursor: 'pointer' }}
+          >Back</button>
+        </div>
+      </div>
+      <div style={{ color: '#6b7280', marginBottom: 8 }}>Note: Data refreshes every 5 minutes.</div>
       {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: 8, borderRadius: 8, marginBottom: 12 }}>{error}</div>}
 
-      {/* Top metrics */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-        <Metric label="Total Beneficiaries" value={stats?.totalFarmers} />
-        <Metric label="Total Enrollments" value={stats?.totalFarmers} />
-        <Metric label="Enrollment %" value={stats ? `${Math.round(((stats.approvedFarmers || 0) / (stats.totalFarmers || 1)) * 100)}%` : '-'} />
-        <Metric label="Approved IDs" value={stats?.kycApprovedFarmers ?? stats?.approvedFarmers} />
-        <Metric label="Pending Approvals" value={stats?.pendingFarmers} />
+      {/* Full-width line below header */}
+      <div style={{ 
+        height: '2px', 
+        background: 'linear-gradient(90deg, #e5e7eb, #d1d5db, #e5e7eb)', 
+        margin: '20px 0', 
+        borderRadius: '1px' 
+      }}></div>
+
+      {/* Section: General Counts */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '8px 0' }}>
+        <div style={{ padding: '8px 12px', background: '#ecfdf5', color: '#065f46', borderRadius: 8, fontWeight: 600 }}>General Counts</div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+        <Metric theme="blue" label="Total Beneficiaries" value={stats?.totalFarmers} />
+        <Metric theme="purple" label="Total Enrollments" value={stats?.totalFarmers} />
+        <Metric theme="yellow" label="Enrollment %" value={stats ? `${Math.round(((stats.approvedFarmers || 0) / (stats.totalFarmers || 1)) * 100)}%` : '-'} />
+        <Metric theme="green" label="Approved IDs" value={stats?.kycApprovedFarmers ?? stats?.approvedFarmers} />
+        <Metric theme="pink" label="Pending Approvals" value={stats?.pendingFarmers} />
       </div>
 
-      {/* Charts */}
+      {/* Section: Farmer Enrollment */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '16px 0 8px' }}>
+        <div style={{ padding: '8px 12px', background: '#eff6ff', color: '#1d4ed8', borderRadius: 8, fontWeight: 600 }}>Farmer Enrollment</div>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
         <div style={{ background: '#fff', borderRadius: 12, padding: 12, height: 320 }}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>Top 5 Districts by Approval</div>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>Farmer Enrollment Approval – Top 5 Districts</div>
           <canvas id="top5" style={{ width: '100%', height: '260px' }} />
         </div>
         <div style={{ background: '#fff', borderRadius: 12, padding: 12, height: 320 }}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>Bottom 5 Districts by Approval</div>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>Farmer Enrollment Approval – Bottom 5 Districts</div>
           <canvas id="bottom5" style={{ width: '100%', height: '260px' }} />
         </div>
         <div style={{ background: '#fff', borderRadius: 12, padding: 12, height: 320, gridColumn: 'span 2' }}>
