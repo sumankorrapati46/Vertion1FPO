@@ -3,13 +3,18 @@ import { useAuth } from '../contexts/AuthContext';
 import { farmersAPI, employeesAPI, superAdminAPI, adminAPI } from '../api/apiService';
 import DataTable from '../components/DataTable';
 
-import RegistrationApprovalModal from '../components/RegistrationApprovalModal';
+// import RegistrationApprovalModal from '../components/RegistrationApprovalModal';
 import RegistrationDetailModal from '../components/RegistrationDetailModal';
+import RegistrationDetailsInline from '../components/RegistrationDetailsInline';
 import ViewFarmerRegistrationDetails from '../components/ViewFarmerRegistrationDetails';
+import ViewFarmer from '../components/ViewFarmer';
 import AssignmentModal from '../components/AssignmentModal';
+import AssignmentInline from '../components/AssignmentInline';
 import FarmerForm from '../components/FarmerForm';
+import FarmerRegistrationForm from '../components/FarmerRegistrationForm';
 import ViewEditEmployeeDetails from '../components/ViewEditEmployeeDetails';
 import ViewEmployeeDetails from '../components/ViewEmployeeDetails';
+import ViewEmployee from '../components/ViewEmployee';
 import EmployeeRegistrationForm from '../components/EmployeeRegistrationForm';
 import KYCDocumentUpload from '../components/KYCDocumentUpload';
 import DeleteModal from '../components/DeleteModal';
@@ -62,11 +67,14 @@ const SuperAdminDashboard = () => {
 
   const [showFarmerDetails, setShowFarmerDetails] = useState(false);
   const [selectedFarmer, setSelectedFarmer] = useState(null);
+  const [viewingFarmer, setViewingFarmer] = useState(null);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [showAssignmentInline, setShowAssignmentInline] = useState(false);
   const [showFarmerForm, setShowFarmerForm] = useState(false);
   const [showEmployeeDetails, setShowEmployeeDetails] = useState(false); // edit modal
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showEmployeeView, setShowEmployeeView] = useState(false); // read-only view
+  const [viewingEmployee, setViewingEmployee] = useState(null);
   const [showEmployeeRegistration, setShowEmployeeRegistration] = useState(false);
   const [showKYCModal, setShowKYCModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -94,8 +102,9 @@ const SuperAdminDashboard = () => {
     district: ''
   });
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [showRegistrationDetailModal, setShowRegistrationDetailModal] = useState(false);
-  const [selectedRegistrationForDetail, setSelectedRegistrationForDetail] = useState(null);
+
+
+  const [viewingRegistration, setViewingRegistration] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -412,14 +421,10 @@ const SuperAdminDashboard = () => {
   };
 
   const handleViewRegistration = (registration) => {
-    setSelectedRegistrationForDetail(registration);
-    setShowRegistrationDetailModal(true);
+    setViewingRegistration(registration);
   };
 
-  const handleCloseRegistrationDetailModal = () => {
-    setShowRegistrationDetailModal(false);
-    setSelectedRegistrationForDetail(null);
-  };
+
 
   const handleRegistrationUpdate = () => {
     // Refresh the registration data
@@ -452,56 +457,14 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  const handleViewFarmer = (farmer) => {
-    // Transform farmer data to match ViewFarmerRegistrationDetails expectations
-    const farmerData = {
-      id: farmer.id,
-      firstName: farmer.firstName || '',
-      lastName: farmer.lastName || '',
-      middleName: farmer.middleName || '',
-      dateOfBirth: farmer.dob || '',
-      gender: farmer.gender || '',
-      mobileNumber: farmer.contactNumber || '',
-      email: farmer.email || '',
-      maritalStatus: farmer.maritalStatus || 'Single',
-      religion: farmer.religion || 'Not Specified',
-      caste: farmer.caste || 'Not Specified',
-      category: farmer.category || 'General',
-      education: farmer.education || 'Not Specified',
-      village: farmer.village || '',
-      postOffice: farmer.postOffice || '',
-      policeStation: farmer.policeStation || '',
-      district: farmer.district || '',
-      state: farmer.state || '',
-      pincode: farmer.zipcode || '',
-      occupation: farmer.occupation || 'Farmer',
-      annualIncome: farmer.annualIncome || 'Not Specified',
-      landOwnership: farmer.landOwnership || 'Not Specified',
-      landArea: farmer.landArea || 'Not Specified',
-      irrigationType: farmer.irrigationType || 'Not Specified',
-      soilType: farmer.soilType || 'Not Specified',
-      primaryCrop: farmer.primaryCrop || 'Not Specified',
-      secondaryCrop: farmer.secondaryCrop || 'Not Specified',
-      cropSeason: farmer.cropSeason || 'Not Specified',
-      farmingExperience: farmer.farmingExperience || 'Not Specified',
-      bankName: farmer.bankName || '',
-      branchName: farmer.branchName || '',
-      accountNumber: farmer.accountNumber || '',
-      ifscCode: farmer.ifscCode || '',
-      accountType: farmer.accountType || 'Savings',
-      aadhaarNumber: farmer.aadhaarNumber || 'Not Specified',
-      panNumber: farmer.panNumber || 'Not Specified',
-      voterId: farmer.voterId || 'Not Specified',
-      rationCardNumber: farmer.rationCardNumber || 'Not Specified',
-      status: farmer.accessStatus || 'PENDING',
-      assignedEmployee: farmer.assignedEmployee || 'Not Assigned',
-      kycStatus: farmer.kycStatus || 'PENDING',
-      photo: farmer.photoFileName ? `/uploads/${farmer.photoFileName}` : null
-    };
-
-    console.log('Transformed farmer data:', farmerData);
-    setSelectedFarmer(farmerData);
-    setShowFarmerDetails(true);
+  const handleViewFarmer = async (farmer) => {
+    try {
+      const full = await farmersAPI.getFarmerById(farmer.id);
+      setViewingFarmer(full || farmer);
+    } catch (e) {
+      console.warn('Falling back to row farmer data:', e);
+      setViewingFarmer(farmer);
+    }
   };
 
   const handleEditFarmer = (farmer) => {
@@ -547,9 +510,16 @@ const SuperAdminDashboard = () => {
     setShowFarmerForm(true);
   };
 
-  const handleViewEmployee = (employee) => {
-    setSelectedEmployee(employee);
-    setShowEmployeeView(true);
+  const handleViewEmployee = async (employee) => {
+    try {
+      // Fetch complete employee details from backend
+      const completeEmployeeData = await superAdminAPI.getEmployeeById(employee.id);
+      setViewingEmployee(completeEmployeeData);
+    } catch (error) {
+      console.error('Error fetching employee details:', error);
+      // Fallback to basic employee data if API call fails
+      setViewingEmployee(employee);
+    }
   };
 
   const handleAddEmployee = () => {
@@ -559,6 +529,60 @@ const SuperAdminDashboard = () => {
   const handleEditEmployee = (employee) => {
     setSelectedEmployee(employee);
     setShowEmployeeDetails(true);
+  };
+
+  const handleSaveEmployee = async (updatedData) => {
+    try {
+      // Update employee data in backend
+      const updatedEmployee = await superAdminAPI.updateEmployee(selectedEmployee.id, updatedData);
+      
+      // Update local state
+      setEmployees(prev => prev.map(emp => 
+        emp.id === selectedEmployee.id ? updatedEmployee : emp
+      ));
+      
+      // Update selected employee
+      setSelectedEmployee(updatedEmployee);
+      
+      alert('Employee updated successfully!');
+    } catch (error) {
+      console.error('Error updating employee:', error);
+      alert('Failed to update employee. Please try again.');
+    }
+  };
+
+  const handleSaveFarmer = async (updatedData) => {
+    try {
+      // Update farmer data in backend
+      const updatedFarmer = await farmersAPI.updateFarmer(viewingFarmer.id, updatedData);
+      
+      // Update local state
+      setFarmers(prev => prev.map(farmer => 
+        farmer.id === viewingFarmer.id ? updatedFarmer : farmer
+      ));
+      
+      // Update viewing farmer
+      setViewingFarmer(updatedFarmer);
+      
+      alert('Farmer updated successfully!');
+    } catch (error) {
+      console.error('Error updating farmer:', error);
+      alert('Failed to update farmer. Please try again.');
+    }
+  };
+
+  const handleManualRefresh = async () => {
+    console.log('🔄 Manual refresh triggered...');
+    try {
+      const refreshedFarmers = await adminAPI.getFarmersWithKyc();
+      console.log('✅ Manual refresh - farmers data:', refreshedFarmers);
+      console.log('🔍 Manual refresh - first farmer assignedEmployee:', refreshedFarmers[0]?.assignedEmployee);
+      setFarmers(refreshedFarmers);
+      alert('Data refreshed successfully!');
+    } catch (error) {
+      console.error('❌ Manual refresh failed:', error);
+      alert('Failed to refresh data. Please try again.');
+    }
   };
 
   const handleAssignFarmers = async (assignments) => {
@@ -572,41 +596,73 @@ const SuperAdminDashboard = () => {
         return;
       }
       
+      console.log('🔍 Starting farmer assignment...');
+      console.log('🔍 Farmer IDs:', farmerIds);
+      console.log('🔍 Employee ID:', employeeId);
+      console.log('🔍 Assignments object:', assignments);
+      
       // Try bulk assign first, then fallback to individual assignments
       try {
-        // Call admin API to bulk assign farmers
-        await superAdminAPI.bulkAssignFarmers(farmerIds, employeeId);
+        // Call admin API to bulk assign farmers (this endpoint exists)
+        console.log('🔄 Calling adminAPI.bulkAssignFarmers...');
+        const response = await adminAPI.bulkAssignFarmers(farmerIds, employeeId);
+        console.log('✅ Bulk assignment response:', response);
       } catch (bulkError) {
-        console.log('Bulk assign failed, trying individual assignments...');
+        console.log('❌ Bulk assign failed, trying individual assignments...', bulkError);
         // Fallback to individual assignments
         for (const farmerId of farmerIds) {
           try {
-            await superAdminAPI.assignFarmer(farmerId, employeeId);
+            console.log('🔄 Assigning individual farmer:', farmerId);
+            await adminAPI.assignFarmer(farmerId, employeeId);
+            console.log('✅ Individual assignment successful for farmer:', farmerId);
           } catch (individualError) {
-            console.error(`Failed to assign farmer ${farmerId}:`, individualError);
+            console.error(`❌ Failed to assign farmer ${farmerId}:`, individualError);
           }
         }
       }
       
-      // Update local state for each assignment
-      setFarmers(prev => prev.map(farmer => {
-        const assignment = assignments.find(a => a.farmerId === farmer.id);
-        if (assignment) {
-          return {
-            ...farmer,
-            assignmentStatus: 'ASSIGNED',
-            assignedEmployee: assignment.employeeName,
-            assignedDate: new Date().toISOString().split('T')[0]
-          };
+      // Refresh farmers data from backend to get the real assignment status
+      console.log('🔄 Refreshing farmers data from backend...');
+      try {
+        // Add a small delay to ensure backend has processed the assignment
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const refreshedFarmers = await adminAPI.getFarmersWithKyc();
+        console.log('✅ Refreshed farmers data:', refreshedFarmers);
+        console.log('🔍 First farmer assignedEmployee:', refreshedFarmers[0]?.assignedEmployee);
+        console.log('🔍 assignedEmployee type:', typeof refreshedFarmers[0]?.assignedEmployee);
+        if (refreshedFarmers[0]?.assignedEmployee && typeof refreshedFarmers[0].assignedEmployee === 'object') {
+          console.log('🔍 assignedEmployee object keys:', Object.keys(refreshedFarmers[0].assignedEmployee));
         }
-        return farmer;
-      }));
+        setFarmers(refreshedFarmers);
+        
+        // Force a complete page refresh after 2 seconds to ensure data persistence
+        setTimeout(() => {
+          console.log('🔄 Force refreshing page to ensure data persistence...');
+          window.location.reload();
+        }, 2000);
+      } catch (refreshError) {
+        console.error('❌ Failed to refresh farmers data:', refreshError);
+        // Fallback to local state update if refresh fails
+        setFarmers(prev => prev.map(farmer => {
+          const assignment = assignments.find(a => a.farmerId === farmer.id);
+          if (assignment) {
+            return {
+              ...farmer,
+              assignmentStatus: 'ASSIGNED',
+              assignedEmployee: assignment.employeeName,
+              assignedDate: new Date().toISOString().split('T')[0]
+            };
+          }
+          return farmer;
+        }));
+      }
       
-      setShowAssignmentModal(false);
+      setShowAssignmentInline(false);
       alert('Farmers assigned successfully!');
     } catch (error) {
-      console.error('Error assigning farmers:', error);
-      alert('Failed to assign farmers');
+      console.error('❌ Error assigning farmers:', error);
+      alert('Failed to assign farmers: ' + error.message);
     }
   };
 
@@ -1142,7 +1198,6 @@ const SuperAdminDashboard = () => {
                   </button>
                 </div>
               </div>
-
               {/* Enhanced Filters */}
               <div className="filters-section">
                 <div className="filter-group">
@@ -1187,86 +1242,93 @@ const SuperAdminDashboard = () => {
                   </button>
                 </div>
               </div>
-
-              {(() => {
-                const registrationData = getFilteredRegistrations();
-                return (
-                  <DataTable
-                    data={registrationData}
-                    columns={[
-                      { key: 'name', label: 'Name' },
-                      { key: 'email', label: 'Email' },
-                      { key: 'phoneNumber', label: 'Phone' },
-                      { key: 'role', label: 'Role' },
-                      { key: 'status', label: 'Status' }
-                    ]}
-                    customActions={[
-                      {
-                        label: 'View',
-                        className: 'info',
-                        onClick: handleViewRegistration
-                      },
-                      {
-                        label: 'Approve',
-                        className: 'approve',
-                        onClick: (registration) => handleApproveRegistration(registration.id)
-                      },
-                      {
-                        label: 'Reject',
-                        className: 'reject',
-                        onClick: (registration) => handleRejectRegistration(registration.id)
-                      },
-                      {
-                        label: 'Delete',
-                        className: 'danger',
-                        onClick: (registration) => handleDelete(registration, 'registration')
-                      }
-                    ]}
-                  />
-                );
-              })()}
+              {!viewingRegistration ? (
+                (() => {
+                  const registrationData = getFilteredRegistrations();
+                  return (
+                    <DataTable
+                      data={registrationData}
+                      columns={[
+                        { key: 'name', label: 'Name' },
+                        { key: 'email', label: 'Email' },
+                        { key: 'phoneNumber', label: 'Phone' },
+                        { key: 'role', label: 'Role' },
+                        { key: 'status', label: 'Status' }
+                      ]}
+                      customActions={[
+                        {
+                          label: 'View',
+                          className: 'info',
+                          onClick: handleViewRegistration
+                        },
+                        {
+                          label: 'Approve',
+                          className: 'approve',
+                          onClick: (registration) => handleApproveRegistration(registration.id)
+                        },
+                        {
+                          label: 'Reject',
+                          className: 'reject',
+                          onClick: (registration) => handleRejectRegistration(registration.id)
+                        },
+                        {
+                          label: 'Delete',
+                          className: 'danger',
+                          onClick: (registration) => handleDelete(registration, 'registration')
+                        }
+                      ]}
+                    />
+                  );
+                })()
+              ) : (
+                <RegistrationDetailsInline 
+                  registration={viewingRegistration}
+                  onBack={() => setViewingRegistration(null)}
+                  onUpdate={handleRegistrationUpdate}
+                />
+              )}
             </div>
           )}
 
           {activeTab === 'farmers' && (
-            <div className="overview-section">
-              <div className="overview-header">
-                <h2 className="overview-title">Farmer Management</h2>
-                <p className="overview-description">
-                  Manage farmer registrations and assignments.
-                </p>
-                <div className="overview-actions">
-                  <button 
-                    className="action-btn primary"
-                    onClick={() => {
-                      setEditingFarmer(null);
-                      setShowFarmerForm(true);
-                    }}
-                  >
-                    <i className="fas fa-plus"></i>
-                    Add Farmer
-                  </button>
-                  <button className="action-btn secondary" onClick={() => {
-                    console.log('=== ASSIGN FARMERS BUTTON CLICKED ===');
-                    console.log('Current farmers state:', farmers || 'undefined');
-                    console.log('Current employees state:', employees || 'undefined');
-                    setShowAssignmentModal(true);
-                  }}>
-                    <i className="fas fa-user-plus"></i>
-                    Assign Farmers
-                  </button>
-                  <button 
-                    className="action-btn success"
-                    onClick={() => {
-                      console.log('🔄 Manually refreshing farmer data...');
-                      fetchData();
-                    }}
-                  >
-                    <i className="fas fa-sync-alt"></i>
-                    Refresh Data
-                  </button>
-        </div>
-      </div>
+            <>
+              {!viewingFarmer && !showAssignmentInline ? (
+                <div className="overview-section">
+                  <div className="overview-header">
+                    <h2 className="overview-title">Farmer Management</h2>
+                    <p className="overview-description">
+                      Manage farmer registrations and assignments.
+                    </p>
+                    <div className="overview-actions">
+                      <button 
+                        className="action-btn primary"
+                        onClick={() => {
+                          setEditingFarmer(null);
+                          setShowFarmerForm(true);
+                        }}
+                      >
+                        <i className="fas fa-plus"></i>
+                        Add Farmer
+                      </button>
+                      <button className="action-btn secondary" onClick={() => {
+                        console.log('🔍 Assign Farmers button clicked');
+                        console.log('🔍 Total farmers:', farmers.length);
+                        console.log('🔍 Farmers with assignments:', farmers.filter(f => f.assignedEmployee && f.assignedEmployee !== 'Not Assigned' && f.assignedEmployee !== 'N/A').length);
+                        console.log('🔍 Available employees:', employees.length);
+                        setShowAssignmentInline(true);
+                      }}>
+                        <i className="fas fa-user-plus"></i>
+                        Assign Farmers
+                      </button>
+                      <button 
+                        className="action-btn success"
+                        onClick={handleManualRefresh}
+                      >
+                        <i className="fas fa-sync-alt"></i>
+                        Refresh Data
+                      </button>
+                    </div>
+                  </div>
 
       {/* Enhanced Filters */}
       <div className="filters-section">
@@ -1377,6 +1439,7 @@ const SuperAdminDashboard = () => {
         </div>
       </div>
 
+      {!showFarmerForm ? (
       <DataTable
         data={getFilteredFarmers()}
         columns={[
@@ -1427,13 +1490,78 @@ const SuperAdminDashboard = () => {
           }
         ]}
       />
-    </div>
+      ) : (
+        <div className="employee-registration-section">
+          <div className="overview-header">
+            <h2 className="overview-title">Add New Farmer</h2>
+            <p className="overview-description">
+              Register a new farmer in the system.
+            </p>
+            <div className="overview-actions">
+              <button 
+                className="action-btn secondary" 
+                onClick={() => setShowFarmerForm(false)}
+              >
+                <i className="fas fa-arrow-left"></i>
+                Back to Farmers
+              </button>
+            </div>
+          </div>
+          <FarmerRegistrationForm 
+            isInDashboard={true}
+            onClose={() => setShowFarmerForm(false)}
+            onSubmit={async (farmerData) => {
+              try {
+                if (editingFarmer) {
+                  const updatedFarmer = await farmersAPI.updateFarmer(editingFarmer.id, farmerData);
+                  setFarmers(prev => prev.map(farmer => 
+                    farmer.id === editingFarmer.id ? updatedFarmer : farmer
+                  ));
+                  alert('Farmer updated successfully!');
+                } else {
+                  const newFarmer = await farmersAPI.createFarmer(farmerData);
+                  setFarmers(prev => [...prev, newFarmer]);
+                  alert('Farmer created successfully!');
+                }
+                setShowFarmerForm(false);
+                setEditingFarmer(null);
+              } catch (error) {
+                console.error('Error saving farmer:', error);
+                alert('Failed to save farmer. Please try again.');
+              }
+            }}
+          />
+        </div>
+      )}
+
+                </div>
+              ) : null}
+
+              {showAssignmentInline && (
+                <AssignmentInline 
+                  farmers={farmers.filter(f => !f.assignedEmployee || f.assignedEmployee === 'Not Assigned' || f.assignedEmployee === null || f.assignedEmployee === undefined || f.assignedEmployee === '')}
+                  employees={employees}
+                  onBack={() => setShowAssignmentInline(false)}
+                  onAssign={handleAssignFarmers}
+                />
+              )}
+
+              {viewingFarmer && (
+                <ViewFarmer 
+                  farmerData={viewingFarmer}
+                  onBack={() => setViewingFarmer(null)}
+                  onSave={handleSaveFarmer}
+                />
+              )}
+            </>
           )}
 
           {activeTab === 'employees' && (
             <div className="overview-section">
               {!showEmployeeRegistration ? (
                 <>
+                  {!viewingEmployee ? (
+                    <>
                   <div className="overview-header">
                     <h2 className="overview-title">Employee Management</h2>
                     <p className="overview-description">
@@ -1576,6 +1704,14 @@ const SuperAdminDashboard = () => {
                       }
                     ]}
                   />
+                    </>
+                  ) : (
+                    <ViewEmployee 
+                      employeeData={viewingEmployee}
+                      onBack={() => setViewingEmployee(null)}
+                      onSave={handleSaveEmployee}
+                    />
+                  )}
                 </>
               ) : (
                 <div className="employee-registration-section">
@@ -1623,13 +1759,6 @@ const SuperAdminDashboard = () => {
 
       {/* Modals */}
 
-      {showFarmerDetails && selectedFarmer && (
-        <ViewFarmerRegistrationDetails
-          farmerData={selectedFarmer}
-          onClose={() => setShowFarmerDetails(false)}
-        />
-      )}
-
              {showAssignmentModal && (() => {
          console.log('=== RENDERING ASSIGNMENT MODAL ===');
          console.log('showAssignmentModal:', showAssignmentModal);
@@ -1667,41 +1796,11 @@ const SuperAdminDashboard = () => {
          );
       })()}
 
-      {showFarmerForm && (
-        <FarmerForm 
-          editData={editingFarmer}
-          onClose={() => {
-            setShowFarmerForm(false);
-            setEditingFarmer(null);
-          }}
-          onSubmit={async (farmerData) => {
-            try {
-              if (editingFarmer) {
-                const updatedFarmer = await farmersAPI.updateFarmer(editingFarmer.id, farmerData);
-                setFarmers(prev => prev.map(farmer => 
-                  farmer.id === editingFarmer.id ? updatedFarmer : farmer
-                ));
-                alert('Farmer updated successfully!');
-              } else {
-                const newFarmer = await farmersAPI.createFarmer(farmerData);
-                setFarmers(prev => [...prev, newFarmer]);
-                alert('Farmer created successfully!');
-              }
-              setShowFarmerForm(false);
-              setEditingFarmer(null);
-            } catch (error) {
-              console.error('Error saving farmer:', error);
-              alert('Failed to save farmer. Please try again.');
-            }
-          }}
-        />
-      )}
+      {/* Removed FarmerForm modal; using inline FarmerRegistrationForm above */}
 
 
 
-      {showEmployeeView && selectedEmployee && (
-        <ViewEmployeeDetails employeeData={selectedEmployee} onClose={() => setShowEmployeeView(false)} />
-      )}
+      {/* Removed modal ViewEmployeeDetails in favor of inline ViewEmployee */}
 
       {showEmployeeDetails && selectedEmployee && (
         <ViewEditEmployeeDetails
@@ -1728,13 +1827,7 @@ const SuperAdminDashboard = () => {
         />
       )}
 
-      {showRegistrationDetailModal && selectedRegistrationForDetail && (
-        <RegistrationDetailModal
-          registration={selectedRegistrationForDetail}
-          onClose={handleCloseRegistrationDetailModal}
-          onUpdate={handleRegistrationUpdate}
-        />
-      )}
+      {/* Removed RegistrationDetailModal in favor of inline RegistrationDetailsInline */}
     </div>
   );
 };

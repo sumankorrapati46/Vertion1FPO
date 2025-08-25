@@ -12,7 +12,17 @@ const OtpVerification = () => {
  
   const navigate  = useNavigate();
   const location  = useLocation();
-  const { target, type } = location.state || {};        // { target, type: "userId" | "password" }
+  let { target, type } = location.state || {};        // { target, type: "userId" | "password" }
+  // Fallback to sessionStorage so refresh/direct visit still works
+  if (!target || !type) {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem('otpFlow') || 'null');
+      if (saved?.target && saved?.type) {
+        target = saved.target; // eslint-disable-line prefer-const
+        type = saved.type;     // eslint-disable-line prefer-const
+      }
+    } catch (_) {}
+  }
  
   /* ───────── GUARD ───────── */
   useEffect(() => {
@@ -33,8 +43,12 @@ const OtpVerification = () => {
   const handleVerify = async () => {
     if (otp.length !== 6) { alert('Enter a 6‑digit OTP'); return; }
     try {
+      // Backend expects emailOrPhone
       await authAPI.verifyOTP({ email: target, otp });
       alert('OTP verified ✔️');
+      try {
+        sessionStorage.setItem('otpFlow', JSON.stringify({ target, type, otpVerified: true }));
+      } catch (_) {}
       if (type === 'userId') {
         navigate('/change-userid', { state: { target } });
       } else {
@@ -156,7 +170,7 @@ const OtpVerification = () => {
             <div className="otp-verification-content">
               <h2>Email Verification</h2>
               <p>We sent a 6-digit code to <strong>{target}</strong></p>
-              <form>
+              <form onSubmit={(e) => { e.preventDefault(); handleVerify(); }}>
                 <div className="form-field">
                   <label htmlFor="otpInput">Enter OTP</label>
                   <input
@@ -169,14 +183,14 @@ const OtpVerification = () => {
                 </div>
                 <div className="resend-otp">
                   {canResend ? (
-                    <button onClick={handleResend} className="resend-btn">Resend OTP</button>
+                    <button type="button" onClick={handleResend} className="resend-btn">Resend OTP</button>
                   ) : (
                     <span className="resend-timer">Resend in {timer}s</span>
                   )}
                 </div>
                 <div className="otp-buttons">
-                  <button className="login-btn" onClick={handleVerify}>Verify</button>
-                  <button className="create-account-btn" onClick={() => navigate(-1)}>Back</button>
+                  <button type="submit" className="login-btn">Verify</button>
+                  <button type="button" className="create-account-btn" onClick={() => navigate(-1)}>Back</button>
                 </div>
               </form>
             </div>

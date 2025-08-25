@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/static/css/main.c5ae54f0.css",
+    "main.js": "/static/js/main.148df8b0.js",
+    "static/media/background-image.png": "/static/media/background-image.9037d71ebd67795b97e8.png",
+    "static/media/illustration1.png": "/static/media/illustration1.a8fcb277971a4201e494.png",
+    "static/media/rightlogo.png": "/static/media/rightlogo.1742b4514aa334820279.png",
+    "index.html": "/index.html",
+    "main.c5ae54f0.css.map": "/static/css/main.c5ae54f0.css.map",
+    "main.148df8b0.js.map": "/static/js/main.148df8b0.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.c5ae54f0.css",
+    "static/js/main.148df8b0.js"
+  ]
+}

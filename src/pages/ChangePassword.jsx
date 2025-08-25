@@ -1,6 +1,6 @@
 // This page is used for force password change on first login
-import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useContext, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../api/apiService';
 
@@ -9,6 +9,9 @@ import '../styles/Login.css';
 const ChangePassword = () => {
   const { user, login } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+  const routeState = location.state || {};
+  const [target, setTarget] = useState(routeState.target || '');
   const [form, setForm] = useState({
     newPassword: '',
     confirmPassword: ''
@@ -19,6 +22,18 @@ const ChangePassword = () => {
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  useEffect(() => {
+    // If accessed after OTP, we should have target from state or session
+    if (!target) {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('otpFlow') || 'null');
+        if (saved?.target && saved?.type === 'password' && saved?.otpVerified) {
+          setTarget(saved.target);
+        }
+      } catch (_) {}
+    }
+  }, [target]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,41 +59,27 @@ const ChangePassword = () => {
       return;
     }
     try {
-      console.log('Attempting to change password for user:', user?.email || user?.userName);
-      
-      // Use reset-password/confirm endpoint for first-time password change
-      // This endpoint doesn't require current password
+      const emailOrPhone = (user?.email || user?.userName || target);
+      console.log('Attempting to change password for:', emailOrPhone);
+
+      // Use backend confirm endpoint for reset without OTP
       const response = await api.post('/auth/reset-password/confirm', {
-        emailOrPhone: user?.email || user?.userName,
+        emailOrPhone,
         newPassword: form.newPassword,
         confirmPassword: form.confirmPassword
       });
       console.log('Password change response:', response.data);
       
-      setSuccess('Password changed successfully! Redirecting to dashboard...');
+      setSuccess('Password changed successfully! Redirecting to login...');
       
-      // Update user data to remove forcePasswordChange flag
-      const updatedUser = {
-        ...user,
-        forcePasswordChange: false
-      };
+      // Clear OTP flow if present
+      try { sessionStorage.removeItem('otpFlow'); } catch (_) {}
       
-      // Update localStorage and context
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      login(updatedUser, localStorage.getItem('token'));
-      
-      // Redirect to appropriate dashboard based on role
+      // After successful password change, redirect to login
+      // The user will need to log in again with their new password
       setTimeout(() => {
-        if (user.role === 'SUPER_ADMIN') {
-          navigate('/super-admin/dashboard');
-        } else if (user.role === 'ADMIN') {
-          navigate('/admin/dashboard');
-        } else if (user.role === 'EMPLOYEE') {
-          navigate('/employee/dashboard');
-        } else {
-          navigate('/dashboard');
-        }
-      }, 1500);
+        navigate('/login');
+      }, 1000);
     } catch (err) {
       console.error('Password change error:', err);
       console.error('Error response:', err.response?.data);
@@ -101,10 +102,7 @@ const ChangePassword = () => {
     }
   };
 
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
+  // If not logged in, allow reset via OTP target
 
   return (
     <div className="kerala-login-container">

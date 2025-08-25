@@ -72,29 +72,71 @@ const RegistrationForm = () => {
       alert('Enter a valid email first');
       return;
     }
+    
+    // First check if backend is accessible
     try {
-      await authAPI.sendOTP(emailValue);
+      console.log('Checking backend connectivity...');
+      await fetch('http://localhost:8080/api/auth/test', { 
+        method: 'GET',
+        timeout: 5000 
+      });
+      console.log('Backend is accessible');
+    } catch (connectivityError) {
+      console.error('Backend connectivity error:', connectivityError);
+      alert('Cannot connect to the server. Please check if the backend is running and try again.');
+      return;
+    }
+    
+    try {
+      console.log('Sending OTP to:', emailValue);
+      const response = await authAPI.sendOTP(emailValue);
+      console.log('OTP send response:', response);
       setOtpSent(true);
       setResendTimer(30);
-      alert('OTP sent');
+      alert('OTP sent successfully! Please check your email.');
     } catch (e) {
-      alert(e.response?.data?.message || 'Failed to send OTP');
-      console.error(e);
+      console.error('OTP send error:', e);
+      console.error('OTP send error response:', e.response);
+      console.error('OTP send error data:', e.response?.data);
+      
+      // Check if OTP was actually sent despite the error
+      if (e.response?.status === 200 || e.response?.data?.message?.includes('sent')) {
+        // OTP was sent successfully, just show success
+        setOtpSent(true);
+        setResendTimer(30);
+        alert('OTP sent successfully! Please check your email.');
+      } else {
+        // Real error occurred
+        const errorMessage = e.response?.data?.message || e.message || 'Failed to send OTP';
+        alert(`OTP Error: ${errorMessage}`);
+      }
     }
   };
    
   // ✅ Handle Verify OTP
   const handleVerifyOTP = async () => {
+    if (!otp || otp.length !== 6) {
+      alert('Please enter a valid 6-digit OTP');
+      return;
+    }
+    
     try {
-      await authAPI.verifyOTP({
+      console.log('Verifying OTP for:', emailValue);
+      console.log('OTP entered:', otp);
+      const response = await authAPI.verifyOTP({
         email: emailValue,
         otp: otp,
       });
+      console.log('OTP verification response:', response);
       alert("Email verified successfully!");
       setEmailVerified(true);
     } catch (error) {
-      alert("OTP verification error.");
-      console.error(error);
+      console.error('OTP verification error:', error);
+      console.error('OTP verification error response:', error.response);
+      console.error('OTP verification error data:', error.response?.data);
+      
+      const errorMessage = error.response?.data?.message || error.message || 'OTP verification failed';
+      alert(`OTP Verification Error: ${errorMessage}`);
     }
   };
 

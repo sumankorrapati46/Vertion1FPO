@@ -53,6 +53,10 @@ const ForgotPassword = () => {
  
      const handlePopupClose = () => {
   setShowPopup(false);
+  try {
+    // Persist OTP flow details so refresh/direct navigation still works
+    sessionStorage.setItem('otpFlow', JSON.stringify({ target, type: 'password', otpVerified: false }));
+  } catch (_) {}
   navigate('/otp-verification', { state: { target, type: 'password' } });
 };
  

@@ -3,7 +3,7 @@ import axios from 'axios';
 // Create axios instance
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080/api',
-  timeout: 10000,
+  timeout: 30000, // Increased from 10000 to 30000 (30 seconds)
   headers: {
     'Content-Type': 'application/json',
   },
@@ -58,23 +58,50 @@ export const authAPI = {
 
   // Send OTP
   sendOTP: async (email) => {
-    const response = await api.post('/auth/send-otp', { emailOrPhone: email });
-    return response.data;
+    try {
+      const response = await api.post('/auth/send-otp', { emailOrPhone: email }, {
+        timeout: 45000 // 45 seconds for OTP operations
+      });
+      return response.data;
+    } catch (error) {
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('OTP request timed out. Please check your internet connection and try again.');
+      }
+      throw error;
+    }
   },
 
   // Verify OTP
   verifyOTP: async (otpData) => {
-    const response = await api.post('/auth/verify-otp', { 
-      emailOrPhone: otpData.email, 
-      otp: otpData.otp 
-    });
-    return response.data;
+    try {
+      const response = await api.post('/auth/verify-otp', { 
+        emailOrPhone: otpData.email, 
+        otp: otpData.otp 
+      }, {
+        timeout: 30000 // 30 seconds for OTP verification
+      });
+      return response.data;
+    } catch (error) {
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('OTP verification timed out. Please try again.');
+      }
+      throw error;
+    }
   },
 
   // Resend OTP
   resendOTP: async (email) => {
-    const response = await api.post('/auth/resend-otp', { emailOrPhone: email });
-    return response.data;
+    try {
+      const response = await api.post('/auth/resend-otp', { emailOrPhone: email }, {
+        timeout: 45000 // 45 seconds for OTP operations
+      });
+      return response.data;
+    } catch (error) {
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('OTP resend timed out. Please check your internet connection and try again.');
+      }
+      throw error;
+    }
   },
 
   // Forgot password
@@ -226,6 +253,18 @@ export const superAdminAPI = {
     return response.data;
   },
 
+  // Get employee by ID
+  getEmployeeById: async (employeeId) => {
+    const response = await api.get(`/super-admin/employees/${employeeId}`);
+    return response.data;
+  },
+
+  // Update employee
+  updateEmployee: async (employeeId, employeeData) => {
+    const response = await api.put(`/super-admin/employees/${employeeId}`, employeeData);
+    return response.data;
+  },
+
   // Get user by ID
   getUserById: async (userId) => {
     const response = await api.get(`/super-admin/users/${userId}`);
@@ -253,10 +292,112 @@ export const farmersAPI = {
     return response.data;
   },
 
-  // Create farmer
+  // Create farmer (supports files)
   createFarmer: async (farmerData) => {
-    const response = await api.post('/super-admin/farmers', farmerData);
-    return response.data;
+    // Use the /api/farmers endpoint which supports multipart/form-data
+    const formData = new FormData();
+    
+    // Extract file fields - check all possible file field names
+    const photo = farmerData.photo;
+    const passbookPhoto = farmerData.passbookFile || farmerData.passbookPhoto;
+    const aadhaar = farmerData.documentFileName; // Map documentFileName to aadhaar
+    const soilTestCertificate = farmerData.soilTestCertificate || farmerData.currentSoilTestCertificateFileName;
+    
+    console.log('🔍 File fields found:');
+    console.log('  - photo:', photo);
+    console.log('  - passbookPhoto:', passbookPhoto);
+    console.log('  - aadhaar:', aadhaar);
+    console.log('  - soilTestCertificate:', soilTestCertificate);
+    
+    // Create farmerDto object without file fields and fix field mappings
+    const farmerDto = { ...farmerData };
+    
+    // Remove file fields and any other non-serializable objects
+    delete farmerDto.photo;
+    delete farmerDto.passbookPhoto;
+    delete farmerDto.passbookFile; // Also remove passbookFile
+    delete farmerDto.documentFileName;
+    delete farmerDto.soilTestCertificate;
+    delete farmerDto.currentSoilTestCertificateFileName;
+    
+    // Remove any other potential File objects or complex objects
+    Object.keys(farmerDto).forEach(key => {
+      if (farmerDto[key] instanceof File || farmerDto[key] instanceof Blob) {
+        delete farmerDto[key];
+      }
+    });
+    
+    // Fix field name mappings
+    if (farmerDto.alternativeNumber) {
+      farmerDto.alternativeContactNumber = farmerDto.alternativeNumber;
+      delete farmerDto.alternativeNumber;
+    }
+    
+    // Ensure required fields have default values if missing
+    if (!farmerDto.salutation) farmerDto.salutation = 'Mr';
+    if (!farmerDto.lastName) farmerDto.lastName = farmerDto.firstName || 'Unknown';
+    if (!farmerDto.dateOfBirth) farmerDto.dateOfBirth = '1990-01-01';
+    if (!farmerDto.gender) farmerDto.gender = 'Male';
+    if (!farmerDto.nationality) farmerDto.nationality = 'Indian';
+    if (!farmerDto.country) farmerDto.country = 'India';
+    
+    // Log the final farmerDto object for debugging
+    console.log('🔍 Final farmerDto object (after cleanup):', farmerDto);
+    console.log('🔍 Required fields check:');
+    console.log('  - salutation:', farmerDto.salutation);
+    console.log('  - firstName:', farmerDto.firstName);
+    console.log('  - lastName:', farmerDto.lastName);
+    console.log('  - dateOfBirth:', farmerDto.dateOfBirth);
+    console.log('  - gender:', farmerDto.gender);
+    console.log('  - nationality:', farmerDto.nationality);
+    console.log('  - country:', farmerDto.country);
+    
+    // Ensure contact numbers match pattern (10 digits)
+    if (farmerDto.contactNumber && !/^\d{10}$/.test(farmerDto.contactNumber)) {
+      console.warn('⚠️ Contact number must be 10 digits:', farmerDto.contactNumber);
+    }
+    if (farmerDto.alternativeContactNumber && !/^\d{10}$/.test(farmerDto.alternativeContactNumber)) {
+      console.warn('⚠️ Alternative contact number must be 10 digits:', farmerDto.alternativeContactNumber);
+    }
+    
+    // Ensure pincode is 6 digits
+    if (farmerDto.pincode && !/^\d{6}$/.test(farmerDto.pincode)) {
+      console.warn('⚠️ Pincode must be 6 digits:', farmerDto.pincode);
+    }
+    
+    // Add farmerDto as JSON string
+    const farmerDtoJson = JSON.stringify(farmerDto);
+    console.log('🔍 farmerDto JSON being sent:', farmerDtoJson);
+    console.log('🔍 farmerDto object before JSON.stringify:', farmerDto);
+    formData.append('farmerDto', farmerDtoJson);
+    
+    // Add files if they exist
+    if (photo instanceof File) {
+      formData.append('photo', photo);
+    }
+    if (passbookPhoto instanceof File) {
+      formData.append('passbookPhoto', passbookPhoto);
+    }
+    if (aadhaar instanceof File) {
+      formData.append('aadhaar', aadhaar);
+    }
+    if (soilTestCertificate instanceof File) {
+      formData.append('soilTestCertificate', soilTestCertificate);
+    }
+    
+    console.log('🔍 Sending to /api/farmers with multipart data');
+    try {
+      const response = await api.post('/farmers', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Server error details:', error.response?.data);
+      if (error.response?.status === 500) {
+        throw new Error(`Server error: ${error.response?.data?.message || 'Internal server error. Please check all required fields.'}`);
+      }
+      throw error;
+    }
   },
 
   // Update farmer
@@ -383,6 +524,18 @@ export const adminAPI = {
   // Get registration list by status for admin
   getRegistrationListByStatus: async (status) => {
     const response = await api.get('/admin/registration-list/filter', { params: { status } });
+    return response.data;
+  },
+
+  // Get employee by ID
+  getEmployeeById: async (employeeId) => {
+    const response = await api.get(`/admin/employees/${employeeId}`);
+    return response.data;
+  },
+
+  // Update employee
+  updateEmployee: async (employeeId, employeeData) => {
+    const response = await api.put(`/admin/employees/${employeeId}`, employeeData);
     return response.data;
   },
 

@@ -30,8 +30,24 @@ const DataTable = ({ data, columns, onEdit, onDelete, onView, showDelete = false
     try {
       // If value is an object, try to extract meaningful data
       if (value && typeof value === 'object') {
-        console.warn(`DataTable: Object found for column ${columnKey}:`, value);
-        return 'Object (see console)';
+        // Prefer explicit name fields
+        const name = value.name
+          || [value.firstName, value.middleName, value.lastName].filter(Boolean).join(' ')
+          || [value.firstName, value.lastName].filter(Boolean).join(' ')
+          || value.fullName
+          || value.employeeName
+          || value.email
+          || value.userName;
+        if (name && String(name).trim().length) return String(name);
+
+        // Fallbacks
+        if (value.id !== undefined) return `#${value.id}`;
+        try {
+          const preview = JSON.stringify(value);
+          return preview.length <= 60 ? preview : 'N/A';
+        } catch (_) {
+          return 'N/A';
+        }
       }
       
       // If value is null or undefined, return 'N/A'
@@ -92,53 +108,34 @@ const DataTable = ({ data, columns, onEdit, onDelete, onView, showDelete = false
                       }
                     }
                     
+                    // Handle assigned employee specifically if value is object
+                    if (column.key === 'assignedEmployee') {
+                      return safeRender(value, column.key);
+                    }
+                    
                     // Handle phone fields
                     if (column.key === 'phone' || column.key === 'phoneNumber') {
                       return row.phoneNumber || row.phone || row.contactNumber || 'N/A';
                     }
                     
                     // Handle email fields
-                    if (column.key === 'email') {
-                      return row.email || 'N/A';
+                    if (column.key === 'email' || column.key === 'emailAddress') {
+                      return row.email || row.emailAddress || 'N/A';
                     }
                     
-                    // Handle role fields
-                    if (column.key === 'role') {
-                      return row.role || 'N/A';
-                    }
-                    
-                    // For all other fields, return the value or 'N/A'
                     return safeRender(value, column.key);
                   })()}
                 </td>
               ))}
-              <td className="actions-cell">
-                <ActionDropdown 
-                  actions={[
-                    ...(onView ? [{
-                      label: 'View',
-                      icon: '👁️',
-                      className: 'info',
-                      onClick: onView
-                    }] : []),
-                    ...(onEdit ? [{
-                      label: 'Edit',
-                      icon: '✏️',
-                      className: 'primary',
-                      onClick: onEdit
-                    }] : []),
-                    ...customActions.map(action => ({
-                      ...action,
-                      icon: action.icon || ''
-                    })),
-                    ...(showDelete && onDelete ? [{
-                      label: 'Delete',
-                      icon: '🗑️',
-                      className: 'danger',
-                      onClick: onDelete
-                    }] : [])
-                  ]}
-                  item={row}
+              <td>
+                <ActionDropdown
+                  onEdit={onEdit ? () => onEdit(row) : undefined}
+                  onDelete={showDelete && onDelete ? () => onDelete(row) : undefined}
+                  onView={onView ? () => onView(row) : undefined}
+                  customActions={customActions.map(action => ({
+                    ...action,
+                    onClick: () => action.onClick(row)
+                  }))}
                 />
               </td>
             </tr>

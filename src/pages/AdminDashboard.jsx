@@ -6,15 +6,19 @@ import FarmerForm from '../components/FarmerForm';
 import FarmerRegistrationForm from '../components/FarmerRegistrationForm';
 import EmployeeRegistrationForm from '../components/EmployeeRegistrationForm';
 import AssignmentModal from '../components/AssignmentModal';
+import AssignmentInline from '../components/AssignmentInline';
 import KYCDocumentUpload from '../components/KYCDocumentUpload';
 import ViewFarmerRegistrationDetails from '../components/ViewFarmerRegistrationDetails';
+import ViewFarmer from '../components/ViewFarmer';
 import ViewEditEmployeeDetails from '../components/ViewEditEmployeeDetails';
 import ViewEmployeeDetails from '../components/ViewEmployeeDetails';
+import ViewEmployee from '../components/ViewEmployee';
 import StatsCard from '../components/StatsCard';
 import DataTable from '../components/DataTable';
 import UserProfileDropdown from '../components/UserProfileDropdown';
 import RegistrationApprovalModal from '../components/RegistrationApprovalModal';
 import RegistrationDetailModal from '../components/RegistrationDetailModal';
+import RegistrationDetailsInline from '../components/RegistrationDetailsInline';
 import BulkOperations from '../components/BulkOperations';
 
 const AdminDashboard = () => {
@@ -24,6 +28,7 @@ const AdminDashboard = () => {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [showAssignmentInline, setShowAssignmentInline] = useState(false);
   const [showFarmerForm, setShowFarmerForm] = useState(false);
   const [showEmployeeForm, setShowEmployeeForm] = useState(false);
   const [showFarmerDetails, setShowFarmerDetails] = useState(false);
@@ -31,6 +36,8 @@ const AdminDashboard = () => {
   const [showEmployeeDetails, setShowEmployeeDetails] = useState(false);
   const [selectedEmployeeData, setSelectedEmployeeData] = useState(null);
   const [showEmployeeView, setShowEmployeeView] = useState(false);
+  const [viewingEmployee, setViewingEmployee] = useState(null);
+  const [viewingFarmer, setViewingFarmer] = useState(null);
   const [showKYCDocumentUpload, setShowKYCDocumentUpload] = useState(false);
   const [selectedFarmerForKYC, setSelectedFarmerForKYC] = useState(null);
   const [editingFarmer, setEditingFarmer] = useState(null);
@@ -40,6 +47,7 @@ const AdminDashboard = () => {
   const [selectedRegistration, setSelectedRegistration] = useState(null);
   const [showRegistrationDetailModal, setShowRegistrationDetailModal] = useState(false);
   const [selectedRegistrationForDetail, setSelectedRegistrationForDetail] = useState(null);
+  const [viewingRegistration, setViewingRegistration] = useState(null);
   const [showEmployeeRegistration, setShowEmployeeRegistration] = useState(false);
   const [showFarmerRegistration, setShowFarmerRegistration] = useState(false);
   const [registrationFilters, setRegistrationFilters] = useState({
@@ -440,8 +448,7 @@ const AdminDashboard = () => {
   };
 
   const handleViewRegistration = (registration) => {
-    setSelectedRegistrationForDetail(registration);
-    setShowRegistrationDetailModal(true);
+    setViewingRegistration(registration);
   };
 
   const handleCloseRegistrationDetailModal = () => {
@@ -562,68 +569,17 @@ const AdminDashboard = () => {
     window.location.href = '/change-password';
   };
 
-  const handleViewFarmer = (farmer) => {
-    console.log('🔍 AdminDashboard - Original farmer data (list item):', farmer);
-    // Fetch full details first (ensures all fields like fatherName, nationality, address)
-    adminAPI.getAllFarmers && adminAPI.getAllFarmers(); // prevent tree-shaking in some bundlers
-    fetch(`/api/admin/farmers/${farmer.id}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }})
-      .then(r => r.json())
-      .then(full => {
-        const merged = { ...full, ...farmer };
-        const farmerData = {
-          id: merged.id,
-          firstName: merged.firstName || '',
-          lastName: merged.lastName || '',
-          middleName: merged.middleName || '',
-          dateOfBirth: merged.dateOfBirth || merged.dob || '',
-          gender: merged.gender || '',
-          contactNumber: merged.contactNumber || merged.phoneNumber || merged.phone || '',
-          email: merged.email || '',
-          fatherName: merged.fatherName || merged.relationName || '',
-          nationality: merged.nationality || '',
-          alternativeContactNumber: merged.alternativeContactNumber || merged.altNumber || '',
-          alternativeRelationType: merged.alternativeRelationType || merged.altRelationType || '',
-          state: merged.state || '',
-          district: merged.district || '',
-          block: merged.block || '',
-          village: merged.village || '',
-          pincode: merged.pincode || '',
-          kycStatus: merged.kycStatus || 'PENDING',
-          assignedEmployee: merged.assignedEmployee || 'Not Assigned',
-          assignedEmployeeId: merged.assignedEmployeeId || null
-        };
-        console.log('🔍 AdminDashboard - Full farmer details fetched:', full);
-        console.log('🔍 AdminDashboard - Transformed farmer data:', farmerData);
-        setSelectedFarmerData(farmerData);
-        setShowFarmerDetails(true);
-      })
-      .catch(err => {
-        console.warn('⚠️ Failed to fetch full farmer details, using list item only:', err);
-        const farmerData = {
-          id: farmer.id,
-          firstName: farmer.firstName || '',
-          lastName: farmer.lastName || '',
-          middleName: farmer.middleName || '',
-          dateOfBirth: farmer.dateOfBirth || farmer.dob || '',
-          gender: farmer.gender || '',
-          contactNumber: farmer.contactNumber || farmer.phoneNumber || farmer.phone || '',
-          email: farmer.email || '',
-          fatherName: farmer.fatherName || farmer.relationName || '',
-          nationality: farmer.nationality || '',
-          alternativeContactNumber: farmer.alternativeContactNumber || farmer.altNumber || '',
-          alternativeRelationType: farmer.alternativeRelationType || farmer.altRelationType || '',
-          state: farmer.state || '',
-          district: farmer.district || '',
-          block: farmer.block || '',
-          village: farmer.village || '',
-          pincode: farmer.pincode || '',
-          kycStatus: farmer.kycStatus || 'PENDING',
-          assignedEmployee: farmer.assignedEmployee || 'Not Assigned',
-          assignedEmployeeId: farmer.assignedEmployeeId || null
-        };
-        setSelectedFarmerData(farmerData);
-        setShowFarmerDetails(true);
-      });
+  const handleViewFarmer = async (farmer) => {
+    try {
+      const full = await fetch(`/api/admin/farmers/${farmer.id}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json());
+      setViewingEmployee(null); // ensure employee view not active
+      setSelectedFarmerData({ ...farmer, ...full });
+      setShowFarmerDetails(false);
+      // Show inline component instead of modal
+      setViewingFarmer({ ...farmer, ...full });
+    } catch (e) {
+      setViewingFarmer(farmer);
+    }
   };
 
   const handleCloseFarmerDetails = () => {
@@ -631,9 +587,16 @@ const AdminDashboard = () => {
     setSelectedFarmerData(null);
   };
 
-  const handleViewEmployee = (employee) => {
-    setSelectedEmployeeData(employee);
-    setShowEmployeeView(true); // open read-only view modal
+  const handleViewEmployee = async (employee) => {
+    try {
+      // Fetch complete employee details from backend
+      const completeEmployeeData = await adminAPI.getEmployeeById(employee.id);
+      setViewingEmployee(completeEmployeeData);
+    } catch (error) {
+      console.error('Error fetching employee details:', error);
+      // Fallback to basic employee data if API call fails
+      setViewingEmployee(employee);
+    }
   };
 
   const handleCloseEmployeeDetails = () => {
@@ -647,6 +610,46 @@ const AdminDashboard = () => {
     ));
     setShowEmployeeDetails(false);
     setSelectedEmployeeData(null);
+  };
+
+  const handleSaveEmployee = async (updatedData) => {
+    try {
+      // Update employee data in backend
+      const updatedEmployee = await adminAPI.updateEmployee(selectedEmployeeData.id, updatedData);
+      
+      // Update local state
+      setEmployees(prev => prev.map(emp => 
+        emp.id === selectedEmployeeData.id ? updatedEmployee : emp
+      ));
+      
+      // Update selected employee data
+      setSelectedEmployeeData(updatedEmployee);
+      
+      alert('Employee updated successfully!');
+    } catch (error) {
+      console.error('Error updating employee:', error);
+      alert('Failed to update employee. Please try again.');
+    }
+  };
+
+  const handleSaveFarmer = async (updatedData) => {
+    try {
+      // Update farmer data in backend
+      const updatedFarmer = await farmersAPI.updateFarmer(selectedFarmerData.id, updatedData);
+      
+      // Update local state
+      setFarmers(prev => prev.map(farmer => 
+        farmer.id === selectedFarmerData.id ? updatedFarmer : farmer
+      ));
+      
+      // Update selected farmer data
+      setSelectedFarmerData(updatedFarmer);
+      
+      alert('Farmer updated successfully!');
+    } catch (error) {
+      console.error('Error updating farmer:', error);
+      alert('Failed to update farmer. Please try again.');
+    }
   };
 
   const handleKYCDocumentUpload = (farmer) => {
@@ -858,7 +861,7 @@ const AdminDashboard = () => {
                 </button>
                 <button 
                   className="action-btn secondary"
-                  onClick={() => setShowAssignmentModal(true)}
+                  onClick={() => setShowAssignmentInline(true)}
                 >
                     Assign Farmers
                 </button>
@@ -968,7 +971,8 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            {/* Farmers Table */}
+            {/* Farmers Table or Inline Assign/View */}
+      {!showAssignmentInline && !viewingFarmer ? (
       <DataTable
               data={filteredFarmers}
         columns={[
@@ -1009,6 +1013,30 @@ const AdminDashboard = () => {
           }
         ]}
       />
+      ) : showAssignmentInline ? (
+        <AssignmentInline 
+          farmers={farmers.filter(f => !f.assignedEmployee || f.assignedEmployee === 'Not Assigned' || f.assignedEmployee === null || f.assignedEmployee === undefined || f.assignedEmployee === '')}
+          employees={employees}
+          onBack={() => setShowAssignmentInline(false)}
+          onAssign={handleAssignFarmers}
+        />
+      ) : (
+        <ViewFarmer 
+          farmerData={viewingFarmer}
+          onBack={() => setViewingFarmer(null)}
+          onSave={async (updatedData) => {
+            try {
+              const updated = await farmersAPI.updateFarmer(viewingFarmer.id, updatedData);
+              setFarmers(prev => prev.map(f => f.id === viewingFarmer.id ? updated : f));
+              setViewingFarmer(updated);
+              alert('Farmer updated successfully!');
+            } catch (e) {
+              console.error('Error updating farmer:', e);
+              alert('Failed to update farmer');
+            }
+          }}
+        />
+      )}
           </>
         ) : (
           <div className="farmer-registration-section">
@@ -1105,7 +1133,8 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-        {/* Registration Table */}
+        {/* Registration Table or Inline View */}
+      {!viewingRegistration ? (
       <DataTable
           data={filteredRegistrations}
         columns={[
@@ -1135,6 +1164,13 @@ const AdminDashboard = () => {
             }
           ]}
       />
+      ) : (
+        <RegistrationDetailsInline 
+          registration={viewingRegistration}
+          onBack={() => setViewingRegistration(null)}
+          onUpdate={handleRegistrationUpdate}
+        />
+      )}
     </div>
   );
   };
@@ -1225,6 +1261,7 @@ const AdminDashboard = () => {
           </div>
 
             {/* Employees Table */}
+          {!viewingEmployee ? (
           <DataTable
             data={filteredEmployees.map(employee => {
               // Calculate real stats from farmers data
@@ -1273,6 +1310,13 @@ const AdminDashboard = () => {
               }
             ]}
           />
+          ) : (
+            <ViewEmployee 
+              employeeData={viewingEmployee}
+              onBack={() => setViewingEmployee(null)}
+              onSave={handleSaveEmployee}
+            />
+          )}
           </>
         ) : (
           <div className="employee-registration-section">
@@ -1793,32 +1837,11 @@ const AdminDashboard = () => {
         />
       )}
 
-      {showAssignmentModal && (
-        <AssignmentModal 
-          farmers={farmers.filter(f => {
-            // Check if farmer is unassigned based on backend data structure
-            return !f.assignedEmployee || 
-                   f.assignedEmployee === 'Not Assigned' || 
-                   f.assignedEmployee === null ||
-                   f.assignedEmployee === undefined ||
-                   f.assignedEmployee === '';
-          })}
-          employees={employees}
-          onClose={() => setShowAssignmentModal(false)}
-          onAssign={handleAssignFarmers}
-        />
-      )}
+      {/* Keep modal fallback if needed elsewhere, but use inline by default */}
 
-      {showFarmerDetails && selectedFarmerData && (
-                   <ViewFarmerRegistrationDetails
-                     farmerData={selectedFarmerData}
-                     onClose={handleCloseFarmerDetails}
-                   />
-                 )}
+      {/* Removed Farmer modal view; inline ViewFarmer is used in content */}
 
-      {showEmployeeView && selectedEmployeeData && (
-        <ViewEmployeeDetails employeeData={selectedEmployeeData} onClose={() => setShowEmployeeView(false)} />
-      )}
+      {/* Removed modal ViewEmployeeDetails in favor of inline ViewEmployee */}
 
       {showEmployeeDetails && selectedEmployeeData && (
         <ViewEditEmployeeDetails

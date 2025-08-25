@@ -1,13 +1,37 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import '../styles/ViewFarmerDetails.css';
 
-const ViewEmployeeDetails = ({ employeeData, onClose }) => {
+const ViewEmployeeDetails = ({ employeeData, onClose, onSave }) => {
+	const [isEditMode, setIsEditMode] = useState(false);
+	const [formData, setFormData] = useState({});
+
 	// ESC to close
 	useEffect(() => {
 		const onKeyDown = (e) => e.key === 'Escape' && onClose?.();
 		window.addEventListener('keydown', onKeyDown);
 		return () => window.removeEventListener('keydown', onKeyDown);
 	}, [onClose]);
+
+	// Initialize form data when employeeData changes
+	useEffect(() => {
+		if (employeeData) {
+			setFormData({
+				firstName: employeeData.firstName || '',
+				lastName: employeeData.lastName || '',
+				email: employeeData.email || '',
+				phone: employeeData.phone || employeeData.contactNumber || '',
+				dateOfBirth: employeeData.dateOfBirth || employeeData.dob || '',
+				gender: employeeData.gender || '',
+				role: employeeData.role || '',
+				designation: employeeData.designation || '',
+				status: employeeData.status || employeeData.accessStatus || 'ACTIVE',
+				city: employeeData.city || employeeData.district || '',
+				state: employeeData.state || '',
+				pincode: employeeData.pincode || employeeData.zipcode || '',
+				address: employeeData.address || ''
+			});
+		}
+	}, [employeeData]);
 
 	const firstValue = (src, ...keys) => {
 		for (const key of keys) {
@@ -55,6 +79,76 @@ const ViewEmployeeDetails = ({ employeeData, onClose }) => {
 		}
 	};
 
+	const handleInputChange = (field, value) => {
+		setFormData(prev => ({
+			...prev,
+			[field]: value
+		}));
+	};
+
+	const handleSave = async () => {
+		try {
+			if (onSave) {
+				await onSave(formData);
+				setIsEditMode(false);
+			}
+		} catch (error) {
+			console.error('Error saving employee:', error);
+			alert('Failed to save employee data');
+		}
+	};
+
+	const handleCancel = () => {
+		setIsEditMode(false);
+		// Reset form data to original values
+		if (employeeData) {
+			setFormData({
+				firstName: employeeData.firstName || '',
+				lastName: employeeData.lastName || '',
+				email: employeeData.email || '',
+				phone: employeeData.phone || employeeData.contactNumber || '',
+				dateOfBirth: employeeData.dateOfBirth || employeeData.dob || '',
+				gender: employeeData.gender || '',
+				role: employeeData.role || '',
+				designation: employeeData.designation || '',
+				status: employeeData.status || employeeData.accessStatus || 'ACTIVE',
+				city: employeeData.city || employeeData.district || '',
+				state: employeeData.state || '',
+				pincode: employeeData.pincode || employeeData.zipcode || '',
+				address: employeeData.address || ''
+			});
+		}
+	};
+
+	const renderField = (label, field, type = 'text', options = []) => {
+		if (isEditMode) {
+			if (type === 'select') {
+				return (
+					<select
+						value={formData[field] || ''}
+						onChange={(e) => handleInputChange(field, e.target.value)}
+						className="edit-input"
+					>
+						{options.map(option => (
+							<option key={option.value} value={option.value}>
+								{option.label}
+							</option>
+						))}
+					</select>
+				);
+			}
+			return (
+				<input
+					type={type}
+					value={formData[field] || ''}
+					onChange={(e) => handleInputChange(field, e.target.value)}
+					className="edit-input"
+				/>
+			);
+		}
+		return <span>{safe(normalized[field])}</span>;
+	};
+
 	return (
 		<div className="modal-overlay" onClick={onClose}>
 			<div className="modal-content view-farmer-modal" onClick={(e) => e.stopPropagation()}>
@@ -63,7 +157,56 @@ const ViewEmployeeDetails = ({ employeeData, onClose }) => {
 						background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer', color: '#111827'
 					}}>← Back</button>
 					<h2 style={{ margin: 0, flex: 1, textAlign: 'center' }}>Employee Details</h2>
-					<button className="close-btn" onClick={onClose}>×</button>
+					<div style={{ display: 'flex', gap: '8px' }}>
+						{!isEditMode ? (
+							<button 
+								onClick={() => setIsEditMode(true)}
+								style={{
+									background: '#10b981',
+									color: 'white',
+									border: 'none',
+									borderRadius: '6px',
+									padding: '6px 12px',
+									cursor: 'pointer',
+									fontSize: '14px'
+								}}
+							>
+								Edit
+							</button>
+						) : (
+							<>
+								<button 
+									onClick={handleSave}
+									style={{
+										background: '#10b981',
+										color: 'white',
+										border: 'none',
+										borderRadius: '6px',
+										padding: '6px 12px',
+										cursor: 'pointer',
+										fontSize: '14px'
+									}}
+								>
+									Save
+								</button>
+								<button 
+									onClick={handleCancel}
+									style={{
+										background: '#6b7280',
+										color: 'white',
+										border: 'none',
+										borderRadius: '6px',
+										padding: '6px 12px',
+										cursor: 'pointer',
+										fontSize: '14px'
+									}}
+								>
+									Cancel
+								</button>
+							</>
+						)}
+						<button className="close-btn" onClick={onClose}>×</button>
+					</div>
 				</div>
 
 				<div className="modal-body">
@@ -71,31 +214,84 @@ const ViewEmployeeDetails = ({ employeeData, onClose }) => {
 						<div className="detail-section">
 							<h3>Personal Information</h3>
 							<div className="detail-grid">
-								<div className="detail-item"><label>First Name:</label><span>{safe(normalized.firstName)}</span></div>
-								<div className="detail-item"><label>Last Name:</label><span>{safe(normalized.lastName)}</span></div>
-								<div className="detail-item"><label>Email:</label><span>{safe(normalized.email, 'Not available')}</span></div>
-								<div className="detail-item"><label>Phone:</label><span>{safe(normalized.phone)}</span></div>
-								<div className="detail-item"><label>Date of Birth:</label><span>{formatDate(normalized.dateOfBirth)}</span></div>
-								<div className="detail-item"><label>Gender:</label><span>{safe(normalized.gender)}</span></div>
+								<div className="detail-item">
+									<label>First Name:</label>
+									{renderField('First Name', 'firstName')}
+								</div>
+								<div className="detail-item">
+									<label>Last Name:</label>
+									{renderField('Last Name', 'lastName')}
+								</div>
+								<div className="detail-item">
+									<label>Email:</label>
+									{renderField('Email', 'email')}
+								</div>
+								<div className="detail-item">
+									<label>Phone:</label>
+									{renderField('Phone', 'phone')}
+								</div>
+								<div className="detail-item">
+									<label>Date of Birth:</label>
+									{renderField('Date of Birth', 'dateOfBirth', 'date')}
+								</div>
+								<div className="detail-item">
+									<label>Gender:</label>
+									{renderField('Gender', 'gender', 'select', [
+										{ value: '', label: 'Select Gender' },
+										{ value: 'Male', label: 'Male' },
+										{ value: 'Female', label: 'Female' },
+										{ value: 'Other', label: 'Other' }
+									])}
+								</div>
 							</div>
 						</div>
 
 						<div className="detail-section">
 							<h3>Employment</h3>
 							<div className="detail-grid">
-								<div className="detail-item"><label>Role:</label><span>{safe(normalized.role)}</span></div>
-								<div className="detail-item"><label>Designation:</label><span>{safe(normalized.designation)}</span></div>
-								<div className="detail-item"><label>Status:</label><span>{safe(normalized.status, 'ACTIVE')}</span></div>
+								<div className="detail-item">
+									<label>Role:</label>
+									{renderField('Role', 'role', 'select', [
+										{ value: '', label: 'Select Role' },
+										{ value: 'employee', label: 'Employee' },
+										{ value: 'admin', label: 'Admin' },
+										{ value: 'super_admin', label: 'Super Admin' }
+									])}
+								</div>
+								<div className="detail-item">
+									<label>Designation:</label>
+									{renderField('Designation', 'designation')}
+								</div>
+								<div className="detail-item">
+									<label>Status:</label>
+									{renderField('Status', 'status', 'select', [
+										{ value: 'ACTIVE', label: 'Active' },
+										{ value: 'INACTIVE', label: 'Inactive' },
+										{ value: 'PENDING', label: 'Pending' }
+									])}
+								</div>
 							</div>
 						</div>
 
 						<div className="detail-section">
 							<h3>Address</h3>
 							<div className="detail-grid">
-								<div className="detail-item"><label>City:</label><span>{safe(normalized.city)}</span></div>
-								<div className="detail-item"><label>State:</label><span>{safe(normalized.state)}</span></div>
-								<div className="detail-item"><label>Pincode:</label><span>{safe(normalized.pincode)}</span></div>
-								<div className="detail-item full-width"><label>Complete Address:</label><span>{[normalized.city, normalized.state, normalized.pincode].map((v)=>safe(v)).filter(v=>v!=='Not provided').join(', ')}</span></div>
+								<div className="detail-item">
+									<label>City:</label>
+									{renderField('City', 'city')}
+								</div>
+								<div className="detail-item">
+									<label>State:</label>
+									{renderField('State', 'state')}
+								</div>
+								<div className="detail-item">
+									<label>Pincode:</label>
+									{renderField('Pincode', 'pincode')}
+								</div>
+								<div className="detail-item full-width">
+									<label>Complete Address:</label>
+									{renderField('Address', 'address', 'textarea')}
+								</div>
 							</div>
 						</div>
 					</div>

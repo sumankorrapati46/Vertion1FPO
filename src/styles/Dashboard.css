@@ -6,21 +6,15 @@
   display: flex;
 }
 
-/* Top Bar - Thin Blue Bar */
+/* Top Bar - Thin Blue Bar - HIDDEN */
 .top-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: #1e40af;
-  z-index: 10000;
+  display: none;
 }
 
 /* Header Section - White with Logo and User Info */
 .dashboard-header {
   position: fixed;
-  top: 4px;
+  top: 0;
   left: 0;
   right: 0;
   height: 80px;
@@ -31,6 +25,8 @@
   padding: 0 30px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 9999;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .header-left {
@@ -506,11 +502,11 @@
 .dashboard-main {
   flex: 1;
   margin-left: 280px;
-  margin-top: 84px;
+  margin-top: 0;
   padding: 30px;
   background: #faf8f3;
   width: calc(100vw - 280px);
-  min-height: calc(100vh - 84px);
+  min-height: calc(100vh - 0px);
   border: 2px solid #000000;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -594,11 +590,9 @@
   gap: 12px;
 }
 
-/* Top Header Bar */
+/* Top Header Bar - HIDDEN */
 .top-header {
-  background: #3b82f6;
-  height: 4px;
-  width: 100%;
+  display: none;
 }
 
 /* Filter Buttons */
@@ -750,7 +744,7 @@
   border-radius: 20px;
   padding: 50px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  border: 2px solid #000000;
+  border: 2px solid #e5e7eb;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -759,18 +753,21 @@
 }
 
 .stats-card:nth-child(1) {
-  border-left: 4px solid #000000;
-  background: #ffffff;
+  border-left: 4px solid #10b981;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #bbf7d0 100%);
+  border-color: #10b981;
 }
 
 .stats-card:nth-child(2) {
-  border-left: 4px solid #000000;
-  background: #ffffff;
+  border-left: 4px solid #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%);
+  border-color: #3b82f6;
 }
 
 .stats-card:nth-child(3) {
-  border-left: 4px solid #000000;
-  background: #ffffff;
+  border-left: 4px solid #8b5cf6;
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 50%, #e9d5ff 100%);
+  border-color: #8b5cf6;
 }
 
 .stats-card:hover {
@@ -3322,6 +3319,53 @@
   display: flex;
   align-items: center;
   gap: 15px;
+}
+
+/* Bulk Operations Tabs */
+.bulk-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 30px;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 8px;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.bulk-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 14px;
+  color: #64748b;
+  min-width: 120px;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.bulk-tab:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: #374151;
+}
+
+.bulk-tab.active {
+  border-color: #10b981;
+  background: #dcfce7;
+  color: #000000;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.bulk-tab i {
+  font-size: 16px;
 }
 
 .bulk-operation-card h3 i {

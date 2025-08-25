@@ -58,6 +58,9 @@ const ForgotUserId = () => {
  
   const handlePopupClose = () => {
   setShowPopup(false);
+  try {
+    sessionStorage.setItem('otpFlow', JSON.stringify({ target, type: 'userId', otpVerified: false }));
+  } catch (_) {}
   navigate('/otp-verification', { state: { target, type: 'userId' } });
 };
  

@@ -407,8 +407,16 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
 {currentStep === 2 && (
                 <>
               <div className="profes-field">
+                <label>Experience <span className="optional"></span></label>
+                <input 
+                  {...register("experience")} 
+                  placeholder="e.g. 15 Years" 
+                  className="input-large"
+                />
+                <p>{errors.experience?.message}</p>
+
                 <label>Education <span className="optional"></span></label>
-                <select {...register("education")}>
+                <select {...register("education")} className="input-large">
                   <option value="">Select</option>
                   <option value="Illiterate">Illiterate</option>
                   <option value="Primary Schooling">Primary Schooling</option>
@@ -417,11 +425,6 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
                   <option value="Degree">Degree</option>
                  </select>
                 <p>{errors.education?.message}</p>
- 
-                <label>Experience <span className="optional"></span>
-                  <input {...register("experience")} placeholder="e.g. 15 Years" />
-                </label>
-                <p>{errors.experience?.message}</p>
               </div>
               </>
             )}
@@ -433,11 +436,11 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
         <div className="cropform-columnleft">
           <div className="form-group photo-group">
             <label>Photo <span className="optional"></span></label>
-            <div className="photo-box">
+            <div className="photo-box-large">
               {photoPreviewStep3 ? (
-                <img src={photoPreviewStep3} alt="Preview" className="photo-preview" />
+                <img src={photoPreviewStep3} alt="Preview" className="photo-preview-large" />
               ) : (
-                <span className="photo-placeholder">No photo selected</span>
+                <span className="photo-placeholder-large">No photo selected</span>
               )}
             </div>
             <input
@@ -450,74 +453,92 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
                   setValue("photoFileName", file, { shouldValidate: true });
                 }
               }}
-              className="photo-input"
+              className="photo-input-large"
             />
           </div>
-          <label>Survey Numbers <span className="optional"></span>
-            <input {...register("currentSurveyNumber")} />
-          </label>
+          <label>Survey Numbers <span className="optional"></span></label>
+            <input 
+              {...register("currentSurveyNumber")} 
+              className="input-large"
+              placeholder="Enter survey numbers"
+            />
           <p>{errors.currentSurveyNumber?.message}</p>
-          <label>Total Land Holding (In Acres Nos) <span className="optional">(Optional)</span>
+          
+          <label>Total Land Holding (In Acres Nos) <span className="optional">(Optional)</span></label>
             <input
               type="number"
               step="any"
               {...register("currentLandHolding", { valueAsNumber: true })}
+              className="input-large"
+              placeholder="Enter land holding in acres"
             />
-          </label>
           <p>{errors.currentLandHolding?.message}</p>
-          <label>Geo-tag <span className="optional"></span>
-            <input {...register("currentGeoTag")} />
-          </label>
+          
+          <label>Geo-tag <span className="optional"></span></label>
+            <input 
+              {...register("currentGeoTag")} 
+              className="input-large"
+              placeholder="Enter geo-tag coordinates"
+            />
           <p>{errors.currentGeoTag?.message}</p>
         </div>
         <div className="cropform-columnright">
-          <label>
-            Select Crop Category <span className="optional"></span>
+          <label>Select Crop Category <span className="optional"></span></label>
             <select
               value={cropCategoryStep3}
               onChange={(e) => {
                 setCropCategoryStep3(e.target.value);
                 setValue("currentCrop", "");
               }}
+              className="input-large"
             >
               <option value="">Select</option>
               {Object.keys(cropOptions).map((cat) => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
-          </label>
+          
           {cropCategoryStep3 && (
-            <label>
-              Select Crop Name <span className="optional"></span>
-              <select {...register("currentCrop")} defaultValue="">
+            <>
+              <label>Select Crop Name <span className="optional"></span></label>
+              <select {...register("currentCrop")} defaultValue="" className="input-large">
                 <option value="">Select</option>
                 {cropOptions[cropCategoryStep3].map((crop) => (
                   <option key={crop} value={crop}>{crop}</option>
                 ))}
               </select>
-            </label>
+            </>
           )}
           {errors.currentCrop?.message && <p className="error">{errors.currentCrop.message}</p>}
-          <label>Net Income (As per Current Crop/Yr) <span className="optional"></span>
-            <input {...register("currentNetIncome")} />
-          </label>
+          
+          <label>Net Income (As per Current Crop/Yr) <span className="optional"></span></label>
+            <input 
+              {...register("currentNetIncome")} 
+              className="input-large"
+              placeholder="Enter net income per year"
+            />
           <p>{errors.currentNetIncome?.message}</p>
-          <label>Soil Test <span className="optional"></span>
+          
+          <label>Soil Test <span className="optional"></span></label>
             <select
               {...register("currentSoilTest")}
               onChange={e => setValue("currentSoilTest", e.target.value === "true")}
               value={typeof watch("currentSoilTest") === "boolean" ? String(watch("currentSoilTest")) : ""}
+              className="input-large"
             >
               <option value="">Select</option>
               <option value="true">Yes</option>
               <option value="false">No</option>
             </select>
-          </label>
           <p>{errors.currentSoilTest?.message}</p>
-          <label>Soil Test Certificate
-            <input type="file" {...register("currentSoilTestCertificateFileName")} />
+          
+          <label>Soil Test Certificate <span className="optional"></span></label>
+            <input 
+              type="file" 
+              {...register("currentSoilTestCertificateFileName")} 
+              className="input-large"
+            />
             {errors.currentSoilTestCertificateFileName?.message && <p className="error">{errors.currentSoilTestCertificateFileName.message}</p>}
-          </label>
         </div>
       </div>
     </div>
@@ -527,16 +548,19 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
               <div className="proposed-field">
                  <div className="proposedform-grid">
                  <div className="proposedform-columnleft">
-                <label>Survey Numbers <span className="optional"></span>
-                 <input {...register("proposedSurveyNumber")} />
-                </label>
+                <label>Survey Numbers <span className="optional"></span></label>
+                 <input 
+                   {...register("proposedSurveyNumber")} 
+                   className="input-large"
+                   placeholder="Enter survey numbers"
+                 />
                 <p>{errors.proposedSurveyNumber?.message}</p>
  
-                <label>
-                 Geo-tag <span className="optional">(Optional)</span>
+                <label>Geo-tag <span className="optional">(Optional)</span></label>
                 <input
                 type="text"
                 placeholder="Latitude, Longitude"
+                className="input-large"
               {...register("proposedGeoTag", {
                 pattern: {
                   value: /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/,
@@ -544,75 +568,81 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
                 }
                 })}
                />
-              </label>
               {errors.proposedGeoTag?.message && <p className="error">{errors.proposedGeoTag.message}</p>}
  
  
-               <label>
-               Select Crop Category <span className="optional"></span>
+               <label>Select Crop Category <span className="optional"></span></label>
                <select
                value={cropCategoryStep4}
                onChange={(e) => {
                setCropCategoryStep4(e.target.value);
                setValue("cropType", ""); // unique field name
                }}
+               className="input-large"
                >
               <option value="">Select</option>
               {Object.keys(cropOptions).map((cat) => (
               <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
-              </label>
  
                {cropCategoryStep4 && (
-              <label>
-               Select Crop Name <span className="optional"></span>
-               <select {...register("cropType")} defaultValue="">
+              <>
+                <label>Select Crop Name <span className="optional"></span></label>
+                <select {...register("cropType")} defaultValue="" className="input-large">
                <option value="">Select</option>
                 {cropOptions[cropCategoryStep4].map((crop) => (
                   <option key={crop} value={crop}>{crop}</option>
                 ))}
                </select>
-              </label>
+              </>
                )}
                {errors.cropType?.message && <p className="error">{errors.cropType.message}</p>}
  
  
-                <label>Soil Test <span className="optional"></span>
+                <label>Soil Test <span className="optional"></span></label>
                 <select
                   {...register("proposedSoilTest")}
                   onChange={e => setValue("proposedSoilTest", e.target.value === "true")}
                   value={typeof watch("proposedSoilTest") === "boolean" ? String(watch("proposedSoilTest")) : ""}
+                  className="input-large"
                 >
                   <option value="">Select</option>
                   <option value="true">Yes</option>
                   <option value="false">No</option>
                 </select>
-                </label>
                 <p>{errors.proposedSoilTest?.message}</p>
                 </div>
  
                 <div className="proposedform-columnright">
-                <label>Total Land Holding (In Acres) <span className="optional"></span>
+                <label>Total Land Holding (In Acres) <span className="optional"></span></label>
                 <input
                      type="number"
                      step="any"
+                     className="input-large"
+                     placeholder="Enter land holding in acres"
                    {...register("proposedLandHolding", {
                      valueAsNumber: true,
                       })}
                         />
-                </label>
                 <p>{errors.proposedLandHolding?.message}</p>
  
-                <label>Net Income (Per Crop/Yr) <span className="optional"></span>
-                <input type="text" {...register("netIncome")} />
-                </label>
+                <label>Net Income (Per Crop/Yr) <span className="optional"></span></label>
+                <input 
+                  type="text" 
+                  {...register("netIncome")} 
+                  className="input-large"
+                  placeholder="Enter net income per year"
+                />
                 {errors.netIncome?.message && <p className="error">{errors.netIncome.message}</p>}
  
-                <label>Soil Test Certificate
-                 <input type="file" {...register("soilTestCertificate")} />
+                <label>Soil Test Certificate <span className="optional"></span></label>
+                 <input 
+                   type="file" 
+                   {...register("soilTestCertificate")} 
+                   className="input-large"
+                 />
                    {errors.soilTestCertificate?.message && <p className="error">{errors.soilTestCertificate.message}</p>}
-                 </label>
                  </div>
                 </div>
                </div>
@@ -638,30 +668,37 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
     {/* Current Crop Tab */}
     {selectedIrrigationTab === "Current" && (
       <div className="tab-content">
-        <label>
-          Water Source <span className="required">*</span>
-          <select {...register("currentWaterSource")} defaultValue="">
+        <label>Water Source <span className="required">*</span></label>
+          <select {...register("currentWaterSource")} defaultValue="" className="input-large">
             <option value="">Select</option>
             {waterSourceOptions.map((source) => (
               <option key={source} value={source}>{source}</option>
             ))}
           </select>
-        </label>
         {errors.currentWaterSource?.message && <p className="error">{errors.currentWaterSource.message}</p>}
-        <label>
-          Borewell wise Discharge in LPH <span className="optional"></span>
-          <input {...register("currentDischargeLPH")} />
-        </label>
+        
+        <label>Borewell wise Discharge in LPH <span className="optional"></span></label>
+          <input 
+            {...register("currentDischargeLPH")} 
+            className="input-large"
+            placeholder="Enter discharge in LPH"
+          />
         {errors.currentDischargeLPH?.message && <p className="error">{errors.currentDischargeLPH.message}</p>}
-        <label>
-          Discharge during summer months <span className="optional"></span>
-          <input {...register("currentSummerDischarge")} />
-        </label>
+        
+        <label>Discharge during summer months <span className="optional"></span></label>
+          <input 
+            {...register("currentSummerDischarge")} 
+            className="input-large"
+            placeholder="Enter summer discharge"
+          />
         {errors.currentSummerDischarge?.message && <p className="error">{errors.currentSummerDischarge.message}</p>}
-        <label>
-          Borewell location <span className="optional"></span>
-          <input {...register("currentBorewellLocation")} />
-        </label>
+        
+        <label>Borewell location <span className="optional"></span></label>
+          <input 
+            {...register("currentBorewellLocation")} 
+            className="input-large"
+            placeholder="Enter borewell location"
+          />
         {errors.currentBorewellLocation?.message && <p className="error">{errors.currentBorewellLocation.message}</p>}
       </div>
     )}
@@ -669,30 +706,37 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
     {/* Proposed Crop Tab */}
     {selectedIrrigationTab === "Proposed" && (
       <div className="tab-content">
-        <label>
-          Water Source <span className="required">*</span>
-          <select {...register("proposedWaterSource")} defaultValue="">
+        <label>Water Source <span className="required">*</span></label>
+          <select {...register("proposedWaterSource")} defaultValue="" className="input-large">
             <option value="">Select</option>
             {waterSourceOptions.map((source) => (
               <option key={source} value={source}>{source}</option>
             ))}
           </select>
-        </label>
         {errors.proposedWaterSource?.message && <p className="error">{errors.proposedWaterSource.message}</p>}
-        <label>
-          Borewell wise Discharge in LPH <span className="optional"></span>
-          <input {...register("proposedDischargeLPH")} />
-        </label>
+        
+        <label>Borewell wise Discharge in LPH <span className="optional"></span></label>
+          <input 
+            {...register("proposedDischargeLPH")} 
+            className="input-large"
+            placeholder="Enter discharge in LPH"
+          />
         {errors.proposedDischargeLPH?.message && <p className="error">{errors.proposedDischargeLPH.message}</p>}
-        <label>
-          Discharge during summer months <span className="optional"></span>
-          <input {...register("proposedSummerDischarge")} />
-        </label>
+        
+        <label>Discharge during summer months <span className="optional"></span></label>
+          <input 
+            {...register("proposedSummerDischarge")} 
+            className="input-large"
+            placeholder="Enter summer discharge"
+          />
         {errors.proposedSummerDischarge?.message && <p className="error">{errors.proposedSummerDischarge.message}</p>}
-        <label>
-          Borewell location <span className="optional"></span>
-          <input {...register("proposedBorewellLocation")} />
-        </label>
+        
+        <label>Borewell location <span className="optional"></span></label>
+          <input 
+            {...register("proposedBorewellLocation")} 
+            className="input-large"
+            placeholder="Enter borewell location"
+          />
         {errors.proposedBorewellLocation?.message && <p className="error">{errors.proposedBorewellLocation.message}</p>}
       </div>
     )}
@@ -704,30 +748,51 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
                  <h3>Bank Details</h3>
  
                  <label>Bank Name <span className="optional"></span></label>
-                <input type="text" {...register("bankName")} />
+                <input 
+                  type="text" 
+                  {...register("bankName")} 
+                  className="input-large"
+                  placeholder="Enter bank name"
+                />
                 {errors.bankName?.message && <p className="error">{errors.bankName.message}</p>}
  
                <label>Account Number <span className="optional"></span></label>
-                <input type="text" {...register("accountNumber")} />
+                <input 
+                  type="text" 
+                  {...register("accountNumber")} 
+                  className="input-large"
+                  placeholder="Enter account number"
+                />
                 {errors.accountNumber?.message && <p className="error">{errors.accountNumber.message}</p>}
  
                <label>Branch Name <span className="optional"></span></label>
-                <input type="text" {...register("branchName")} />
+                <input 
+                  type="text" 
+                  {...register("branchName")} 
+                  className="input-large"
+                  placeholder="Enter branch name"
+                />
               {errors.branchName?.message && <p className="error">{errors.branchName.message}</p>}
      
               <label>IFSC Code <span className="optional"></span></label>
-               <input type="text" {...register("ifscCode")} />
+               <input 
+                 type="text" 
+                 {...register("ifscCode")} 
+                 className="input-large"
+                 placeholder="Enter IFSC code"
+               />
                {errors.ifscCode?.message && <p className="error">{errors.ifscCode.message}</p>}
  
               <label>Passbook <span className="optional"></span></label>
              <input
-             type="file"
-             accept="image/*,application/pdf"
-             onChange={(e) => {
-             const file = e.target.files[0];
-             setValue("passbookFile", file);
-             trigger("passbookFile");
-             }}
+               type="file"
+               accept="image/*,application/pdf"
+               className="input-large"
+               onChange={(e) => {
+                 const file = e.target.files[0];
+                 setValue("passbookFile", file);
+                 trigger("passbookFile");
+               }}
              />
              {errors.passbookFile?.message && <p className="error">{errors.passbookFile.message}</p>}
              </div>
@@ -740,7 +805,7 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
     </label>
 
     <select
-      className="docinput"
+      className="input-large"
       {...register("documentType", { required: "Document Type is required" })}
       onChange={(e) => {
         setSelectedDoc(e.target.value);
@@ -760,13 +825,14 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
         <input
           type="text"
           placeholder={selectedDoc === "voterId" ? "Voter ID" : selectedDoc === "aadharNumber" ? "Aadhar Number" : selectedDoc === "panNumber" ? "PAN Number" : "PPB Number"}
-          className="input"
+          className="input-large"
           {...register("documentNumber", { required: `${selectedDoc === "voterId" ? "Voter ID" : selectedDoc === "aadharNumber" ? "Aadhar Number" : selectedDoc === "panNumber" ? "PAN Number" : "PPB Number"} is required` })}
         />
         <p className="error-text">{errors.documentNumber?.message}</p>
         <input
           type="file"
           accept="image/*,application/pdf"
+          className="input-large"
           {...register("documentFileName", { required: `${selectedDoc === "voterId" ? "Voter ID" : selectedDoc === "aadharNumber" ? "Aadhar" : selectedDoc === "panNumber" ? "PAN" : "PPB"} File is required` })}
         />
         <p className="error-text">{errors.documentFileName?.message}</p>

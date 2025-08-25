@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/Dashboard.css';
-import FarmerForm from '../components/FarmerForm';
+import FarmerRegistrationForm from '../components/FarmerRegistrationForm';
 import KYCModal from '../components/KYCModal';
 import ViewFarmerRegistrationDetails from '../components/ViewFarmerRegistrationDetails';
 import ViewEditEmployeeDetails from '../components/ViewEditEmployeeDetails';
 import StatsCard from '../components/StatsCard';
 import DataTable from '../components/DataTable';
 import UserProfileDropdown from '../components/UserProfileDropdown';
-import { kycAPI, employeeAPI } from '../api/apiService';
+import { kycAPI, employeeAPI, farmersAPI } from '../api/apiService';
 
 const EmployeeDashboard = () => {
   const { user, logout } = useAuth();
@@ -288,6 +288,26 @@ const EmployeeDashboard = () => {
     setSelectedEmployeeData(null);
   };
 
+  const handleSaveFarmer = async (updatedData) => {
+    try {
+      // Update farmer data in backend
+      const updatedFarmer = await farmersAPI.updateFarmer(selectedFarmerData.id, updatedData);
+      
+      // Update local state
+      setAssignedFarmers(prev => prev.map(farmer => 
+        farmer.id === selectedFarmerData.id ? updatedFarmer : farmer
+      ));
+      
+      // Update selected farmer data
+      setSelectedFarmerData(updatedFarmer);
+      
+      alert('Farmer updated successfully!');
+    } catch (error) {
+      console.error('Error updating farmer:', error);
+      alert('Failed to update farmer. Please try again.');
+    }
+  };
+
   const handleEditFarmer = (farmer) => {
     setEditingFarmer(farmer);
     setShowFarmerForm(true);
@@ -493,7 +513,8 @@ const EmployeeDashboard = () => {
             </div>
           </div>
 
-        {/* Farmers Table */}
+        {/* Farmers Table or Inline Add Farmer */}
+        {!showFarmerForm ? (
         <DataTable
           data={filteredFarmers}
           columns={[
@@ -559,6 +580,42 @@ const EmployeeDashboard = () => {
             }
           ]}
         />
+        ) : (
+          <div className="farmer-registration-section">
+            <div className="section-header">
+              <div>
+                <h2 className="section-title">Add New Farmer</h2>
+                <p className="section-description">
+                  Fill in the farmer details to create a new farmer account.
+                </p>
+              </div>
+              <div className="section-actions">
+                <button 
+                  className="action-btn-small secondary"
+                  onClick={() => setShowFarmerForm(false)}
+                >
+                  <i className="fas fa-arrow-left"></i>
+                  Back to Farmers
+                </button>
+              </div>
+            </div>
+            <FarmerRegistrationForm
+              isInDashboard={true}
+              onClose={() => setShowFarmerForm(false)}
+              onSubmit={async (farmerData) => {
+                try {
+                  const created = await farmersAPI.createFarmer(farmerData);
+                  setAssignedFarmers(prev => [...prev, created]);
+                  alert('Farmer created successfully!');
+                  setShowFarmerForm(false);
+                } catch (error) {
+                  console.error('Error creating farmer:', error);
+                  alert('Failed to create farmer. Please try again.');
+                }
+              }}
+            />
+          </div>
+        )}
       </div>
     );
   };
@@ -1062,28 +1119,7 @@ const EmployeeDashboard = () => {
         </div>
       </div>
 
-      {/* Modals */}
-      {showFarmerForm && (
-        <FarmerForm 
-          editData={editingFarmer}
-          onClose={() => {
-            setShowFarmerForm(false);
-            setEditingFarmer(null);
-          }}
-          onSubmit={async (farmerData) => {
-            try {
-              // API call to create/update farmer
-              setAssignedFarmers(prev => [...prev, { ...farmerData, id: Date.now() }]);
-              setShowFarmerForm(false);
-              setEditingFarmer(null);
-              alert('Farmer saved successfully!');
-            } catch (error) {
-              console.error('Error saving farmer:', error);
-              alert('Failed to save farmer. Please try again.');
-            }
-          }}
-        />
-      )}
+      {/* Removed FarmerForm modal; using inline FarmerRegistrationForm above */}
 
       {showKYCModal && selectedFarmer && (
         <KYCModal
@@ -1102,6 +1138,7 @@ const EmployeeDashboard = () => {
         <ViewFarmerRegistrationDetails
           farmerData={selectedFarmerData}
           onClose={handleCloseFarmerDetails}
+          onSave={handleSaveFarmer}
         />
       )}
 
