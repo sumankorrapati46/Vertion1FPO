@@ -102,7 +102,6 @@ const HomeScreen = () => {
           </div>
           <div className="header-right">
             <div className="header-calendar">
-              <span className="calendar-icon">📅</span>
               <div className="calendar-info">
                 <div className="calendar-date">{getCurrentDate()}</div>
                 <div className="calendar-time">{getCurrentTime()}</div>
@@ -146,7 +145,7 @@ const HomeScreen = () => {
             <div className="hero-buttons">
               <button 
                 className="hero-btn primary"
-                onClick={() => navigate('/farmer/registration')}
+                onClick={() => navigate('/login')}
               >
                 <span>Start Farming Smart</span>
                 <span>→</span>
@@ -246,7 +245,7 @@ const HomeScreen = () => {
             <div className="cta-buttons">
               <button 
                 className="cta-btn primary"
-                onClick={() => navigate('/farmer/registration')}
+                onClick={() => navigate('/login')}
               >
                 <span>Begin Your Journey</span>
                 <span>🌱</span>

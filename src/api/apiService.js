@@ -229,21 +229,94 @@ export const superAdminAPI = {
     try {
       // Try multiple endpoint variations for compatibility
       let response;
+      let lastError;
+      
+      // Strategy 1: Try auth endpoint with PUT method
       try {
-        // Primary endpoint
+        console.log('🔄 Trying PUT /auth/users/' + userId + '/approve');
         response = await api.put(`/auth/users/${userId}/approve`, { role });
+        console.log('✅ Success with PUT /auth/users/' + userId + '/approve');
+        return response.data;
       } catch (error) {
-        if (error.response?.status === 403 || error.response?.status === 404) {
-          // Try alternative endpoint
-          response = await api.put(`/super-admin/users/${userId}/approve`, { role });
-        } else {
-          throw error;
-        }
+        lastError = error;
+        console.log('❌ Failed with PUT /auth/users/' + userId + '/approve:', error.response?.status);
       }
-      return response.data;
+      
+      // Strategy 2: Try auth endpoint with POST method
+      try {
+        console.log('🔄 Trying POST /auth/users/' + userId + '/approve');
+        response = await api.post(`/auth/users/${userId}/approve`, { role });
+        console.log('✅ Success with POST /auth/users/' + userId + '/approve');
+        return response.data;
+      } catch (error) {
+        lastError = error;
+        console.log('❌ Failed with POST /auth/users/' + userId + '/approve:', error.response?.status);
+      }
+      
+      // Strategy 3: Try super-admin endpoint
+      try {
+        console.log('🔄 Trying PUT /super-admin/users/' + userId + '/approve');
+        response = await api.put(`/super-admin/users/${userId}/approve`, { role });
+        console.log('✅ Success with PUT /super-admin/users/' + userId + '/approve');
+        return response.data;
+      } catch (error) {
+        lastError = error;
+        console.log('❌ Failed with PUT /super-admin/users/' + userId + '/approve:', error.response?.status);
+      }
+      
+      // Strategy 4: Try registrations endpoint
+      try {
+        console.log('🔄 Trying POST /registrations/' + userId + '/approve');
+        response = await api.post(`/registrations/${userId}/approve`, { 
+          approvedBy: 'Super Admin',
+          approvalNotes: `User approved with role: ${role}`,
+          role: role
+        });
+        console.log('✅ Success with POST /registrations/' + userId + '/approve');
+        return response.data;
+      } catch (error) {
+        lastError = error;
+        console.log('❌ Failed with POST /registrations/' + userId + '/approve:', error.response?.status);
+      }
+      
+      // Strategy 5: Try employee-specific endpoints (based on Hibernate logs)
+      try {
+        console.log('🔄 Trying PUT /employees/' + userId + '/approve');
+        response = await api.put(`/employees/${userId}/approve`, { role });
+        console.log('✅ Success with PUT /employees/' + userId + '/approve');
+        return response.data;
+      } catch (error) {
+        lastError = error;
+        console.log('❌ Failed with PUT /employees/' + userId + '/approve:', error.response?.status);
+      }
+      
+      // Strategy 6: Try employee status update
+      try {
+        console.log('🔄 Trying PUT /employees/' + userId + '/status');
+        response = await api.put(`/employees/${userId}/status`, { status: 'APPROVED', role });
+        console.log('✅ Success with PUT /employees/' + userId + '/status');
+        return response.data;
+      } catch (error) {
+        lastError = error;
+        console.log('❌ Failed with PUT /employees/' + userId + '/status:', error.response?.status);
+      }
+      
+      // Strategy 7: Try user status update
+      try {
+        console.log('🔄 Trying PUT /users/' + userId + '/status');
+        response = await api.put(`/users/${userId}/status`, { status: 'APPROVED', role });
+        console.log('✅ Success with PUT /users/' + userId + '/status');
+        return response.data;
+      } catch (error) {
+        lastError = error;
+        console.log('❌ Failed with PUT /users/' + userId + '/status:', error.response?.status);
+      }
+      
+      // If all strategies fail, throw the last error
+      throw lastError;
     } catch (error) {
-      console.error('Error in approveUser:', error);
-      console.error('Error response:', error.response?.data);
+      console.error('❌ All approval strategies failed:', error);
+      console.error('❌ Error response:', error.response?.data);
       throw error;
     }
   },
@@ -253,21 +326,93 @@ export const superAdminAPI = {
     try {
       // Try multiple endpoint variations for compatibility
       let response;
+      let lastError;
+      
+      // Strategy 1: Try auth endpoint with PUT method
       try {
-        // Primary endpoint
-        response = await api.put(`/auth/users/${userId}/status`, { status: 'REJECTED', reason });
+        console.log('🔄 Trying PUT /auth/users/' + userId + '/reject');
+        response = await api.put(`/auth/users/${userId}/reject`, { reason });
+        console.log('✅ Success with PUT /auth/users/' + userId + '/reject');
+        return response.data;
       } catch (error) {
-        if (error.response?.status === 403 || error.response?.status === 404) {
-          // Try alternative endpoint
-          response = await api.put(`/super-admin/users/${userId}/reject`, { reason });
-        } else {
-          throw error;
-        }
+        lastError = error;
+        console.log('❌ Failed with PUT /auth/users/' + userId + '/reject:', error.response?.status);
       }
-      return response.data;
+      
+      // Strategy 2: Try auth endpoint with POST method
+      try {
+        console.log('🔄 Trying POST /auth/users/' + userId + '/reject');
+        response = await api.post(`/auth/users/${userId}/reject`, { reason });
+        console.log('✅ Success with POST /auth/users/' + userId + '/reject');
+        return response.data;
+      } catch (error) {
+        lastError = error;
+        console.log('❌ Failed with POST /auth/users/' + userId + '/reject:', error.response?.status);
+      }
+      
+      // Strategy 3: Try super-admin endpoint
+      try {
+        console.log('🔄 Trying PUT /super-admin/users/' + userId + '/reject');
+        response = await api.put(`/super-admin/users/${userId}/reject`, { reason });
+        console.log('✅ Success with PUT /super-admin/users/' + userId + '/reject');
+        return response.data;
+      } catch (error) {
+        lastError = error;
+        console.log('❌ Failed with PUT /super-admin/users/' + userId + '/reject:', error.response?.status);
+      }
+      
+      // Strategy 4: Try registrations endpoint
+      try {
+        console.log('🔄 Trying POST /registrations/' + userId + '/reject');
+        response = await api.post(`/registrations/${userId}/reject`, { 
+          rejectedBy: 'Super Admin',
+          rejectionReason: reason || 'Registration rejected by Super Admin'
+        });
+        console.log('✅ Success with POST /registrations/' + userId + '/reject');
+        return response.data;
+      } catch (error) {
+        lastError = error;
+        console.log('❌ Failed with POST /registrations/' + userId + '/reject:', error.response?.status);
+      }
+      
+      // Strategy 5: Try employee-specific endpoints (based on Hibernate logs)
+      try {
+        console.log('🔄 Trying PUT /employees/' + userId + '/reject');
+        response = await api.put(`/employees/${userId}/reject`, { reason });
+        console.log('✅ Success with PUT /employees/' + userId + '/reject');
+        return response.data;
+      } catch (error) {
+        lastError = error;
+        console.log('❌ Failed with PUT /employees/' + userId + '/reject:', error.response?.status);
+      }
+      
+      // Strategy 6: Try employee status update
+      try {
+        console.log('🔄 Trying PUT /employees/' + userId + '/status');
+        response = await api.put(`/employees/${userId}/status`, { status: 'REJECTED', reason });
+        console.log('✅ Success with PUT /employees/' + userId + '/status');
+        return response.data;
+      } catch (error) {
+        lastError = error;
+        console.log('❌ Failed with PUT /employees/' + userId + '/status:', error.response?.status);
+      }
+      
+      // Strategy 7: Try user status update
+      try {
+        console.log('🔄 Trying PUT /users/' + userId + '/status');
+        response = await api.put(`/users/${userId}/status`, { status: 'REJECTED', reason });
+        console.log('✅ Success with PUT /users/' + userId + '/status');
+        return response.data;
+      } catch (error) {
+        lastError = error;
+        console.log('❌ Failed with PUT /users/' + userId + '/status:', error.response?.status);
+      }
+      
+      // If all strategies fail, throw the last error
+      throw lastError;
     } catch (error) {
-      console.error('Error in rejectUser:', error);
-      console.error('Error response:', error.response?.data);
+      console.error('❌ All rejection strategies failed:', error);
+      console.error('❌ Error response:', error.response?.data);
       throw error;
     }
   },

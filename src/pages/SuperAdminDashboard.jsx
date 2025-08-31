@@ -392,7 +392,13 @@ const SuperAdminDashboard = () => {
   const handleApproveRegistration = async (registrationId) => {
     try {
       console.log('🔄 Approving registration for user ID:', registrationId);
-      const result = await superAdminAPI.approveUser(registrationId);
+      
+      // Find the registration to get the role
+      const registration = registrations.find(reg => reg.id === registrationId);
+      const role = registration?.role || 'FARMER'; // Default to FARMER if role not found
+      
+      console.log('🔄 Approving with role:', role);
+      const result = await superAdminAPI.approveUser(registrationId, role);
       console.log('✅ Approval result:', result);
       
       setRegistrations(prev => prev.map(reg => 
