@@ -922,6 +922,9 @@ const AdminDashboard = () => {
           <div className="section-card">
             <div className="section-header">
               <h3>Quick Actions</h3>
+              <p className="section-description">
+                Access frequently used functions to manage farmers, employees, and generate reports.
+              </p>
             </div>
             <div className="quick-actions-grid">
               <button 
@@ -1331,7 +1334,7 @@ const AdminDashboard = () => {
       <div className="registration-section">
         <div className="section-header">
           <div>
-            <h2 className="section-title">Registration Management</h2>
+            <h2 className="registration-management-title">Registration Management</h2>
             <p className="section-description">
               Review and manage user registration requests.
             </p>
@@ -1503,6 +1506,9 @@ const AdminDashboard = () => {
             {/* Employee Stats */}
             <div className="employee-stats">
               <h3>Employee KYC Progress</h3>
+              <p className="section-description">
+                Monitor KYC verification progress for each employee and their assigned farmers.
+              </p>
               <div className="employee-stats-grid">
                 {employees.map(employee => {
                   // Calculate real stats from farmers data
@@ -1709,7 +1715,10 @@ const AdminDashboard = () => {
 
         {/* KYC Status Breakdown */}
         <div className="kyc-breakdown">
-          <h3>KYC Status Breakdown</h3>
+          <h3 className="kyc-breakdown-title">KYC Status Breakdown</h3>
+          <p className="section-description">
+            Overview of KYC verification status distribution across all farmers.
+          </p>
           <div className="kyc-stats-grid">
             <div className="kyc-stat-card approved">
               <span className="kyc-stat-number">{stats.approvedKYC}</span>
@@ -1732,7 +1741,10 @@ const AdminDashboard = () => {
 
         {/* Employee KYC Progress */}
         <div className="employee-stats">
-          <h3>Employee KYC Progress</h3>
+          <h3 className="employee-kyc-progress-title">Employee KYC Progress</h3>
+          <p className="section-description">
+            Monitor KYC verification progress for each employee and their assigned farmers.
+          </p>
           <div className="employee-stats-grid">
             {employees.length > 0 ? (
               employees.map(employee => {
@@ -1885,7 +1897,10 @@ const AdminDashboard = () => {
 
         {/* KYC Progress Overview */}
         <div className="kyc-progress-section">
-          <h3>KYC Progress Overview</h3>
+          <h3 className="kyc-progress-overview-title">KYC Progress Overview</h3>
+          <p className="section-description">
+            Visual representation of KYC verification progress with circular indicators.
+          </p>
           <div className="kyc-progress-grid">
             <div className="progress-card approved">
               <div className="progress-circle">

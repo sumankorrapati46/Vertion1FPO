@@ -111,7 +111,7 @@
 .user-profile-dropdown {
   position: relative;
   display: inline-block;
-  z-index: 1000;
+  z-index: 100;
 }
 
 .user-profile-trigger {
@@ -174,16 +174,18 @@
   border-radius: 16px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   border: 1px solid #e2e8f0;
-  z-index: 9999;
+  z-index: 1000;
   overflow: hidden;
   opacity: 0;
   transform: translateY(-10px);
   transition: all 0.3s ease;
+  pointer-events: none;
 }
 
 .user-dropdown-menu.show {
   opacity: 1;
   transform: translateY(0);
+  pointer-events: auto;
 }
 
 .dropdown-header {
@@ -318,8 +320,8 @@
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 80px;
-  margin-top: 100px;
+  gap: 60px;
+  margin-top: 60px;
 }
 
 .nav-item {
@@ -1409,9 +1411,9 @@
 
 .data-table th {
   padding: 18px 20px;
-  text-align: left;
-  font-weight: 700;
-  font-size: 13px;
+  text-align: center;
+  font-weight: 900;
+  font-size: 15px;
   color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1454,6 +1456,7 @@
   font-weight: 500;
   border-right: 1px solid #f3f4f6;
   vertical-align: middle;
+  text-align: center;
 }
 
 .data-table td:last-child {
@@ -2204,7 +2207,7 @@
 }
 
 .employee-info h4 {
-  color: #ffffff;
+  color: #1f2937;
   font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 8px;
@@ -2212,7 +2215,7 @@
 }
 
 .employee-info p {
-  color: #cbd5e1;
+  color: #6b7280;
   font-size: 0.95rem;
   font-weight: 500;
   margin: 0;
@@ -3335,12 +3338,12 @@
 
 .data-table-container th {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  color: #475569;
-  font-weight: 600;
+  color: #0b0b0b;
+  font-weight: 1000;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 16px 12px;
-  text-align: left;
+  text-align: center;
   border-bottom: 2px solid #e2e8f0;
 }
 
@@ -3385,4 +3388,350 @@
 .status-badge.refer-back {
   background: rgba(59, 130, 246, 0.1);
   color: #2563eb;
+}
+
+/* ===== ADMIN: LIGHTER EMPLOYEE KYC PROGRESS CARDS ===== */
+/* Smaller, modern cards with light backgrounds */
+.employee-stats {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Make the section title readable on light background */
+.employee-stats h3 {
+  color: #1e293b !important;
+  border-bottom-color: #e5e7eb;
+}
+
+.employee-stats-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.employee-stat-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+
+.employee-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+}
+
+.employee-stat-card::before {
+  background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+}
+
+.employee-info h4 { color: #1f2937; }
+.employee-info p  { color: #6b7280; }
+
+.employee-kyc-stats { gap: 10px; }
+.employee-kyc-stats .kyc-stat {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.employee-kyc-stats .stat-number { color: #111827; font-size: 1.125rem; }
+.employee-kyc-stats .stat-number.approved   { color: #15803d; }
+.employee-kyc-stats .stat-number.pending    { color: #d97706; }
+.employee-kyc-stats .stat-number.refer-back { color: #2563eb; }
+.employee-kyc-stats .stat-number.rejected   { color: #dc2626; }
+
+.employee-kyc-stats .stat-label { color: #6b7280; font-size: 0.7rem; }
+
+/* Override older gradient variants for admin view */
+.employee-stats .employee-stat-card,
+.employee-stats .employee-stat-card:nth-child(1),
+.employee-stats .employee-stat-card:nth-child(2),
+.employee-stats .employee-stat-card:nth-child(3),
+.employee-stats .employee-stat-card:nth-child(4),
+.employee-stats .employee-stat-card:nth-child(5),
+.employee-stats .employee-stat-card:nth-child(6),
+.employee-stats .employee-stat-card:nth-child(7),
+.employee-stats .employee-stat-card:nth-child(8),
+.employee-stats .employee-stat-card:nth-child(9) {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* Light pastel variants per card for visual distinction */
+.employee-stats .employee-stat-card:nth-child(1) { background: #f0fdf4 !important; border-color: #dcfce7 !important; }
+.employee-stats .employee-stat-card:nth-child(2) { background: #eff6ff !important; border-color: #dbeafe !important; }
+.employee-stats .employee-stat-card:nth-child(3) { background: #fff7ed !important; border-color: #ffedd5 !important; }
+.employee-stats .employee-stat-card:nth-child(4) { background: #faf5ff !important; border-color: #ede9fe !important; }
+.employee-stats .employee-stat-card:nth-child(5) { background: #fefce8 !important; border-color: #fde68a !important; }
+.employee-stats .employee-stat-card:nth-child(6) { background: #ecfeff !important; border-color: #bae6fd !important; }
+.employee-stats .employee-stat-card:nth-child(7) { background: #fdf2f8 !important; border-color: #fbcfe8 !important; }
+.employee-stats .employee-stat-card:nth-child(8) { background: #f7fee7 !important; border-color: #d9f99d !important; }
+.employee-stats .employee-stat-card:nth-child(9) { background: #eef2ff !important; border-color: #c7d2fe !important; }
+
+/* ===== ADMIN: MODERN KYC OVERVIEW CARDS ===== */
+.kyc-breakdown {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.kyc-breakdown h3 {
+  color: #1e293b;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 12px;
+}
+
+.kyc-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.kyc-stat-card {
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.kyc-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.kyc-stat-card.approved {
+  background: #f0fdf4;
+  border-color: #22c55e;
+}
+
+.kyc-stat-card.pending {
+  background: #fefce8;
+  border-color: #f59e0b;
+}
+
+.kyc-stat-card.refer-back {
+  background: #eff6ff;
+  border-color: #3b82f6;
+}
+
+.kyc-stat-card.rejected {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
+.kyc-stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.kyc-stat-card.approved .kyc-stat-number {
+  color: #15803d;
+}
+
+.kyc-stat-card.pending .kyc-stat-number {
+  color: #d97706;
+}
+
+.kyc-stat-card.refer-back .kyc-stat-number {
+  color: #2563eb;
+}
+
+.kyc-stat-card.rejected .kyc-stat-number {
+  color: #dc2626;
+}
+
+.kyc-stat-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6b7280;
+}
+
+.employee-stats .employee-kyc-stats .kyc-stat,
+.employee-stats .employee-kyc-stats .kyc-stat:nth-child(1),
+.employee-stats .employee-kyc-stats .kyc-stat:nth-child(2),
+.employee-stats .employee-kyc-stats .kyc-stat:nth-child(3),
+.employee-stats .employee-kyc-stats .kyc-stat:nth-child(4),
+.employee-stats .employee-kyc-stats .kyc-stat:nth-child(5) {
+  background: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* ===== ADMIN: MODERN KYC PROGRESS OVERVIEW SECTION ===== */
+.kyc-progress-section {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  margin-top: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.kyc-progress-section h3 {
+  color: #1e293b;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 12px;
+}
+
+.kyc-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.progress-card {
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.progress-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.progress-card.approved {
+  background: #f0fdf4;
+  border-color: #16a34a;
+}
+
+.progress-card.pending {
+  background: #fefce8;
+  border-color: #eab308;
+}
+
+.progress-card.refer-back {
+  background: #eff6ff;
+  border-color: #3b82f6;
+}
+
+.progress-card.rejected {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
+.progress-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  transition: transform 0.3s ease;
+}
+
+.progress-card.approved .progress-circle {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+}
+
+.progress-card.pending .progress-circle {
+  background: linear-gradient(135deg, #eab308, #fbbf24);
+}
+
+.progress-card.refer-back .progress-circle {
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+}
+
+.progress-card.rejected .progress-circle {
+  background: linear-gradient(135deg, #ef4444, #f87171);
+}
+
+.progress-number {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.progress-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #374151;
+  margin-top: 8px;
+}
+
+.progress-card:hover .progress-circle {
+  transform: scale(1.05);
+}
+
+.progress-card:hover .progress-number {
+  transform: scale(1.1);
+}
+
+/* ===== SPECIFIC SECTION TITLE STYLES ===== */
+
+/* Registration Management Title - Specific */
+.registration-management-title {
+  color: #1e293b !important;
+  font-weight: 700 !important;
+  font-size: 2rem !important;
+  margin-bottom: 8px !important;
+  display: block !important;
+  position: relative !important;
+}
+
+/* Registration Management Subtitle - Specific */
+.registration-section .section-description {
+  color: #1e293b !important;
+  font-weight: 500 !important;
+  font-size: 1.1rem !important;
+  margin-bottom: 1.5rem !important;
+  display: block !important;
+  position: relative !important;
+}
+
+/* KYC Breakdown Title - Specific */
+.kyc-breakdown-title {
+  color: #1e293b !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 20px !important;
+  border-bottom: 2px solid #e5e7eb !important;
+  padding-bottom: 12px !important;
+}
+
+/* Employee KYC Progress Title - Specific */
+.employee-kyc-progress-title {
+  color: #1e293b !important;
+  border-bottom-color: #e5e7eb !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 24px !important;
+  padding-bottom: 12px !important;
+  border-bottom: 2px solid #e5e7eb !important;
+}
+
+/* KYC Progress Overview Title - Specific */
+.kyc-progress-overview-title {
+  color: #1e293b !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 20px !important;
+  border-bottom: 2px solid #e5e7eb !important;
+  padding-bottom: 12px !important;
 }

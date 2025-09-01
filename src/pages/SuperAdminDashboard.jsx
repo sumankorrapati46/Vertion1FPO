@@ -1010,10 +1010,13 @@ const SuperAdminDashboard = () => {
                 {/* Bottom Sections */}
                 <div className="bottom-sections">
                   {/* Quick Actions */}
-                   <div className="section-card">
-                     <div className="section-header">
-                       <h3 className="section-title">Quick Actions</h3>
-                     </div>
+                                     <div className="section-card">
+                    <div className="section-header">
+                      <h3 className="section-title">Quick Actions</h3>
+                      <p className="section-description">
+                        Access frequently used functions to manage farmers, employees, and generate reports.
+                      </p>
+                    </div>
                      <div className="quick-actions-grid">
                        <button 
                          className="quick-action-btn primary"
@@ -1467,21 +1470,6 @@ const SuperAdminDashboard = () => {
                             onClick: handleViewFarmer
                           },
                           {
-                            label: 'Edit',
-                            className: 'secondary',
-                            onClick: handleEditFarmer
-                          },
-                          {
-                            label: 'Approve',
-                            className: 'approve',
-                            onClick: (farmer) => handleApproveKYC(farmer.id)
-                          },
-                          {
-                            label: 'Reject',
-                            className: 'reject',
-                            onClick: (farmer) => handleRejectKYC(farmer.id)
-                          },
-                          {
                             label: 'Delete',
                             className: 'danger',
                             onClick: (farmer) => handleDelete(farmer, 'farmer')
@@ -1727,11 +1715,6 @@ const SuperAdminDashboard = () => {
                               label: 'View',
                               className: 'info',
                               onClick: handleViewEmployee
-                            },
-                            {
-                              label: 'Edit',
-                              className: 'secondary',
-                              onClick: handleEditEmployee
                             },
                             {
                               label: 'Delete',

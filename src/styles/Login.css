@@ -1286,11 +1286,15 @@
 .auth-tab { padding: 8px 14px; border-radius: 9999px; border: 1px solid rgba(0,0,0,0.08); background: #fff; color: #374151; font-weight: 600; cursor: pointer; }
 .auth-tab.active { background: #166f3e; color: #fff; border-color: #166f3e; }
 
-.auth-form { display: grid; gap: 14px; }
-.auth-field { display: grid; gap: 6px; }
+.auth-form { display: grid; gap: 16px; }
+.auth-form input { min-height: 44px; }
+.auth-field { display: grid; gap: 8px; }
 .auth-field label { font-size: 0.9rem; color: #111827; font-weight: 600; }
-.auth-field input { border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; padding: 12px 14px; font-size: 1rem; background: rgba(255,255,255,0.95); transition: box-shadow .2s, border-color .2s; }
+.auth-field input { border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; padding: 12px 14px; font-size: 1rem; background: rgba(255,255,255,0.95); transition: box-shadow .2s, border-color .2s; box-sizing: border-box; width: 100%; resize: none; }
 .auth-field input:focus { outline: none; border-color: #22a35a; box-shadow: 0 0 0 4px rgba(34,197,94,0.15); }
+.auth-field input.error { border-color: #dc2626; box-shadow: 0 0 0 4px rgba(220,38,38,0.15); }
+.auth-field .error { color: #dc2626; font-size: 0.85rem; margin-top: 6px; font-weight: 500; line-height: 1.4; padding: 4px 0; display: block; min-height: 20px; }
+.auth-field input[type="password"] { font-family: monospace; letter-spacing: 1px; min-height: 44px; }
 
 .auth-password { position: relative; display: grid; }
 .auth-password input { padding-right: 44px; }

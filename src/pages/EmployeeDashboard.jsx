@@ -649,6 +649,9 @@ const EmployeeDashboard = () => {
           <div className="section-card">
             <div className="section-header">
               <h3 className="section-title">Quick Actions</h3>
+              <p className="section-description">
+                Access frequently used functions to manage farmers and track KYC progress.
+              </p>
             </div>
             <div className="quick-actions-grid">
               <button 
@@ -950,6 +953,9 @@ const EmployeeDashboard = () => {
         }}>
           <div className="section-header">
             <h3 className="section-title" style={{ color: '#475569' }}>Filters & Search</h3>
+            <p className="section-description" style={{ color: '#64748b', marginTop: '8px' }}>
+              Filter and search through your assigned farmers by KYC status and assignment date.
+            </p>
             <div className="section-accent" style={{ background: '#64748b' }}></div>
           </div>
           
@@ -994,6 +1000,9 @@ const EmployeeDashboard = () => {
         }}>
           <div className="section-header">
             <h3 className="section-title" style={{ color: '#0369a1' }}>KYC Status Overview</h3>
+            <p className="section-description" style={{ color: '#0369a1', marginTop: '8px' }}>
+              View the distribution of KYC status across your assigned farmers.
+            </p>
             <div className="section-accent" style={{ background: '#0ea5e9' }}></div>
           </div>
           
@@ -1059,10 +1068,13 @@ const EmployeeDashboard = () => {
             border: '2px solid #22c55e',
             boxShadow: '0 10px 25px rgba(34, 197, 94, 0.15)'
           }}>
-            <div className="section-header">
-              <h3 className="section-title" style={{ color: '#15803d' }}>Farmer List</h3>
-              <div className="section-accent" style={{ background: '#22c55e' }}></div>
-            </div>
+                      <div className="section-header">
+            <h3 className="section-title" style={{ color: '#15803d' }}>Farmer List</h3>
+            <p className="section-description" style={{ color: '#15803d', marginTop: '8px' }}>
+              View and manage all your assigned farmers with their current KYC status.
+            </p>
+            <div className="section-accent" style={{ background: '#22c55e' }}></div>
+          </div>
             
             <div className="table-container-modern">
               <DataTable
@@ -1109,6 +1121,9 @@ const EmployeeDashboard = () => {
           }}>
             <div className="section-header">
               <h3 className="section-title" style={{ color: '#d97706' }}>Add New Farmer</h3>
+              <p className="section-description" style={{ color: '#92400e', marginTop: '8px' }}>
+                Register new farmers and assign them to your KYC verification workflow.
+              </p>
               <div className="section-accent" style={{ background: '#f59e0b' }}></div>
             </div>
             
@@ -1170,6 +1185,9 @@ const EmployeeDashboard = () => {
         }}>
           <div className="section-header">
             <h3 className="section-title" style={{ color: '#15803d' }}>Overall Progress</h3>
+            <p className="section-description" style={{ color: '#15803d', marginTop: '8px' }}>
+              Track your overall KYC verification progress with visual indicators.
+            </p>
             <div className="section-accent" style={{ background: '#22c55e' }}></div>
           </div>
           
@@ -1297,6 +1315,9 @@ const EmployeeDashboard = () => {
         }}>
           <div className="section-header">
             <h3 className="section-title" style={{ color: '#475569' }}>Performance Metrics</h3>
+            <p className="section-description" style={{ color: '#475569', marginTop: '8px' }}>
+              Monitor your KYC verification performance and efficiency metrics.
+            </p>
             <div className="section-accent" style={{ background: '#64748b' }}></div>
           </div>
           
@@ -1450,6 +1471,9 @@ const EmployeeDashboard = () => {
         }}>
           <div className="section-header">
             <h3 className="section-title" style={{ color: '#0369a1' }}>Task Summary</h3>
+            <p className="section-description" style={{ color: '#0369a1', marginTop: '8px' }}>
+              Overview of your current tasks and priorities for KYC verification.
+            </p>
             <div className="section-accent" style={{ background: '#0ea5e9' }}></div>
           </div>
           
@@ -1494,6 +1518,9 @@ const EmployeeDashboard = () => {
         }}>
           <div className="section-header">
             <h3 className="section-title" style={{ color: '#15803d' }}>Quick Actions</h3>
+            <p className="section-description" style={{ color: '#15803d', marginTop: '8px' }}>
+              Quick access to common tasks and actions for managing your workload.
+            </p>
             <div className="section-accent" style={{ background: '#22c55e' }}></div>
           </div>
           
@@ -1606,6 +1633,9 @@ const EmployeeDashboard = () => {
         }}>
           <div className="section-header">
             <h3 className="section-title" style={{ color: '#475569' }}>Performance Metrics</h3>
+            <p className="section-description" style={{ color: '#475569', marginTop: '8px' }}>
+              Monitor your KYC verification performance and efficiency metrics.
+            </p>
             <div className="section-accent" style={{ background: '#64748b' }}></div>
           </div>
           
@@ -1654,6 +1684,9 @@ const EmployeeDashboard = () => {
         }}>
           <div className="section-header">
             <h3 className="section-title" style={{ color: '#0369a1' }}>Activity Overview</h3>
+            <p className="section-description" style={{ color: '#0369a1', marginTop: '8px' }}>
+              Overview of your recent KYC verification activities and trends.
+            </p>
             <div className="section-accent" style={{ background: '#0ea5e9' }}></div>
           </div>
           
@@ -1698,6 +1731,9 @@ const EmployeeDashboard = () => {
         }}>
           <div className="section-header">
             <h3 className="section-title" style={{ color: '#15803d' }}>Quick Actions</h3>
+            <p className="section-description" style={{ color: '#15803d', marginTop: '8px' }}>
+              Quick access to common tasks and actions for managing your workload.
+            </p>
             <div className="section-accent" style={{ background: '#22c55e' }}></div>
           </div>
           

@@ -359,7 +359,7 @@ const AboutScreen = () => {
             <div className="cta-buttons">
               <button 
                 className="cta-btn primary"
-                onClick={() => navigate('/farmer/registration')}
+                onClick={() => navigate('/login')}
               >
                 <span>Register Now</span>
                 <span>→</span>
@@ -370,13 +370,6 @@ const AboutScreen = () => {
               >
                 <span>View Analytics</span>
                 <span>📊</span>
-              </button>
-              <button 
-                className="cta-btn secondary"
-                onClick={() => navigate('/login')}
-              >
-                <span>Back to Login</span>
-                <span>🔑</span>
               </button>
             </div>
           </div>

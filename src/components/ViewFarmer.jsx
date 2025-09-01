@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/ViewFarmerDetails.css';
 
 const ViewFarmer = ({ farmerData, onBack, onSave }) => {
+	const navigate = useNavigate();
 	const [isEditMode, setIsEditMode] = useState(false);
 	const [formData, setFormData] = useState({});
 

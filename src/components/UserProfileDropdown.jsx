@@ -127,7 +127,7 @@ const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShow
         </div>
 
         {isOpen && (
-          <div className="user-profile-dropdown-menu compact">
+          <div className="user-profile-dropdown-menu compact show">
             <div className="user-profile-dropdown-header">
               <div className="user-profile-dropdown-avatar-large">
                 {getAvatarInitials()}
@@ -225,7 +225,7 @@ const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShow
         </div>
  
         {isOpen && (
-          <div className="user-dropdown-menu enhanced">
+          <div className="user-dropdown-menu enhanced show">
             <div className="dropdown-header">
               <div className="user-avatar-large">
                 {getAvatarInitials()}
@@ -288,19 +288,6 @@ const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShow
   // Render default variant (standard dropdown)
   return (
     <div className="user-profile-dropdown" ref={dropdownRef}>
-      {/* Debug indicator */}
-      <div style={{ 
-        position: 'absolute', 
-        top: '-30px', 
-        right: '0', 
-        background: 'blue', 
-        color: 'white', 
-        padding: '5px', 
-        fontSize: '12px',
-        zIndex: 10001
-      }}>
-        DROPDOWN RENDERING
-      </div>
       
       <div
         className="user-profile-trigger"
@@ -320,7 +307,7 @@ const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShow
       </div>
  
       {isOpen && (
-        <div className="user-dropdown-menu">
+        <div className="user-dropdown-menu show">
           <div className="dropdown-header">
             <div className="user-avatar-large">
               {getAvatarInitials()}
