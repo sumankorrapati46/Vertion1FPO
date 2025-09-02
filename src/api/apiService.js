@@ -987,8 +987,20 @@ export const apiService = {
   deleteFarmer: farmersAPI.deleteFarmer,
   getAddressByPincode: authAPI.getAddressByPincode,
   getFarmerDashboardData: async (email) => {
-    const response = await api.get(`/farmers/dashboard/by-email?email=${email}`);
-    return response.data;
+    try {
+      const response = await api.get(`/farmers/dashboard/by-email?email=${email}`);
+      return response.data;
+    } catch (error) {
+      console.warn('Farmer dashboard endpoint not available, trying alternative:', error);
+      // Try alternative endpoint
+      try {
+        const response = await api.get(`/farmers/by-email?email=${email}`);
+        return response.data;
+      } catch (altError) {
+        console.warn('Alternative farmer endpoint also failed:', altError);
+        throw error; // Re-throw original error
+      }
+    }
   },
 
   // Employee management

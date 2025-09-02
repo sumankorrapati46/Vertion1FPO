@@ -810,13 +810,14 @@ const AdminDashboard = () => {
     return (
       <div className="overview-section">
         <div className="overview-header">
-          <div>
+          <div className="header-left">
             <h2 className="overview-title">Admin Dashboard Overview</h2>
             <p className="overview-description">
               Manage farmers, employees, and assignments efficiently.
             </p>
           </div>
-          <div className="overview-actions">
+          <div className="header-right">
+            <div className="overview-actions">
             <button 
               className={`action-btn refresh ${timeFilter === 'all' ? 'active' : ''}`}
               onClick={() => {
@@ -855,6 +856,7 @@ const AdminDashboard = () => {
               This Year
             </button>
           </div>
+            </div>
         </div>
 
         {/* Stats Cards */}
@@ -950,7 +952,7 @@ const AdminDashboard = () => {
                   gap: '8px',
                   transform: 'translateY(0)',
                   position: 'relative',
-                  zIndex: 9999,
+                  zIndex: 1,
                   pointerEvents: 'auto',
                   minWidth: '160px',
                   justifyContent: 'center'
@@ -1001,34 +1003,37 @@ const AdminDashboard = () => {
         {!showFarmerRegistration ? (
           <>
             <div className="overview-header">
-              <h2 className="overview-title">Farmer Management</h2>
-              <p className="overview-description">
-                View and manage all farmer profiles with KYC status and assignments.
-              </p>
-              <div className="overview-actions">
-                <button 
-                  onClick={() => {
-                    setShowFarmerRegistration(true);
-                  }}
-                  style={{
-                    background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '12px 24px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    transition: 'all 0.3s ease',
-                    boxShadow: '0 4px 12px rgba(21, 128, 61, 0.25)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    transform: 'translateY(0)',
-                    position: 'relative',
-                    zIndex: 9999,
-                    pointerEvents: 'auto'
-                  }}
+              <div className="header-left">
+                <h2 className="overview-title">Farmer Management</h2>
+                <p className="overview-description">
+                  View and manage all farmer profiles with KYC status and assignments.
+                </p>
+              </div>
+              <div className="header-right">
+                <div className="overview-actions">
+                                  <button 
+                    onClick={() => {
+                      setShowFarmerRegistration(true);
+                    }}
+                    style={{
+                      background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '12px 24px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 4px 12px rgba(21, 128, 61, 0.25)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transform: 'translateY(0)',
+                      position: 'relative',
+                      zIndex: 1,
+                      pointerEvents: 'auto'
+                    }}
                   onMouseEnter={(e) => {
                     e.target.style.background = 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)';
                     e.target.style.transform = 'translateY(-2px)';
@@ -1063,7 +1068,7 @@ const AdminDashboard = () => {
                     gap: '8px',
                     transform: 'translateY(0)',
                     position: 'relative',
-                    zIndex: 9999,
+                    zIndex: 1,
                     pointerEvents: 'auto'
                   }}
                   onMouseEnter={(e) => {
@@ -1080,6 +1085,7 @@ const AdminDashboard = () => {
                   <i className="fas fa-user-plus"></i>
                   Assign Farmers
                 </button>
+              </div>
             </div>
         </div>
 
@@ -1285,9 +1291,9 @@ const AdminDashboard = () => {
                     alignItems: 'center',
                     gap: '6px',
                     transform: 'translateY(0)',
-                    position: 'relative',
-                    zIndex: 9999,
-                    pointerEvents: 'auto'
+                                      position: 'relative',
+                  zIndex: 1,
+                  pointerEvents: 'auto'
                   }}
                   onMouseEnter={(e) => {
                     e.target.style.background = '#4b5563';
@@ -1340,31 +1346,31 @@ const AdminDashboard = () => {
             </p>
           </div>
           <div className="section-actions">
-            <button 
-              onClick={() => {
-                // Show refresh notification popup
-                alert('🔄 Data refreshed successfully!\n\nRegistration data has been updated with the latest information.');
-                console.log('🔄 Refresh Data button clicked - showing notification');
-              }}
-              style={{
-                background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '8px 16px',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: '600',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 2px 8px rgba(21, 128, 61, 0.25)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                transform: 'translateY(0)',
-                position: 'relative',
-                zIndex: 9999,
-                pointerEvents: 'auto'
-              }}
+                          <button 
+                onClick={() => {
+                  // Show refresh notification popup
+                  alert('🔄 Data refreshed successfully!\n\nRegistration data has been updated with the latest information.');
+                  console.log('🔄 Refresh Data button clicked - showing notification');
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 2px 8px rgba(21, 128, 61, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transform: 'translateY(0)',
+                  position: 'relative',
+                  zIndex: 1,
+                  pointerEvents: 'auto'
+                }}
               onMouseEnter={(e) => {
                 e.target.style.background = 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)';
                 e.target.style.transform = 'translateY(-1px)';
@@ -1460,11 +1466,14 @@ const AdminDashboard = () => {
         {!showEmployeeRegistration ? (
           <>
             <div className="overview-header">
-              <h2 className="overview-title">Employee Management</h2>
-              <p className="overview-description">
-                View and manage employee profiles with KYC assignment statistics.
-              </p>
-              <div className="overview-actions">
+              <div className="header-left">
+                <h2 className="overview-title">Employee Management</h2>
+                <p className="overview-description">
+                  View and manage employee profiles with KYC assignment statistics.
+                </p>
+              </div>
+              <div className="header-right">
+                <div className="overview-actions">
                 <button 
                   onClick={() => setShowEmployeeRegistration(true)}
                   style={{
@@ -1483,7 +1492,7 @@ const AdminDashboard = () => {
                     gap: '8px',
                     transform: 'translateY(0)',
                     position: 'relative',
-                    zIndex: 9999,
+                    zIndex: 1,
                     pointerEvents: 'auto'
                   }}
                   onMouseEnter={(e) => {
@@ -1500,6 +1509,7 @@ const AdminDashboard = () => {
                   <i className="fas fa-plus"></i>
                   Add Employee
                 </button>
+                </div>
               </div>
       </div>
 
@@ -1660,7 +1670,7 @@ const AdminDashboard = () => {
                     gap: '6px',
                     transform: 'translateY(0)',
                     position: 'relative',
-                    zIndex: 9999,
+                    zIndex: 1,
                     pointerEvents: 'auto'
                   }}
                   onMouseEnter={(e) => {

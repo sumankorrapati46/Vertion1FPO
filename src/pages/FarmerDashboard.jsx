@@ -4,7 +4,6 @@ import { AuthContext } from '../contexts/AuthContext';
 import UserProfileDropdown from '../components/UserProfileDropdown';
 import { apiService } from '../api/apiService';
 import '../styles/Dashboard.css';
-import '../styles/FarmerDashboard.css';
 
 const FarmerDashboard = () => {
   const { user, logout } = useContext(AuthContext);
@@ -28,13 +27,59 @@ const FarmerDashboard = () => {
   const loadFarmerData = async () => {
     try {
       setLoading(true);
-      // Load farmer data from API
-      const response = await apiService.getFarmerDashboardData(user?.email);
-      setFarmerData(response);
+      setError('');
+      
+      // Try to load farmer data from API
+      try {
+        const response = await apiService.getFarmerDashboardData(user?.email);
+        setFarmerData(response);
+        return;
+      } catch (apiError) {
+        console.warn('API call failed, using fallback data:', apiError);
+      }
+      
+      // Fallback: Try to get farmer data by email from a different endpoint
+      try {
+        const farmers = await apiService.getAllFarmers({ email: user?.email });
+        if (farmers && farmers.length > 0) {
+          const farmer = farmers[0];
+          setFarmerData({
+            name: farmer.name || user?.name || 'Farmer Name',
+            email: farmer.email || user?.email || user?.userName || 'farmer@example.com',
+            phoneNumber: farmer.phoneNumber || user?.phoneNumber || 'Not provided',
+            kycStatus: farmer.kycStatus || 'PENDING',
+            registrationDate: farmer.createdAt ? new Date(farmer.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
+            totalCrops: farmer.totalCrops || 0,
+            pendingDocuments: farmer.pendingDocuments || 0,
+            district: farmer.district || 'Not specified',
+            state: farmer.state || 'Not specified',
+            region: farmer.region || 'Not specified'
+          });
+          return;
+        }
+      } catch (fallbackError) {
+        console.warn('Fallback API call also failed:', fallbackError);
+      }
+      
+      // Final fallback: Use user data from context
+      setFarmerData({
+        name: user?.name || 'Farmer Name',
+        email: user?.email || user?.userName || 'farmer@example.com',
+        phoneNumber: user?.phoneNumber || 'Not provided',
+        kycStatus: user?.kycStatus || 'PENDING',
+        registrationDate: new Date().toLocaleDateString(),
+        totalCrops: 0,
+        pendingDocuments: 0,
+        district: user?.district || 'Not specified',
+        state: user?.state || 'Not specified',
+        region: user?.region || 'Not specified'
+      });
+      
     } catch (error) {
       console.error('Error loading farmer data:', error);
       setError('Failed to load farmer data');
-      // Fallback to mock data
+      
+      // Even if everything fails, show basic user data
       setFarmerData({
         name: user?.name || 'Farmer Name',
         email: user?.email || user?.userName || 'farmer@example.com',
@@ -42,7 +87,10 @@ const FarmerDashboard = () => {
         kycStatus: 'PENDING',
         registrationDate: new Date().toLocaleDateString(),
         totalCrops: 0,
-        pendingDocuments: 0
+        pendingDocuments: 0,
+        district: 'Not specified',
+        state: 'Not specified',
+        region: 'Not specified'
       });
     } finally {
       setLoading(false);
@@ -64,7 +112,7 @@ const FarmerDashboard = () => {
 
   if (loading) {
     return (
-      <div className="dashboard-container">
+      <div className="dashboard">
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>Loading farmer dashboard...</p>
@@ -73,9 +121,9 @@ const FarmerDashboard = () => {
     );
   }
 
-  if (error) {
+  if (error && !farmerData) {
     return (
-      <div className="dashboard-container">
+      <div className="dashboard">
         <div className="error-container">
           <h2>Error</h2>
           <p>{error}</p>
@@ -86,130 +134,177 @@ const FarmerDashboard = () => {
   }
 
   return (
-    <div className="dashboard-container">
-      {/* Sidebar */}
-      <div className="sidebar">
-        <div className="sidebar-header">
-          <div className="logo">
-            <span className="logo-text">DATE</span>
-            <span className="logo-subtitle">Digital Agristack</span>
+    <div className="dashboard">
+      {/* Header */}
+      <div className="dashboard-header">
+        <div className="header-left">
+          <div className="logo-section">
+            <h1 className="logo-title">DATE</h1>
+            <p className="logo-subtitle">Digital Agristack</p>
           </div>
         </div>
+        <div className="header-right">
+          <UserProfileDropdown />
+        </div>
+      </div>
+
+      {/* Sidebar */}
+      <div className="dashboard-sidebar">
+        <div className="sidebar-header">
+          <h2 className="sidebar-welcome">Welcome!!!</h2>
+          <p className="sidebar-role">FARMER</p>
+        </div>
         
-        <nav className="sidebar-nav">
-          <div className="nav-section">
-            <h3>Farmer Dashboard</h3>
-            <ul>
-              <li className={activeSection === 'overview' ? 'active' : ''} 
-                  onClick={() => setActiveSection('overview')}>
-                <span className="nav-icon">🏠</span>
-                <span>Overview</span>
-              </li>
-              <li className={activeSection === 'profile' ? 'active' : ''} 
-                  onClick={() => setActiveSection('profile')}>
-                <span className="nav-icon">👤</span>
-                <span>My Profile</span>
-              </li>
-              <li className={activeSection === 'crops' ? 'active' : ''} 
-                  onClick={() => setActiveSection('crops')}>
-                <span className="nav-icon">🌾</span>
-                <span>My Crops</span>
-              </li>
-              <li className={activeSection === 'kyc' ? 'active' : ''} 
-                  onClick={() => setActiveSection('kyc')}>
-                <span className="nav-icon">📋</span>
-                <span>KYC Status</span>
-              </li>
-              <li className={activeSection === 'documents' ? 'active' : ''} 
-                  onClick={() => setActiveSection('documents')}>
-                <span className="nav-icon">📄</span>
-                <span>Documents</span>
-              </li>
-              <li className={activeSection === 'benefits' ? 'active' : ''} 
-                  onClick={() => setActiveSection('benefits')}>
-                <span className="nav-icon">💰</span>
-                <span>Benefits</span>
-              </li>
-              <li className={activeSection === 'support' ? 'active' : ''} 
-                  onClick={() => setActiveSection('support')}>
-                <span className="nav-icon">📞</span>
-                <span>Support</span>
-              </li>
-            </ul>
+        <div className="sidebar-nav">
+          <div 
+            className={`nav-item ${activeSection === 'overview' ? 'active' : ''}`}
+            onClick={() => setActiveSection('overview')}
+          >
+            <i className="fas fa-tachometer-alt"></i>
+            <span>Dashboard Overview</span>
           </div>
-        </nav>
+          
+          <div 
+            className={`nav-item ${activeSection === 'profile' ? 'active' : ''}`}
+            onClick={() => setActiveSection('profile')}
+          >
+            <i className="fas fa-user"></i>
+            <span>My Profile</span>
+          </div>
+          
+          <div 
+            className={`nav-item ${activeSection === 'crops' ? 'active' : ''}`}
+            onClick={() => setActiveSection('crops')}
+          >
+            <i className="fas fa-seedling"></i>
+            <span>My Crops</span>
+          </div>
+          
+          <div 
+            className={`nav-item ${activeSection === 'kyc' ? 'active' : ''}`}
+            onClick={() => setActiveSection('kyc')}
+          >
+            <i className="fas fa-clipboard-check"></i>
+            <span>KYC Status</span>
+          </div>
+          
+          <div 
+            className={`nav-item ${activeSection === 'documents' ? 'active' : ''}`}
+            onClick={() => setActiveSection('documents')}
+          >
+            <i className="fas fa-file-alt"></i>
+            <span>Documents</span>
+          </div>
+          
+          <div 
+            className={`nav-item ${activeSection === 'benefits' ? 'active' : ''}`}
+            onClick={() => setActiveSection('benefits')}
+          >
+            <i className="fas fa-gift"></i>
+            <span>Benefits</span>
+          </div>
+          
+          <div 
+            className={`nav-item ${activeSection === 'support' ? 'active' : ''}`}
+            onClick={() => setActiveSection('support')}
+          >
+            <i className="fas fa-headset"></i>
+            <span>Support</span>
+          </div>
+        </div>
       </div>
 
       {/* Main Content */}
-      <div className="main-content">
-        {/* Header */}
-        <div className="dashboard-header">
-          <div className="header-left">
-            <div className="greeting-section">
-              <h2 className="greeting-text">{getGreeting()}, {user?.name || 'Farmer'}! 👋</h2>
-              <p className="greeting-time">{new Date().toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}</p>
-            </div>
-            <h1 className="header-title">Farmer Dashboard</h1>
-            <p className="header-subtitle">Manage your agricultural profile</p>
-          </div>
-          <div className="header-right">
-            <UserProfileDropdown />
-          </div>
-        </div>
-
+      <div className="dashboard-main">
         {/* Dashboard Content */}
         <div className="dashboard-content">
           {activeSection === 'overview' && (
             <>
-              {/* Stats Cards */}
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <div className="stat-icon">🌾</div>
-                  <div className="stat-content">
-                    <h3>Total Crops</h3>
-                    <p className="stat-number">{farmerData?.totalCrops || 0}</p>
-                    <p className="stat-label">Registered crops</p>
+              {/* Greeting Banner */}
+              <div className="greeting-banner">
+                <div className="greeting-left">
+                  <div className="greeting-title">{getGreeting()}, {user?.name || 'Farmer'}! 👋</div>
+                  <div className="greeting-subtitle">Welcome to your agricultural dashboard. Manage your profile, crops, and track your KYC status.</div>
+                </div>
+                <div className="greeting-right">
+                  <span className="greeting-date">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                </div>
+              </div>
+              
+              {/* Welcome Section */}
+              <div className="welcome-section">
+                <h1 className="welcome-title">Farmer Dashboard</h1>
+                <p className="welcome-subtitle">
+                  Manage your agricultural profile, track KYC status, and access benefits. 
+                  Your digital farming journey starts here.
+                </p>
+                {error && (
+                  <div className="error-notice">
+                    <p className="error-text">⚠️ Some data may not be up to date</p>
+                    <button className="retry-btn" onClick={loadFarmerData}>🔄 Refresh Data</button>
                   </div>
+                )}
+              </div>
+              
+              {/* Overview Section */}
+              <div className="farmer-overview-section">
+                <div className="farmer-section-header">
+                  <h3 className="farmer-section-title">Dashboard Overview</h3>
+                  <p className="section-description">
+                    Overview of your agricultural profile and current status.
+                  </p>
                 </div>
                 
-                <div className="stat-card">
-                  <div className="stat-icon">📋</div>
-                  <div className="stat-content">
-                    <h3>KYC Status</h3>
-                    <p className={`stat-number status-${farmerData?.kycStatus?.toLowerCase()}`}>
-                      {farmerData?.kycStatus || 'PENDING'}
-                    </p>
-                    <p className="stat-label">Verification status</p>
+                <div className="stats-grid">
+                  <div className="stat-card">
+                    <div className="stat-icon">🌾</div>
+                    <div className="stat-content">
+                      <h3>Total Crops</h3>
+                      <p className="stat-number">{farmerData?.totalCrops || 0}</p>
+                      <p className="stat-label">Registered crops</p>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="stat-card">
-                  <div className="stat-icon">📄</div>
-                  <div className="stat-content">
-                    <h3>Pending Documents</h3>
-                    <p className="stat-number">{farmerData?.pendingDocuments || 0}</p>
-                    <p className="stat-label">Documents to upload</p>
+                  
+                  <div className="stat-card">
+                    <div className="stat-icon">📋</div>
+                    <div className="stat-content">
+                      <h3>KYC Status</h3>
+                      <p className={`stat-number status-${farmerData?.kycStatus?.toLowerCase()}`}>
+                        {farmerData?.kycStatus || 'PENDING'}
+                      </p>
+                      <p className="stat-label">Verification status</p>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="stat-card">
-                  <div className="stat-icon">💰</div>
-                  <div className="stat-content">
-                    <h3>Benefits Received</h3>
-                    <p className="stat-number">₹{farmerData?.totalBenefitsReceived || 0}</p>
-                    <p className="stat-label">This month</p>
+                  
+                  <div className="stat-card">
+                    <div className="stat-icon">📄</div>
+                    <div className="stat-content">
+                      <h3>Pending Documents</h3>
+                      <p className="stat-number">{farmerData?.pendingDocuments || 0}</p>
+                      <p className="stat-label">Documents to upload</p>
+                    </div>
+                  </div>
+                  
+                  <div className="stat-card">
+                    <div className="stat-icon">💰</div>
+                    <div className="stat-content">
+                      <h3>Benefits Received</h3>
+                      <p className="stat-number">₹{farmerData?.totalBenefitsReceived || 0}</p>
+                      <p className="stat-label">This month</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Quick Actions */}
-              <div className="quick-actions">
-                <h2>Quick Actions</h2>
+              {/* Quick Actions Section */}
+              <div className="farmer-overview-section">
+                <div className="farmer-section-header">
+                  <h3 className="farmer-section-title">Quick Actions</h3>
+                  <p className="section-description">
+                    Access frequently used functions to manage your profile and documents.
+                  </p>
+                </div>
+                
                 <div className="actions-grid">
                   <button className="action-btn" onClick={() => setActiveSection('profile')}>
                     <span className="action-icon">📝</span>
@@ -230,9 +325,15 @@ const FarmerDashboard = () => {
                 </div>
               </div>
 
-              {/* Recent Activity */}
-              <div className="recent-activity">
-                <h2>Recent Activity</h2>
+              {/* Recent Activity Section */}
+              <div className="farmer-overview-section">
+                <div className="farmer-section-header">
+                  <h3 className="farmer-section-title">Recent Activity</h3>
+                  <p className="section-description">
+                    Track your recent activities and updates.
+                  </p>
+                </div>
+                
                 <div className="activity-list">
                   <div className="activity-item">
                     <div className="activity-icon">✅</div>
@@ -266,8 +367,13 @@ const FarmerDashboard = () => {
           )}
 
           {activeSection === 'profile' && (
-            <div className="profile-section">
-              <h2>My Profile</h2>
+            <div className="farmer-overview-section">
+              <div className="farmer-section-header">
+                <h3 className="farmer-section-title">My Profile</h3>
+                <p className="section-description">
+                  View and manage your personal information and details.
+                </p>
+              </div>
               <div className="profile-grid">
                 <div className="profile-card">
                   <h3>Personal Information</h3>
@@ -373,8 +479,13 @@ const FarmerDashboard = () => {
           )}
 
           {activeSection === 'kyc' && (
-            <div className="kyc-section">
-              <h2>KYC Status & Assignment</h2>
+            <div className="farmer-overview-section">
+              <div className="farmer-section-header">
+                <h3 className="farmer-section-title">KYC Status & Assignment</h3>
+                <p className="section-description">
+                  Track your KYC verification status and assigned employee details.
+                </p>
+              </div>
               <div className="kyc-grid">
                 <div className="kyc-card">
                   <h3>KYC Status</h3>
@@ -440,8 +551,13 @@ const FarmerDashboard = () => {
           )}
 
           {activeSection === 'crops' && (
-            <div className="crops-section">
-              <h2>My Crops</h2>
+            <div className="farmer-overview-section">
+              <div className="farmer-section-header">
+                <h3 className="farmer-section-title">My Crops</h3>
+                <p className="section-description">
+                  View your current and proposed crop information.
+                </p>
+              </div>
               <div className="crops-grid">
                 <div className="crop-card">
                   <h3>Current Crop</h3>
@@ -507,8 +623,13 @@ const FarmerDashboard = () => {
           )}
 
           {activeSection === 'documents' && (
-            <div className="documents-section">
-              <h2>My Documents</h2>
+            <div className="farmer-overview-section">
+              <div className="farmer-section-header">
+                <h3 className="farmer-section-title">My Documents</h3>
+                <p className="section-description">
+                  View and manage your uploaded documents and certificates.
+                </p>
+              </div>
               <div className="documents-grid">
                 <div className="document-card">
                   <h3>Uploaded Documents</h3>
@@ -548,8 +669,13 @@ const FarmerDashboard = () => {
           )}
 
           {activeSection === 'benefits' && (
-            <div className="benefits-section">
-              <h2>Benefits & Support</h2>
+            <div className="farmer-overview-section">
+              <div className="farmer-section-header">
+                <h3 className="farmer-section-title">Benefits & Support</h3>
+                <p className="section-description">
+                  View your received benefits and available support options.
+                </p>
+              </div>
               <div className="benefits-grid">
                 <div className="benefit-card">
                   <h3>Benefits Received</h3>
@@ -566,8 +692,13 @@ const FarmerDashboard = () => {
           )}
 
           {activeSection === 'support' && (
-            <div className="support-section">
-              <h2>Support & Contact</h2>
+            <div className="farmer-overview-section">
+              <div className="farmer-section-header">
+                <h3 className="farmer-section-title">Support & Contact</h3>
+                <p className="section-description">
+                  Get help and contact information for support.
+                </p>
+              </div>
               <div className="support-grid">
                 <div className="support-card">
                   <h3>Contact Information</h3>

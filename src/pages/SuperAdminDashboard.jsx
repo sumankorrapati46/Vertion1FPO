@@ -898,15 +898,16 @@ const SuperAdminDashboard = () => {
               </div>
 
               {/* Dashboard Overview */}
-              <div className="overview-section">
-                <div className="overview-header">
-                  <div>
-                    <h2 className="overview-title">Dashboard Overview</h2>
+              <div className="superadmin-overview-section">
+                <div className="superadmin-overview-header">
+                  <div className="header-left">
+                    <h2 className="superadmin-overview-title">Dashboard Overview</h2>
                     <p className="overview-description">
                       Welcome back! Here's what's happening with your agricultural data.
                     </p>
                   </div>
-                                     <div className="overview-actions">
+                  <div className="header-right">
+                    <div className="overview-actions">
                      <button 
                        className={`action-btn refresh ${timeFilter === 'all' ? 'active' : ''}`}
                        onClick={() => {
@@ -943,11 +944,12 @@ const SuperAdminDashboard = () => {
                        }}
                      >
                        This Year
-                     </button>
+                                            </button>
+                     </div>
                    </div>
                 </div>
 
-                                 {/* Stats Cards */}
+                {/* Stats Cards */}
                  <div className="stats-grid">
                    <div className="stats-card">
                      <div className="stats-icon farmers">
@@ -1011,8 +1013,8 @@ const SuperAdminDashboard = () => {
                 <div className="bottom-sections">
                   {/* Quick Actions */}
                                      <div className="section-card">
-                    <div className="section-header">
-                      <h3 className="section-title">Quick Actions</h3>
+                    <div className="superadmin-section-header">
+                      <h3 className="superadmin-section-title">Quick Actions</h3>
                       <p className="section-description">
                         Access frequently used functions to manage farmers, employees, and generate reports.
                       </p>
@@ -1059,38 +1061,40 @@ const SuperAdminDashboard = () => {
           )}
 
           {activeTab === 'registration' && (
-            <div className="overview-section">
-              <div className="overview-header">
-                <h2 className="overview-title">Registration Management</h2>
-                <p className="overview-description">
-                  Manage pending registrations and approve new users.
-                </p>
-                <div className="overview-actions">
+            <div className="superadmin-overview-section">
+              <div className="superadmin-overview-header">
+                <div className="header-left">
+                  <h2 className="superadmin-overview-title">Registration Management</h2>
+                  <p className="overview-description">
+                    Manage pending registrations and approve new users.
+                  </p>
+                </div>
+                <div className="header-right">
                   <button 
                     onClick={() => {
                       // Show refresh notification popup
                       alert('🔄 Data refreshed successfully!\n\nRegistration data has been updated with the latest information.');
                       console.log('🔄 Refresh Data button clicked - showing notification');
                     }}
-                    style={{
-                      background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '8px 16px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      transition: 'all 0.3s ease',
-                      boxShadow: '0 2px 8px rgba(21, 128, 61, 0.25)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      transform: 'translateY(0)',
-                      position: 'relative',
-                      zIndex: 9999,
-                      pointerEvents: 'auto'
-                    }}
+                                         style={{
+                       background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
+                       color: 'white',
+                       border: 'none',
+                       borderRadius: '8px',
+                       padding: '8px 16px',
+                       cursor: 'pointer',
+                       fontSize: '12px',
+                       fontWeight: '600',
+                       transition: 'all 0.3s ease',
+                       boxShadow: '0 2px 8px rgba(21, 128, 61, 0.25)',
+                       display: 'flex',
+                       alignItems: 'center',
+                       gap: '6px',
+                       transform: 'translateY(0)',
+                       position: 'relative',
+                       zIndex: 1,
+                       pointerEvents: 'auto'
+                     }}
                     onMouseEnter={(e) => {
                       e.target.style.background = 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)';
                       e.target.style.transform = 'translateY(-1px)';
@@ -1204,13 +1208,16 @@ const SuperAdminDashboard = () => {
           {activeTab === 'farmers' && (
             <>
               {!viewingFarmer && !showAssignmentInline ? (
-                <div className="overview-section">
-                  <div className="overview-header">
-                    <h2 className="overview-title">Farmer Management</h2>
-                    <p className="overview-description">
-                      Manage farmer registrations and assignments.
-                    </p>
-                    <div className="overview-actions">
+                <div className="superadmin-overview-section">
+                  <div className="superadmin-overview-header">
+                    <div className="header-left">
+                      <h2 className="superadmin-overview-title">Farmer Management</h2>
+                      <p className="overview-description">
+                        Manage farmer registrations and assignments.
+                      </p>
+                    </div>
+                    <div className="header-right">
+                      <div className="overview-actions">
                       <button 
                         className="action-btn primary"
                         onClick={() => {
@@ -1295,24 +1302,24 @@ const SuperAdminDashboard = () => {
                           console.log('🔍 Refresh Data button clicked!');
                           handleManualRefresh();
                         }}
-                        style={{
-                          background: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          padding: '12px 24px',
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          transition: 'all 0.3s ease',
-                          boxShadow: '0 4px 12px rgba(245, 158, 11, 0.25)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          transform: 'translateY(0)',
-                          position: 'relative',
-                          zIndex: 9999
-                        }}
+                                                 style={{
+                           background: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+                           color: 'white',
+                           border: 'none',
+                           borderRadius: '8px',
+                           padding: '12px 24px',
+                           cursor: 'pointer',
+                           fontSize: '14px',
+                           fontWeight: '600',
+                           transition: 'all 0.3s ease',
+                           boxShadow: '0 4px 12px rgba(245, 158, 11, 0.25)',
+                           display: 'flex',
+                           alignItems: 'center',
+                           gap: '8px',
+                           transform: 'translateY(0)',
+                           position: 'relative',
+                           zIndex: 1
+                         }}
                         onMouseEnter={(e) => {
                           e.target.style.background = 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)';
                           e.target.style.transform = 'translateY(-2px)';
@@ -1326,7 +1333,8 @@ const SuperAdminDashboard = () => {
                       >
                         <i className="fas fa-sync-alt"></i>
                         Refresh Data
-                      </button>
+                                              </button>
+                      </div>
                     </div>
                   </div>
 
@@ -1546,41 +1554,44 @@ const SuperAdminDashboard = () => {
           )}
 
           {activeTab === 'employees' && (
-            <div className="overview-section">
+            <div className="superadmin-overview-section">
               {!showEmployeeRegistration ? (
                 <>
                   {!viewingEmployee ? (
                     <>
-                      <div className="overview-header">
-                        <h2 className="overview-title">Employee Management</h2>
-                        <p className="overview-description">
-                          Manage employee profiles and assignments.
-                        </p>
-                        <div className="overview-actions">
+                      <div className="superadmin-overview-header">
+                        <div className="header-left">
+                          <h2 className="superadmin-overview-title">Employee Management</h2>
+                          <p className="overview-description">
+                            Manage employee profiles and assignments.
+                          </p>
+                        </div>
+                        <div className="header-right">
+                          <div className="overview-actions">
                           <button 
                             onClick={() => {
                               setShowEmployeeRegistration(true);
                               console.log('🔄 Add Employee button clicked - opening employee form');
                             }}
-                            style={{
-                              background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '8px',
-                              padding: '12px 24px',
-                              cursor: 'pointer',
-                              fontSize: '14px',
-                              fontWeight: '600',
-                              transition: 'all 0.3s ease',
-                              boxShadow: '0 4px 12px rgba(21, 128, 61, 0.25)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                              transform: 'translateY(0)',
-                              position: 'relative',
-                              zIndex: 9999,
-                              pointerEvents: 'auto'
-                            }}
+                                                         style={{
+                               background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
+                               color: 'white',
+                               border: 'none',
+                               borderRadius: '8px',
+                               padding: '12px 24px',
+                               cursor: 'pointer',
+                               fontSize: '14px',
+                               fontWeight: '600',
+                               transition: 'all 0.3s ease',
+                               boxShadow: '0 4px 12px rgba(21, 128, 61, 0.25)',
+                               display: 'flex',
+                               alignItems: 'center',
+                               gap: '8px',
+                               transform: 'translateY(0)',
+                               position: 'relative',
+                               zIndex: 1,
+                               pointerEvents: 'auto'
+                             }}
                             onMouseEnter={(e) => {
                               e.target.style.background = 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)';
                               e.target.style.transform = 'translateY(-2px)';
@@ -1594,7 +1605,8 @@ const SuperAdminDashboard = () => {
                           >
                             <i className="fas fa-plus"></i>
                             Add Employee
-                          </button>
+                                                      </button>
+                          </div>
                         </div>
                       </div>
 
@@ -1764,7 +1776,7 @@ const SuperAdminDashboard = () => {
                           gap: '6px',
                           transform: 'translateY(0)',
                           position: 'relative',
-                          zIndex: 9999,
+                          zIndex: 1,
                           pointerEvents: 'auto'
                         }}
                         onMouseEnter={(e) => {
