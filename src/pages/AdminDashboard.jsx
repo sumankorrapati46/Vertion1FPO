@@ -43,6 +43,8 @@ const AdminDashboard = () => {
   const [editingFarmer, setEditingFarmer] = useState(null);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [registrations, setRegistrations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [selectedRegistration, setSelectedRegistration] = useState(null);
   const [showRegistrationDetailModal, setShowRegistrationDetailModal] = useState(false);
@@ -121,100 +123,53 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     try {
-      console.log('🔍 Admin: Starting to fetch real data from API...');
+      setLoading(true);
       
-      // Fetch farmers, employees, and registrations from API using admin endpoints
-      const [farmersData, employeesData, registrationsData] = await Promise.all([
+      const [registrationsData, farmersData, employeesData] = await Promise.all([
+        adminAPI.getRegistrationList(),
         adminAPI.getFarmersWithKyc(),
-        adminAPI.getEmployeesWithStats(),
-        superAdminAPI.getRegistrationList()
+        adminAPI.getEmployeesWithStats()
       ]);
-      
-      console.log('✅ Admin API Response:', { 
-        farmersCount: farmersData?.length || 0,
-        employeesCount: employeesData?.length || 0,
-        registrationsCount: registrationsData?.length || 0
-      });
-      
-      // Normalize employees from backend to match UI expectations
-      const normalizedEmployees = (employeesData || []).map(e => ({
-        id: e.id,
-        name: e.name || `${[e.firstName, e.middleName, e.lastName].filter(Boolean).join(' ')}`.trim(),
-        phone: e.contactNumber,
-        email: e.email,
-        designation: e.designation || 'KYC Officer',
-        state: e.state,
-        district: e.district,
-        region: e.region || 'Southern',
-        status: e.status || e.accessStatus || 'ACTIVE',
-        assignedFarmersCount: e.totalAssigned || 0,
-        kycStats: {
-          approved: e.approvedKyc || 0,
-          pending: e.pendingKyc || 0,
-          referBack: e.referBackKyc || 0,
-          rejected: e.rejectedKyc || 0
-        }
-      }));
 
-      // Use real data from APIs
-      setFarmers(farmersData || []);
-      setEmployees(normalizedEmployees);
-      setRegistrations(registrationsData || []);
-      
-      console.log('✅ Admin: Using real data from APIs');
-      console.log('- Farmers:', farmersData?.length || 0, 'records');
-      console.log('- Employees:', employeesData?.length || 0, 'records');
-      console.log('- Registrations:', registrationsData?.length || 0, 'records');
-      
-    } catch (error) {
-      console.error('❌ Admin error fetching data:', error);
-      console.log('❌ Using fallback endpoints due to API error');
-      
-      // Try basic admin endpoints as fallback
-      try {
-        const [fallbackFarmers, fallbackEmployees, fallbackRegistrations] = await Promise.all([
-          adminAPI.getAllFarmers(),
-          adminAPI.getAllEmployees(),
-          superAdminAPI.getRegistrationList()
-        ]);
-        
-        console.log('✅ Fallback API Response:', {
-          farmersCount: fallbackFarmers?.length || 0,
-          employeesCount: fallbackEmployees?.length || 0,
-          registrationsCount: fallbackRegistrations?.length || 0
-        });
-        
-        // Normalize fallback employees data too
-        const normalizedFallbackEmployees = (fallbackEmployees || []).map(e => ({
-          id: e.id,
-          name: e.name || `${[e.firstName, e.middleName, e.lastName].filter(Boolean).join(' ')}`.trim(),
-          phone: e.contactNumber,
-          email: e.email,
-          designation: e.designation || 'KYC Officer',
-          state: e.state,
-          district: e.district,
-          region: e.region || 'Southern',
-          status: e.status || e.accessStatus || 'ACTIVE',
-          assignedFarmersCount: e.totalAssigned || 0,
-          kycStats: {
-            approved: e.approvedKyc || 0,
-            pending: e.pendingKyc || 0,
-            referBack: e.referBackKyc || 0,
-            rejected: e.rejectedKyc || 0
-          }
-        }));
-
-        setFarmers(fallbackFarmers || []);
-        setEmployees(normalizedFallbackEmployees);
-        setRegistrations(fallbackRegistrations || []);
-        
-      } catch (fallbackError) {
-        console.error('❌ Fallback API also failed:', fallbackError);
-        // Set empty arrays if all APIs fail
-        setFarmers([]);
-        setEmployees([]);
+      if (farmersData) {
+        setFarmers(farmersData);
+      }
+      if (employeesData) {
+        setEmployees(employeesData);
+      }
+      if (registrationsData) {
+        setRegistrations(registrationsData);
+      } else {
         setRegistrations([]);
       }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError('Failed to fetch data. Please try again.');
+      
+      // Fallback: try to fetch data individually
+      try {
+        const farmersData = await adminAPI.getFarmersWithKyc();
+        if (farmersData) setFarmers(farmersData);
+      } catch (e) {
+        console.error('Failed to fetch farmers:', e);
+      }
+      
+      try {
+        const employeesData = await adminAPI.getEmployeesWithStats();
+        if (employeesData) setEmployees(employeesData);
+      } catch (e) {
+        console.error('Failed to fetch employees:', e);
+      }
+      
+      try {
+        const registrationsData = await adminAPI.getRegistrationList();
+        if (registrationsData) setRegistrations(registrationsData);
+      } catch (e) {
+        console.error('Failed to fetch registrations:', e);
+        setRegistrations([]);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -385,56 +340,7 @@ const AdminDashboard = () => {
     setEmployees(mockEmployees);
   };
 
-  const loadMockRegistrationData = () => {
-    const mockRegistrations = [
-      {
-        id: 1,
-        name: 'Ramu Yadav',
-        email: 'ramu.yadav@example.com',
-        phoneNumber: '9876543210',
-        role: 'FARMER',
-        status: 'PENDING',
-        createdAt: '2024-01-15',
-        documents: ['Aadhar Card', 'PAN Card'],
-        kycStatus: 'PENDING'
-      },
-      {
-        id: 2,
-        name: 'Krishna Kumar',
-        email: 'krishna.kumar@example.com',
-        phoneNumber: '9983733210',
-        role: 'FARMER',
-        status: 'PENDING',
-        createdAt: '2024-01-14',
-        documents: ['Aadhar Card', 'PAN Card'],
-        kycStatus: 'PENDING'
-      },
-      {
-        id: 3,
-        name: 'Jane Smith',
-        email: 'jane.smith@example.com',
-        phoneNumber: '9876543211',
-        role: 'EMPLOYEE',
-        status: 'APPROVED',
-        createdAt: '2024-01-14',
-        documents: ['Aadhar Card', 'PAN Card', 'Educational Certificate'],
-        kycStatus: 'APPROVED'
-      },
-      {
-        id: 4,
-        name: 'Bob Wilson',
-        email: 'bob.wilson@example.com',
-        phoneNumber: '9876543212',
-        role: 'FARMER',
-        status: 'REJECTED',
-        createdAt: '2024-01-13',
-        documents: ['Aadhar Card'],
-        kycStatus: 'REJECTED',
-        rejectionReason: 'Incomplete documentation'
-      }
-    ];
-    setRegistrations(mockRegistrations);
-  };
+
 
   const getFilteredFarmers = () => {
     return (farmers || []).filter(farmer => {
@@ -455,14 +361,12 @@ const AdminDashboard = () => {
   };
 
   const getFilteredRegistrations = () => {
-    console.log('All registrations:', registrations);
     // Apply filters
     const filtered = (registrations || []).filter(registration => {
       const roleMatch = !registrationFilters.role || registration.role === registrationFilters.role;
       const statusMatch = !registrationFilters.status || registration.status === registrationFilters.status;
       return roleMatch && statusMatch;
     });
-    console.log('Filtered registrations:', filtered);
     return filtered;
   };
 
@@ -482,7 +386,7 @@ const AdminDashboard = () => {
 
   const handleApproveRegistration = async (registrationId) => {
     try {
-      await superAdminAPI.approveUser(registrationId, 'FARMER'); // Default role, can be updated
+      await adminAPI.approveUser(registrationId, 'FARMER'); // Default role, can be updated
       setRegistrations(prev => prev.map(reg => 
         reg.id === registrationId ? { ...reg, status: 'APPROVED' } : reg
       ));
@@ -495,7 +399,7 @@ const AdminDashboard = () => {
 
   const handleRejectRegistration = async (registrationId) => {
     try {
-      await superAdminAPI.rejectUser(registrationId, 'Rejected by Admin');
+      await adminAPI.rejectUser(registrationId, 'Rejected by Admin');
       setRegistrations(prev => prev.map(reg => 
         reg.id === registrationId ? { ...reg, status: 'REJECTED' } : reg
       ));
@@ -1347,11 +1251,7 @@ const AdminDashboard = () => {
           </div>
           <div className="section-actions">
                           <button 
-                onClick={() => {
-                  // Show refresh notification popup
-                  alert('🔄 Data refreshed successfully!\n\nRegistration data has been updated with the latest information.');
-                  console.log('🔄 Refresh Data button clicked - showing notification');
-                }}
+               onClick={fetchData}
                 style={{
                   background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
                   color: 'white',
@@ -1380,6 +1280,7 @@ const AdminDashboard = () => {
                 e.target.style.background = 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)';
                 e.target.style.transform = 'translateY(0)';
                 e.target.style.boxShadow = '0 2px 8px rgba(21, 128, 61, 0.25)';
+                 e.target.style.transform = 'translateY(0)';
               }}
             >
               <i className="fas fa-sync-alt"></i>
@@ -1415,6 +1316,8 @@ const AdminDashboard = () => {
           </select>
         </div>
       </div>
+
+        
 
         {/* Registration Table or Inline View */}
       {!viewingRegistration ? (

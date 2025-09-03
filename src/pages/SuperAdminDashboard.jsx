@@ -67,8 +67,8 @@ const SuperAdminDashboard = () => {
   const greetingVariants = [
     { title: '🌞 Good Morning!', subtitle: 'Wishing you a bright and productive day ahead filled with positivity.' },
     { title: '🌸 Hello & Warm Greetings!', subtitle: 'May your day be filled with joy, success, and wonderful moments.' },
-    { title: '🙌 Hi There!', subtitle: 'Hope you’re doing well and everything is going smoothly on your end.' },
-    { title: '🌟 Season’s Greetings!', subtitle: 'Sending best wishes for peace, happiness, and good health.' },
+    { title: '🙌 Hi There!', subtitle: 'Hope you\'re doing well and everything is going smoothly on your end.' },
+    { title: "🌟 Season's Greetings!", subtitle: 'Sending best wishes for peace, happiness, and good health.' },
     { title: '🤝 Greetings of the Day!', subtitle: 'May this day bring you opportunities, growth, and good fortune.' }
   ];
 
@@ -118,6 +118,8 @@ const SuperAdminDashboard = () => {
     district: ''
   });
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  // Selected farmer ids for bulk delete
+  const [selectedFarmerIds, setSelectedFarmerIds] = useState([]);
   
   // Add time filter state
   const [timeFilter, setTimeFilter] = useState('all'); // 'all', 'today', 'month', 'year'
@@ -575,6 +577,40 @@ const SuperAdminDashboard = () => {
     } catch (error) {
       console.error('❌ Manual refresh failed:', error);
       alert('Failed to refresh data: ' + error.message);
+    }
+  };
+
+  // Toggle single farmer selection
+  const toggleFarmerSelection = (farmerId) => {
+    setSelectedFarmerIds(prev => (
+      prev.includes(farmerId) ? prev.filter(id => id !== farmerId) : [...prev, farmerId]
+    ));
+  };
+
+  // Delete all selected farmers
+  const handleDeleteSelectedFarmers = async () => {
+    if (!selectedFarmerIds.length) {
+      alert('Please select at least one farmer to delete.');
+      return;
+    }
+    if (!window.confirm(`Delete ${selectedFarmerIds.length} selected farmer(s)? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      // Delete sequentially to keep it simple and reliable
+      for (const id of selectedFarmerIds) {
+        try {
+          await farmersAPI.deleteFarmer(id);
+          setFarmers(prev => prev.filter(f => f.id !== id));
+        } catch (e) {
+          console.error(`Failed to delete farmer ${id}:`, e);
+        }
+      }
+      setSelectedFarmerIds([]);
+      alert('Selected farmers deleted successfully');
+    } catch (error) {
+      console.error('Bulk delete failed:', error);
+      alert('Failed to delete selected farmers.');
     }
   };
 
@@ -1334,6 +1370,33 @@ const SuperAdminDashboard = () => {
                         <i className="fas fa-sync-alt"></i>
                         Refresh Data
                                               </button>
+                      {activeTab === 'farmers' && (
+                        <button 
+                          className="action-btn danger"
+                          onClick={handleDeleteSelectedFarmers}
+                          disabled={!selectedFarmerIds.length}
+                          style={{
+                            background: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '12px 24px',
+                            cursor: selectedFarmerIds.length ? 'pointer' : 'not-allowed',
+                            opacity: selectedFarmerIds.length ? 1 : 0.6,
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            transition: 'all 0.3s ease',
+                            boxShadow: '0 4px 12px rgba(239, 68, 68, 0.25)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            transform: 'translateY(0)'
+                          }}
+                        >
+                          <i className="fas fa-trash-alt"></i>
+                          Delete Selected
+                        </button>
+                      )}
                       </div>
                     </div>
                   </div>
@@ -1452,6 +1515,36 @@ const SuperAdminDashboard = () => {
                       <DataTable
                         data={getFilteredFarmers()}
                         columns={[
+                          { 
+                            key: 'select', 
+                            label: '',
+                            headerRender: () => (
+                              <input
+                                type="checkbox"
+                                checked={getFilteredFarmers().length > 0 && getFilteredFarmers().every(f => selectedFarmerIds.includes(f.id))}
+                                indeterminate={!(getFilteredFarmers().every(f => selectedFarmerIds.includes(f.id))) && selectedFarmerIds.length > 0}
+                                onChange={(e) => {
+                                  const visible = getFilteredFarmers();
+                                  if (e.target.checked) {
+                                    // Add all visible ids
+                                    const idsToAdd = visible.map(f => f.id).filter(id => !selectedFarmerIds.includes(id));
+                                    setSelectedFarmerIds(prev => [...prev, ...idsToAdd]);
+                                  } else {
+                                    // Remove all visible ids
+                                    const visibleIds = new Set(visible.map(f => f.id));
+                                    setSelectedFarmerIds(prev => prev.filter(id => !visibleIds.has(id)));
+                                  }
+                                }}
+                              />
+                            ),
+                            render: (value, row) => (
+                              <input 
+                                type="checkbox" 
+                                checked={selectedFarmerIds.includes(row.id)}
+                                onChange={() => toggleFarmerSelection(row.id)}
+                              />
+                            )
+                          },
                           { key: 'name', label: 'Name' },
                           { key: 'contactNumber', label: 'Phone' },
                           { key: 'state', label: 'State' },

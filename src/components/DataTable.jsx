@@ -74,7 +74,9 @@ const DataTable = ({ data, columns, onEdit, onDelete, onView, showDelete = false
         <thead>
           <tr>
             {columns && Array.isArray(columns) && columns.map((column, index) => (
-              <th key={index}>{column.label}</th>
+              <th key={index}>
+                {column.headerRender ? column.headerRender() : column.label}
+              </th>
             ))}
             <th>Actions</th>
           </tr>
@@ -127,6 +129,10 @@ const DataTable = ({ data, columns, onEdit, onDelete, onView, showDelete = false
                     // Handle email fields
                     if (column.key === 'email' || column.key === 'emailAddress') {
                       return row.email || row.emailAddress || 'N/A';
+                    }
+                    
+                    if (column.key === 'select' && column.render) {
+                      return column.render(value, row);
                     }
                     
                     return safeRender(value, column.key);

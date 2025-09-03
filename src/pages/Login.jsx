@@ -491,8 +491,6 @@ const Login = () => {
               {/* Forgot Password Link */}
               <div className="auth-links">
                 <a href="/forgot-password">Forgot Password?</a>
-                <span className="sep">|</span>
-                <a href="/forgot-userid">Forgot User ID?</a>
               </div>
 
               {/* Captcha Section */}

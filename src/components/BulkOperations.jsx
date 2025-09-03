@@ -18,11 +18,8 @@ const BulkOperations = ({ userRole }) => {
     toDate: ''
   });
   const [assignmentData, setAssignmentData] = useState({
-    farmerIds: [], // legacy
-    employeeId: '', // legacy
-    farmerNames: '', // comma-separated names
-    employeeEmail: '',
-    assignmentType: 'MANUAL'
+    location: '',
+    employeeEmail: ''
   });
   const fileInputRef = useRef();
 
@@ -150,37 +147,17 @@ const BulkOperations = ({ userRole }) => {
 
   const handleBulkAssignment = async () => {
     try {
-      let response;
-      if (assignmentData.assignmentType === 'MANUAL') {
-        // Prefer names+email if provided
-        if (assignmentData.farmerNames?.trim() && assignmentData.employeeEmail?.trim()) {
-          const names = assignmentData.farmerNames.split(',').map(n => n.trim()).filter(Boolean);
-          response = await apiService.bulkAssignFarmersByNames(names, assignmentData.employeeEmail.trim());
-        } else if (assignmentData.farmerIds.length && assignmentData.employeeId) {
-          response = await apiService.bulkAssignFarmersToEmployee(assignmentData.farmerIds, assignmentData.employeeId);
-        } else {
-          alert('Enter farmer names and employee email (or legacy IDs).');
-          return;
-        }
-      } else if (assignmentData.assignmentType === 'LOCATION') {
         if (!assignmentData.location?.trim()) {
           alert('Enter a district (location).');
           return;
         }
-        // Prefer email if present
-        if (assignmentData.employeeEmail?.trim()) {
-          response = await apiService.bulkAssignFarmersByLocation(assignmentData.location.trim(), assignmentData.employeeEmail.trim());
-        } else if (assignmentData.employeeId) {
-          response = await apiService.bulkAssignFarmersByLocation(assignmentData.location.trim(), assignmentData.employeeId);
-        } else {
-          alert('Enter employee email (preferred) or employee ID.');
+      
+      if (!assignmentData.employeeEmail?.trim()) {
+        alert('Enter employee email.');
           return;
         }
-      } else if (assignmentData.assignmentType === 'ROUND_ROBIN') {
-        response = await apiService.bulkAssignFarmersRoundRobin(assignmentData.farmerIds);
-      } else {
-        throw new Error('Invalid assignment type');
-      }
+
+      const response = await apiService.bulkAssignFarmersByLocation(assignmentData.location.trim(), assignmentData.employeeEmail.trim());
       alert('Bulk assignment completed successfully');
     } catch (error) {
       console.error('Bulk assignment error:', error);
@@ -432,76 +409,6 @@ const BulkOperations = ({ userRole }) => {
             </div>
 
             <div className="assignment-form">
-              <div className="form-group">
-                <label>Assignment Type:</label>
-                <select 
-                  value={assignmentData.assignmentType} 
-                  onChange={(e) => setAssignmentData({
-                    ...assignmentData, 
-                    assignmentType: e.target.value
-                  })}
-                >
-                  <option value="MANUAL">Manual Assignment</option>
-                  <option value="LOCATION">By Location</option>
-                  <option value="ROUND_ROBIN">Round Robin</option>
-                </select>
-              </div>
-
-              {assignmentData.assignmentType === 'MANUAL' && (
-                <>
-                  <div className="form-group">
-                    <label>Farmer Names (comma-separated):</label>
-                    <input
-                      type="text"
-                      value={assignmentData.farmerNames}
-                      onChange={(e) => setAssignmentData({
-                        ...assignmentData, 
-                        farmerNames: e.target.value
-                      })}
-                      placeholder="Krishna Kumar, suman kurrapati, ..."
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Employee Email:</label>
-                    <input
-                      type="email"
-                      value={assignmentData.employeeEmail}
-                      onChange={(e) => setAssignmentData({
-                        ...assignmentData, 
-                        employeeEmail: e.target.value
-                      })}
-                      placeholder="employee@example.com"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Farmer IDs (legacy, optional):</label>
-                    <input
-                      type="text"
-                      value={assignmentData.farmerIds.join(',')}
-                      onChange={(e) => setAssignmentData({
-                        ...assignmentData, 
-                        farmerIds: e.target.value.split(',').map(id => id.trim()).filter(id => id)
-                      })}
-                      placeholder="1, 2, 3, 4, 5"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Employee ID (legacy, optional):</label>
-                    <input
-                      type="number"
-                      value={assignmentData.employeeId}
-                      onChange={(e) => setAssignmentData({
-                        ...assignmentData, 
-                        employeeId: e.target.value
-                      })}
-                      placeholder="123"
-                    />
-                  </div>
-                </>
-              )}
-
-              {assignmentData.assignmentType === 'LOCATION' && (
-                <>
                   <div className="form-group">
                     <label>Location (District):</label>
                     <input
@@ -515,7 +422,7 @@ const BulkOperations = ({ userRole }) => {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Employee Email (preferred):</label>
+                <label>Employee Email:</label>
                     <input
                       type="email"
                       value={assignmentData.employeeEmail}
@@ -526,33 +433,12 @@ const BulkOperations = ({ userRole }) => {
                       placeholder="employee@example.com"
                     />
                   </div>
-                </>
-              )}
-
-              {assignmentData.assignmentType === 'ROUND_ROBIN' && (
-                <div className="form-group">
-                  <label>Farmer IDs (comma-separated):</label>
-                  <input
-                    type="text"
-                    value={assignmentData.farmerIds.join(',')}
-                    onChange={(e) => setAssignmentData({
-                      ...assignmentData, 
-                      farmerIds: e.target.value.split(',').map(id => id.trim()).filter(id => id)
-                    })}
-                    placeholder="1, 2, 3, 4, 5"
-                  />
-                </div>
-              )}
-
-              {assignmentData.assignmentType !== 'ROUND_ROBIN' && (
-                <></>
-              )}
 
               <button 
                 className="assignment-btn"
                 onClick={handleBulkAssignment}
               >
-                👥 Assign Farmers
+                👥 Assign Farmers by Location
               </button>
             </div>
           </div>

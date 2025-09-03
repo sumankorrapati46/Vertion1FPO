@@ -39,6 +39,7 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
       fatherName: editData?.fatherName || '',
       alternativeType: editData?.alternativeType || '',
       alternativeNumber: editData?.alternativeNumber || '',
+      email: editData?.email || '',
       photo: editData?.photo || null,
 
       // Step 1 - Address
@@ -291,6 +292,24 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
         <input type="tel" maxLength={10} {...register("contactNumber")} placeholder="10-digit number" />
       </label>
       {errors.contactNumber?.message && <p className="error">{errors.contactNumber.message}</p>}
+      
+      <label>
+        Email Address <span className="required">*</span>
+        <input 
+          type="email" 
+          className="input"
+          {...register("email", { 
+            required: "Email is required",
+            pattern: {
+              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+              message: "Please enter a valid email address"
+            }
+          })} 
+          placeholder="Enter email address" 
+        />
+      </label>
+      {errors.email?.message && <p className="error">{errors.email.message}</p>}
+      
       <label>
  
         Father Name <span className="optional"></span>
