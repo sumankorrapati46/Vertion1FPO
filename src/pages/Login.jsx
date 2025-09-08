@@ -88,6 +88,38 @@ const Login = () => {
       return;
     }
     try {
+      if (loginType === 'fpo') {
+        // FPO user login flow
+        const res = await authAPI.fpoLogin(userName, password); // userName is email per UI text
+        console.log('FPO Login Response:', res);
+        console.log('FPO Login Token:', res.token);
+        
+        const user = {
+          userName: res.email,
+          name: res.email,
+          email: res.email,
+          role: 'FPO',
+          forcePasswordChange: false,
+          status: 'APPROVED',
+          fpoId: res.fpoId,
+          fpoName: res.fpoName
+        };
+        
+        // Store token and user data
+        console.log('Storing user:', user);
+        console.log('Storing token:', res.token);
+        login(user, res.token);
+        
+        // Route directly to FPO dashboard
+        if (res.fpoId) {
+          navigate(`/fpo/dashboard/${res.fpoId}`);
+        } else {
+          navigate('/fpo/dashboard');
+        }
+        setLoading(false);
+        return;
+      }
+
       // Backend expects userName
       const loginData = { userName, password };
       const response = await authAPI.login(loginData);

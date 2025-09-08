@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { farmersAPI, employeesAPI, superAdminAPI, adminAPI } from '../api/apiService';
+import { farmersAPI, employeesAPI, superAdminAPI, adminAPI, fpoAPI } from '../api/apiService';
 import DataTable from '../components/DataTable';
 
 // import RegistrationApprovalModal from '../components/RegistrationApprovalModal';
@@ -20,6 +20,19 @@ import KYCDocumentUpload from '../components/KYCDocumentUpload';
 import DeleteModal from '../components/DeleteModal';
 import UserProfileDropdown from '../components/UserProfileDropdown';
 import BulkOperations from '../components/BulkOperations';
+import FPOList from '../components/FPOList';
+import FPOEditModal from '../components/FPOEditModal';
+import FPODetailModal from '../components/FPODetailModal';
+import FPOCreationForm from '../components/FPOCreationForm';
+import FPOBoardMembersModal from '../components/FPOBoardMembersModal';
+import FPOFarmServicesModal from '../components/FPOFarmServicesModal';
+import FPOTurnoverModal from '../components/FPOTurnoverModal';
+import FPOCropEntriesModal from '../components/FPOCropEntriesModal';
+import FPOInputShopModal from '../components/FPOInputShopModal';
+import FPOProductCategoriesModal from '../components/FPOProductCategoriesModal';
+import FPOProductsModal from '../components/FPOProductsModal';
+import FPOUsersModal from '../components/FPOUsersModal';
+import FPODashboard from '../pages/FPODashboard';
 import '../styles/Dashboard.css';
 
 const SuperAdminDashboard = () => {
@@ -46,6 +59,7 @@ const SuperAdminDashboard = () => {
   const [farmers, setFarmers] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [registrations, setRegistrations] = useState([]);
+  const [fpos, setFpos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -96,6 +110,27 @@ const SuperAdminDashboard = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [editingFarmer, setEditingFarmer] = useState(null);
+  const [showFPOCreationForm, setShowFPOCreationForm] = useState(false);
+  const [viewingFPO, setViewingFPO] = useState(null); // page-level view
+  const [editingFPO, setEditingFPO] = useState(null);
+  const [showFPODetail, setShowFPODetail] = useState(false);
+  const [detailFPO, setDetailFPO] = useState(null); // modal view only
+  const [showBoardMembers, setShowBoardMembers] = useState(false);
+  const [selectedFPOForBoard, setSelectedFPOForBoard] = useState(null);
+  const [showFarmServices, setShowFarmServices] = useState(false);
+  const [selectedFPOForServices, setSelectedFPOForServices] = useState(null);
+  const [showTurnover, setShowTurnover] = useState(false);
+  const [selectedFPOForTurnover, setSelectedFPOForTurnover] = useState(null);
+  const [showCropEntries, setShowCropEntries] = useState(false);
+  const [selectedFPOForCropEntries, setSelectedFPOForCropEntries] = useState(null);
+  const [showInputShop, setShowInputShop] = useState(false);
+  const [selectedFPOForInputShop, setSelectedFPOForInputShop] = useState(null);
+  const [showProductCategories, setShowProductCategories] = useState(false);
+  const [selectedFPOForCategories, setSelectedFPOForCategories] = useState(null);
+  const [showProducts, setShowProducts] = useState(false);
+  const [selectedFPOForProducts, setSelectedFPOForProducts] = useState(null);
+  const [showFpoUsers, setShowFpoUsers] = useState(false);
+  const [selectedFPOForUsers, setSelectedFPOForUsers] = useState(null);
   const [registrationFilters, setRegistrationFilters] = useState({
     role: '',
     status: ''
@@ -117,6 +152,13 @@ const SuperAdminDashboard = () => {
     state: '',
     district: ''
   });
+  
+  const [fpoFilters, setFpoFilters] = useState({
+    state: '',
+    district: '',
+    status: '',
+    registrationType: ''
+  });
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   // Selected farmer ids for bulk delete
   const [selectedFarmerIds, setSelectedFarmerIds] = useState([]);
@@ -126,6 +168,7 @@ const SuperAdminDashboard = () => {
 
 
   const [viewingRegistration, setViewingRegistration] = useState(null);
+  const [selectedFPOTab, setSelectedFPOTab] = useState('overview');
 
   useEffect(() => {
     fetchData();
@@ -171,7 +214,7 @@ const SuperAdminDashboard = () => {
       console.log('Fetching data from APIs...');
       
       console.log('Starting API calls...');
-      let farmersData, employeesData, registrationsData;
+      let farmersData, employeesData, registrationsData, fposData;
       
       try {
         console.log('🔄 Making API calls to fetch real data...');
@@ -180,6 +223,16 @@ const SuperAdminDashboard = () => {
           employeesAPI.getAllEmployees(),
           superAdminAPI.getRegistrationList()
         ]);
+        
+        // Fetch FPO data
+        fposData = [];
+        try {
+          fposData = await fpoAPI.getAllFPOs();
+          console.log('📊 FPOs data received:', fposData?.length || 0, 'records');
+        } catch (fpoError) {
+          console.error('❌ FPO API call failed:', fpoError);
+          fposData = [];
+        }
               console.log('✅ API calls completed successfully');
       console.log('📊 Farmers data received:', farmersData?.length || 0, 'records');
       console.log('📊 Employees data received:', employeesData?.length || 0, 'records');
@@ -240,6 +293,8 @@ const SuperAdminDashboard = () => {
       setFarmers(finalFarmersData);
       setEmployees(finalEmployeesData);
       setRegistrations(finalRegistrationsData);
+      const fpoList = Array.isArray(fposData) ? fposData : (fposData?.content || fposData?.items || fposData?.data || []);
+      setFpos(fpoList || []);
       
       console.log('Fetched data:', { farmersData, employeesData, registrationsData });
       console.log('Final employees data:', finalEmployeesData);
@@ -308,6 +363,18 @@ const SuperAdminDashboard = () => {
     });
   };
 
+  const getFilteredFPOs = () => {
+    const list = Array.isArray(fpos) ? fpos : [];
+    return list.filter(fpo => {
+      const matchesState = !fpoFilters.state || fpo.state === fpoFilters.state;
+      const matchesDistrict = !fpoFilters.district || fpo.district === fpoFilters.district;
+      const matchesStatus = !fpoFilters.status || fpo.status === fpoFilters.status;
+      const matchesRegistrationType = !fpoFilters.registrationType || fpo.registrationType === fpoFilters.registrationType;
+      
+      return matchesState && matchesDistrict && matchesStatus && matchesRegistrationType;
+    });
+  };
+
   const getFilteredRegistrations = () => {
     console.log('All registrations:', registrations);
     // Apply filters
@@ -359,6 +426,12 @@ const SuperAdminDashboard = () => {
       return isWithinPeriod(createdDate, timeFilter);
     });
 
+    const fpoList = Array.isArray(fpos) ? fpos : [];
+    const filteredFPOs = fpoList.filter(fpo => {
+      const createdDate = fpo.createdAt || fpo.created_at || fpo.joinDate;
+      return isWithinPeriod(createdDate, timeFilter);
+    });
+
     const totalFarmers = timeFilter === 'all' ? farmers.length : filteredFarmers.length;
     const totalEmployees = timeFilter === 'all' ? employees.length : filteredEmployees.length;
     const pendingRegistrations = filteredRegistrations.filter(r => {
@@ -367,7 +440,7 @@ const SuperAdminDashboard = () => {
     }).length;
     const unassignedFarmers = filteredFarmers.filter(f => f.accessStatus === 'PENDING').length;
     const activeEmployees = filteredEmployees.filter(e => e.status === 'ACTIVE').length;
-    const totalFPO = 0; // Placeholder for FPO count
+    const totalFPO = timeFilter === 'all' ? fpoList.length : filteredFPOs.length;
 
     return {
       totalFarmers,
@@ -761,6 +834,88 @@ const SuperAdminDashboard = () => {
     setShowDeleteModal(true);
   };
 
+  // FPO Handler Functions
+  const handleViewFPO = async (fpo) => {
+    try {
+      const fullFpo = await fpoAPI.getFPOById(fpo.id);
+      setViewingFPO(fullFpo || fpo);
+    } catch (e) {
+      console.warn('Falling back to row FPO data:', e);
+      setViewingFPO(fpo);
+    }
+  };
+
+  const handleEditFPO = (fpo) => {
+    setEditingFPO(fpo);
+    setShowFPOCreationForm(true);
+  };
+
+  const handleAddFPO = () => {
+    setEditingFPO(null);
+    setShowFPOCreationForm(true);
+  };
+
+  const handleBoardMembers = (fpo) => {
+    setSelectedFPOForBoard(fpo);
+    setShowBoardMembers(true);
+  };
+
+  const handleFarmServices = (fpo) => {
+    setSelectedFPOForServices(fpo);
+    setShowFarmServices(true);
+  };
+
+  const handleTurnover = (fpo) => {
+    setSelectedFPOForTurnover(fpo);
+    setShowTurnover(true);
+  };
+
+  const handleCropEntries = (fpo) => {
+    setSelectedFPOForCropEntries(fpo);
+    setShowCropEntries(true);
+  };
+
+  const handleInputShop = (fpo) => {
+    setSelectedFPOForInputShop(fpo);
+    setShowInputShop(true);
+  };
+
+  const handleProductCategories = (fpo) => {
+    setSelectedFPOForCategories(fpo);
+    setShowProductCategories(true);
+  };
+
+  const handleProducts = (fpo) => {
+    setSelectedFPOForProducts(fpo);
+    setShowProducts(true);
+  };
+
+  const handleFpoUsers = (fpo) => {
+    setSelectedFPOForUsers(fpo);
+    setShowFpoUsers(true);
+  };
+
+  const handleSaveFPO = async (fpoData) => {
+    try {
+      if (editingFPO) {
+        const updatedFPO = await fpoAPI.updateFPO(editingFPO.id, fpoData);
+        setFpos(prev => prev.map(fpo => 
+          fpo.id === editingFPO.id ? updatedFPO : fpo
+        ));
+        alert('FPO updated successfully!');
+      } else {
+        const newFPO = await fpoAPI.createFPO(fpoData);
+        setFpos(prev => [...prev, newFPO]);
+        alert('FPO created successfully!');
+      }
+      setShowFPOCreationForm(false);
+      setEditingFPO(null);
+    } catch (error) {
+      console.error('Error saving FPO:', error);
+      alert('Failed to save FPO. Please try again.');
+    }
+  };
+
   const confirmDelete = async () => {
     if (!itemToDelete) return;
 
@@ -776,6 +931,10 @@ const SuperAdminDashboard = () => {
         // Handle registration deletion
         await superAdminAPI.deleteUser(item.id);
         setRegistrations(prev => prev.filter(r => r.id !== item.id));
+      } else if (type === 'fpo') {
+        // Handle FPO deletion
+        await fpoAPI.deleteFPO(item.id);
+        setFpos(prev => prev.filter(f => f.id !== item.id));
       }
       alert(`${type} deleted successfully!`);
     } catch (error) {
@@ -895,6 +1054,14 @@ const SuperAdminDashboard = () => {
           >
             <i className="fas fa-user-tie"></i>
             <span>Employees</span>
+          </div>
+
+          <div 
+            className={`nav-item ${activeTab === 'fpo' ? 'active' : ''}`}
+            onClick={() => setActiveTab('fpo')}
+          >
+            <i className="fas fa-building"></i>
+            <span>FPO</span>
           </div>
 
           <div 
@@ -1909,6 +2076,241 @@ const SuperAdminDashboard = () => {
             </div>
           )}
 
+          {activeTab === 'fpo' && (
+            <div className="superadmin-overview-section">
+              {!showFPOCreationForm ? (
+                <>
+                  {!viewingFPO ? (
+                    <>
+                      <div className="superadmin-overview-header">
+                        <div className="header-left">
+                          <h2 className="superadmin-overview-title">FPO Management</h2>
+                          <p className="overview-description">
+                            Manage Farmer Producer Organizations and their operations.
+                          </p>
+                        </div>
+                        <div className="header-right">
+                          <div className="overview-actions">
+                            <button 
+                              onClick={handleAddFPO}
+                              style={{
+                                background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '12px 24px',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 4px 12px rgba(21, 128, 61, 0.25)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                transform: 'translateY(0)'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.target.style.background = 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)';
+                                e.target.style.transform = 'translateY(-2px)';
+                                e.target.style.boxShadow = '0 8px 20px rgba(21, 128, 61, 0.35)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.background = 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)';
+                                e.target.style.transform = 'translateY(0)';
+                                e.target.style.boxShadow = '0 4px 12px rgba(21, 128, 61, 0.25)';
+                              }}
+                            >
+                              <i className="fas fa-plus"></i>
+                              Add FPO
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* FPO Filters */}
+                      <div className="filters-section">
+                        <div className="filter-group">
+                          <label className="filter-label">State</label>
+                          <select 
+                            value={fpoFilters.state} 
+                            onChange={(e) => setFpoFilters(prev => ({ ...prev, state: e.target.value }))}
+                            className="filter-select"
+                          >
+                            <option value="">All States</option>
+                            <option value="Telangana">Telangana</option>
+                            <option value="Andhrapradesh">Andhrapradesh</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Punjab">Punjab</option>
+                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                          </select>
+                        </div>
+                        
+                        <div className="filter-group">
+                          <label className="filter-label">District</label>
+                          <select 
+                            value={fpoFilters.district} 
+                            onChange={(e) => setFpoFilters(prev => ({ ...prev, district: e.target.value }))}
+                            className="filter-select"
+                          >
+                            <option value="">All Districts</option>
+                            <option value="Karimnagar">Karimnagar</option>
+                            <option value="rangareddy">Rangareddy</option>
+                            <option value="kadapa">Kadapa</option>
+                            <option value="Kadapa">Kadapa</option>
+                            <option value="kadpaa">Kadpaa</option>
+                            <option value="Kuppam">Kuppam</option>
+                            <option value="Pune">Pune</option>
+                            <option value="Ahmedabad">Ahmedabad</option>
+                            <option value="Amritsar">Amritsar</option>
+                            <option value="Lucknow">Lucknow</option>
+                            <option value="Chennai">Chennai</option>
+                          </select>
+                        </div>
+                        
+                        <div className="filter-group">
+                          <label className="filter-label">Status</label>
+                          <select 
+                            value={fpoFilters.status} 
+                            onChange={(e) => setFpoFilters(prev => ({ ...prev, status: e.target.value }))}
+                            className="filter-select"
+                          >
+                            <option value="">All Status</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                            <option value="PENDING">Pending</option>
+                          </select>
+                        </div>
+                        
+                        <div className="filter-group">
+                          <label className="filter-label">Registration Type</label>
+                          <select 
+                            value={fpoFilters.registrationType} 
+                            onChange={(e) => setFpoFilters(prev => ({ ...prev, registrationType: e.target.value }))}
+                            className="filter-select"
+                          >
+                            <option value="">All Types</option>
+                            <option value="Company">Company</option>
+                            <option value="Cooperative">Cooperative</option>
+                            <option value="Society">Society</option>
+                          </select>
+                        </div>
+                        
+                        <div className="filter-actions">
+                          <button 
+                            className="filter-btn-clear"
+                            onClick={() => setFpoFilters({
+                              state: '',
+                              district: '',
+                              status: '',
+                              registrationType: ''
+                            })}
+                          >
+                            <i className="fas fa-times"></i>
+                            Clear Filters
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="table-scroll-wrapper">
+                        <DataTable
+                          data={getFilteredFPOs()}
+                          columns={[
+                            { key: 'fpoName', label: 'FPO Name' },
+                            { key: 'fpoId', label: 'FPO ID' },
+                            { key: 'ceoName', label: 'CEO Name' },
+                            { key: 'phoneNumber', label: 'Phone' },
+                            { key: 'state', label: 'State' },
+                            { key: 'district', label: 'District' },
+                            { key: 'status', label: 'Status' },
+                            { key: 'numberOfMembers', label: 'Members' }
+                          ]}
+                          customActions={[
+                            { label: 'Dashboard', className: 'info', onClick: (fpo) => { setDetailFPO(fpo); setShowFPODetail(true); } },
+                            { label: 'Edit FPO', className: 'warning', onClick: (fpo) => setEditingFPO(fpo) },
+                            { label: 'FPO Board Members', onClick: handleBoardMembers },
+                            { label: 'FPO Farm Services', onClick: handleFarmServices },
+                            { label: 'FPO Turnover', onClick: handleTurnover },
+                            { label: 'FPO Crop Entries', onClick: handleCropEntries },
+                            { label: 'FPO Input Shop', onClick: handleInputShop },
+                            { label: 'FPO Product Categories', onClick: handleProductCategories },
+                            { label: 'FPO Products', onClick: handleProducts },
+                            { label: 'FPO Users', onClick: handleFpoUsers },
+                            { label: 'Delete', className: 'danger', onClick: (fpo) => handleDelete(fpo, 'fpo') }
+                          ]}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <FPODashboard 
+                      fpoId={viewingFPO?.id}
+                      initialTab={selectedFPOTab}
+                      onBack={() => setViewingFPO(null)}
+                    />
+                  )}
+                </>
+              ) : (
+                <div className="fpo-creation-section">
+                  <div className="overview-header">
+                    <h2 className="overview-title">
+                      {editingFPO ? 'Edit FPO' : 'Add New FPO'}
+                    </h2>
+                    <p className="overview-description">
+                      {editingFPO ? 'Update FPO information.' : 'Register a new FPO in the system.'}
+                    </p>
+                    <div className="overview-actions">
+                      <button 
+                        onClick={() => {
+                          setShowFPOCreationForm(false);
+                          setEditingFPO(null);
+                        }}
+                        style={{
+                          background: '#6b7280',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '8px 16px',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          transition: 'all 0.3s ease',
+                          boxShadow: '0 2px 8px rgba(107, 114, 128, 0.25)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          transform: 'translateY(0)'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.background = '#4b5563';
+                          e.target.style.transform = 'translateY(-1px)';
+                          e.target.style.boxShadow = '0 4px 12px rgba(107, 114, 128, 0.35)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.background = '#6b7280';
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = '0 2px 8px rgba(107, 114, 128, 0.25)';
+                        }}
+                      >
+                        <i className="fas fa-arrow-left"></i>
+                        Back to FPOs
+                      </button>
+                    </div>
+                  </div>
+
+                  <FPOCreationForm 
+                    fpoData={editingFPO}
+                    onClose={() => {
+                      setShowFPOCreationForm(false);
+                      setEditingFPO(null);
+                    }}
+                    onSubmit={handleSaveFPO}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'bulk-operations' && (
             <BulkOperations userRole="SUPER_ADMIN" />
           )}
@@ -1957,6 +2359,93 @@ const SuperAdminDashboard = () => {
         <ViewEditEmployeeDetails
           employee={selectedEmployee}
           onClose={() => setShowEmployeeDetails(false)}
+        />
+      )}
+
+      {editingFPO && (
+        <FPOEditModal
+          fpo={editingFPO}
+          onClose={() => setEditingFPO(null)}
+          onUpdated={(updated) => {
+            setFpos(prev => prev.map(f => f.id === updated.id ? updated : f));
+            setEditingFPO(null);
+          }}
+        />
+      )}
+
+      {showFPODetail && detailFPO && (
+        <FPODetailModal
+          fpo={detailFPO}
+          onClose={() => { setShowFPODetail(false); setDetailFPO(null); }}
+        />
+      )}
+
+      {showBoardMembers && selectedFPOForBoard && (
+        <FPOBoardMembersModal
+          isOpen={showBoardMembers}
+          onClose={() => { setShowBoardMembers(false); setSelectedFPOForBoard(null); }}
+          fpoId={selectedFPOForBoard.id}
+          fpoName={selectedFPOForBoard.fpoName}
+        />
+      )}
+
+      {showFarmServices && selectedFPOForServices && (
+        <FPOFarmServicesModal
+          isOpen={showFarmServices}
+          onClose={() => { setShowFarmServices(false); setSelectedFPOForServices(null); }}
+          fpoId={selectedFPOForServices.id}
+          fpoName={selectedFPOForServices.fpoName}
+        />
+      )}
+
+      {showTurnover && selectedFPOForTurnover && (
+        <FPOTurnoverModal
+          isOpen={showTurnover}
+          onClose={() => { setShowTurnover(false); setSelectedFPOForTurnover(null); }}
+          fpoId={selectedFPOForTurnover.id}
+          fpoName={selectedFPOForTurnover.fpoName}
+        />
+      )}
+
+      {showCropEntries && selectedFPOForCropEntries && (
+        <FPOCropEntriesModal
+          isOpen={showCropEntries}
+          onClose={() => { setShowCropEntries(false); setSelectedFPOForCropEntries(null); }}
+          fpoId={selectedFPOForCropEntries.id}
+          fpoName={selectedFPOForCropEntries.fpoName}
+        />
+      )}
+
+      {showInputShop && selectedFPOForInputShop && (
+        <FPOInputShopModal
+          isOpen={showInputShop}
+          onClose={() => { setShowInputShop(false); setSelectedFPOForInputShop(null); }}
+          fpoId={selectedFPOForInputShop.id}
+          fpoName={selectedFPOForInputShop.fpoName}
+        />
+      )}
+
+      {showProductCategories && selectedFPOForCategories && (
+        <FPOProductCategoriesModal
+          isOpen={showProductCategories}
+          onClose={() => { setShowProductCategories(false); setSelectedFPOForCategories(null); }}
+          fpoId={selectedFPOForCategories.id}
+        />
+      )}
+
+      {showProducts && selectedFPOForProducts && (
+        <FPOProductsModal
+          isOpen={showProducts}
+          onClose={() => { setShowProducts(false); setSelectedFPOForProducts(null); }}
+          fpoId={selectedFPOForProducts.id}
+        />
+      )}
+
+      {showFpoUsers && selectedFPOForUsers && (
+        <FPOUsersModal
+          isOpen={showFpoUsers}
+          onClose={() => { setShowFpoUsers(false); setSelectedFPOForUsers(null); }}
+          fpoId={selectedFPOForUsers.id}
         />
       )}
       

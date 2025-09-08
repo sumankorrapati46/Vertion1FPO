@@ -696,7 +696,8 @@
 
   color: white;
 
-  transform: translateX(8px);
+  /* prevent horizontal shift on hover */
+  transform: none;
 
   border-color: rgba(255, 255, 255, 0.35);
 
@@ -718,7 +719,8 @@
 
   box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
 
-  transform: translateX(6px);
+  /* prevent position shift when active */
+  transform: none;
 
 }
 
@@ -1439,6 +1441,14 @@
   background: linear-gradient(180deg, #efe2ff 0%, #ead6ff 100%);
 
   border-color: #c4b5fd;
+
+}
+
+.stats-grid .stats-card:nth-child(4) {
+
+  background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+
+  border-color: #7dd3fc;
 
 }
 
@@ -2450,26 +2460,19 @@
 
   .dashboard-sidebar {
 
-    width: 100%;
-
-    position: relative;
-
-    height: auto;
-
-    top: 0;
+    width: 280px;
+    position: fixed;
+    height: calc(100vh - 96px);
+    top: 96px;
 
   }
 
   
 
   .dashboard-main {
-
-    margin-left: 0;
-
-    margin-top: 0;
-
+    margin-left: 280px;
+    margin-top: 96px;
     padding: 20px;
-
   }
 
   
@@ -3342,6 +3345,775 @@
 
 
 
+/* ===== FPO CROP ENTRIES MODAL STYLES ===== */
+
+.crop-entries-modal {
+  max-width: 1200px;
+  width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: visible;
+  position: relative;
+}
+
+.crop-entries-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  overflow: visible !important;
+}
+
+.crop-entries-table th {
+  background: #16a34a;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.crop-entries-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+  overflow: visible !important;
+}
+
+.crop-entries-table tbody {
+  overflow: visible !important;
+}
+
+.crop-entries-table tbody tr {
+  overflow: visible !important;
+}
+
+.crop-entries-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.crop-entries-table td:last-child {
+  overflow: visible !important;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== FPO TURNOVER MODAL STYLES ===== */
+
+.turnover-modal {
+  max-width: 1200px;
+  width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: visible;
+  position: relative;
+}
+
+.turnover-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  overflow: visible !important;
+}
+
+.turnover-table th {
+  background: #16a34a;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.turnover-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+  overflow: visible !important;
+}
+
+.turnover-table tbody {
+  overflow: visible !important;
+}
+
+.turnover-table tbody tr {
+  overflow: visible !important;
+}
+
+.turnover-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.turnover-table td:last-child {
+  overflow: visible !important;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== FPO FARM SERVICES MODAL STYLES ===== */
+
+.farm-services-modal {
+  max-width: 1200px;
+  width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: visible;
+  position: relative;
+}
+
+.farm-services-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  overflow: visible !important;
+}
+
+.farm-services-table th {
+  background: #16a34a;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.farm-services-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+  overflow: visible !important;
+}
+
+.farm-services-table tbody {
+  overflow: visible !important;
+}
+
+.farm-services-table tbody tr {
+  overflow: visible !important;
+}
+
+.farm-services-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.farm-services-table td:last-child {
+  overflow: visible !important;
+  position: relative;
+  z-index: 1;
+}
+
+/* Services Section Styles */
+.services-section {
+  padding: 20px;
+}
+
+.services-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.services-section .section-header h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.services-info {
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #16a34a;
+}
+
+.services-info p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ===== FPO BOARD MEMBERS MODAL STYLES ===== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  overflow: visible;
+}
+
+.board-members-modal {
+  max-width: 1200px;
+  width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: visible;
+  position: relative;
+}
+
+.create-section {
+  margin-bottom: 20px;
+}
+
+.create-button {
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.create-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.filter-section {
+  margin-bottom: 20px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.filter-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.filter-label::before,
+.filter-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #d1d5db;
+  margin: 0 10px;
+}
+
+.filter-inputs {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #16a34a;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+.date-range-container {
+  flex: 1;
+  position: relative;
+}
+
+.date-range-input {
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  border: 2px solid #16a34a;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.date-range-input:focus {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+.calendar-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.date-format-hint {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.table-container {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.board-members-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.board-members-table thead {
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+  color: white;
+}
+
+.board-members-table th {
+  padding: 16px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.board-members-table td {
+  padding: 16px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+  color: #374151;
+}
+
+.board-members-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* Ensure action dropdowns are not clipped by table cells */
+.board-members-table td:last-child {
+  overflow: visible;
+  position: relative;
+}
+
+.fpo-actions {
+  overflow: visible;
+  position: relative;
+}
+
+/* Ensure FPO list action dropdowns are not clipped */
+.fpo-item .fpo-actions {
+  overflow: visible;
+  position: relative;
+  z-index: 1000;
+}
+
+/* Ensure table cells don't clip dropdowns */
+table td:last-child {
+  overflow: visible;
+  position: relative;
+}
+
+.loading-cell,
+.no-data-cell {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  padding: 40px 20px;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+  background: #16a34a;
+  color: white;
+}
+
+.status-badge.inactive {
+  background: #dc2626;
+  color: white;
+}
+
+.status-badge.ACTIVE {
+  background: #16a34a;
+  color: white;
+}
+
+.status-badge.INACTIVE {
+  background: #dc2626;
+  color: white;
+}
+
+.status-badge.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.status-badge.clickable:hover {
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+
+/* Status Toggle Switch */
+.status-toggle-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.status-toggle {
+  position: relative;
+  display: inline-block;
+  width: 80px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.status-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.status-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #dc2626;
+  transition: 0.3s;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.status-toggle input:checked + .status-slider {
+  background-color: #16a34a;
+}
+
+.status-toggle input:checked + .status-slider:before {
+  transform: translateX(50px);
+}
+
+.status-text {
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 1;
+  position: relative;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* 3-Dots Dropdown for Board Members */
+.action-dropdown {
+  position: relative;
+  display: inline-block;
+  z-index: 1000;
+}
+
+/* Ensure table cells allow dropdown overflow */
+.board-members-table td:last-child {
+  overflow: visible !important;
+  position: relative;
+  z-index: 1;
+}
+
+.board-members-table {
+  overflow: visible !important;
+}
+
+.board-members-table tbody {
+  overflow: visible !important;
+}
+
+.board-members-table tbody tr {
+  overflow: visible !important;
+}
+
+.dropdown-toggle {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #6c757d;
+  transition: all 0.2s ease;
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdown-toggle:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.dropdown-menu {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  min-width: 120px;
+  overflow: visible;
+  margin-bottom: 8px;
+}
+
+.dropdown-menu-top {
+  bottom: 100%;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+  margin-bottom: 8px;
+}
+
+.dropdown-menu-bottom {
+  top: 100%;
+  bottom: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background: #f8f9fa;
+}
+
+.dropdown-item.edit-item {
+  color: #0d6efd;
+}
+
+.dropdown-item.edit-item:hover {
+  background: #e7f1ff;
+}
+
+.dropdown-item.delete-item {
+  color: #dc3545;
+}
+
+.dropdown-item.delete-item:hover {
+  background: #f8d7da;
+}
+
+.edit-btn,
+.delete-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 60px;
+}
+
+.edit-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.delete-btn {
+  background: #dc2626;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+/* Form Modal Styles */
+.form-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.form-modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  max-width: 600px;
+  width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+
+.form-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+  border-radius: 12px 12px 0 0;
+}
+
+.form-modal-header h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.form-group input,
+.form-group select {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+
+.required-field {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.2) !important;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f8fafc;
+  border-radius: 0 0 12px 12px;
+}
+
+.form-actions button {
+  padding: 10px 20px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  color: #374151;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.form-actions button:hover {
+  background: #f9fafb;
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%) !important;
+  color: white !important;
+  border-color: #16a34a !important;
+}
+
+.submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.cancel-btn {
+  background: #ec4899 !important;
+  color: white !important;
+  border-color: #ec4899 !important;
+}
+
+.cancel-btn:hover {
+  background: #db2777 !important;
+  border-color: #db2777 !important;
+}
+
+.submit-btn.disabled {
+  background: #9ca3af !important;
+  color: #6b7280 !important;
+  border-color: #9ca3af !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 /* ===== ACTION DROPDOWN STYLES ===== */
 
 
@@ -3427,6 +4199,8 @@
   top: calc(100% + 8px);
 
   right: 0;
+
+  z-index: 1000;
 
   min-width: 200px;
 

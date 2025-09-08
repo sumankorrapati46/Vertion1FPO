@@ -154,6 +154,10 @@ export const authAPI = {
     const response = await api.post('/auth/change-user-id', userIdData);
     return response.data;
   },
+  fpoLogin: async (email, password) => {
+    const response = await api.post('/auth/fpo-login', { email, password });
+    return response.data;
+  },
 
   // Get countries
   getCountries: async () => {
@@ -1130,6 +1134,333 @@ export const apiService = {
     const response = await api.post('/bulk/assign/farmers-by-location', null, { params });
     return response.data;
   },
+};
+
+// FPO API calls
+export const fpoAPI = {
+  // FPO CRUD Operations
+  createFPO: async (fpoData) => {
+    const response = await api.post('/fpo', fpoData);
+    return response.data;
+  },
+
+  updateFPO: async (id, fpoData) => {
+    const response = await api.put(`/fpo/${id}`, fpoData);
+    return response.data;
+  },
+
+  getFPOById: async (id) => {
+    const response = await api.get(`/fpo/${id}`);
+    return response.data;
+  },
+
+  getFPOByFpoId: async (fpoId) => {
+    const response = await api.get(`/fpo/fpo-id/${fpoId}`);
+    return response.data;
+  },
+
+  deleteFPO: async (id) => {
+    const response = await api.delete(`/fpo/${id}`);
+    return response.data;
+  },
+
+  deactivateFPO: async (id) => {
+    const response = await api.put(`/fpo/${id}/deactivate`);
+    return response.data;
+  },
+
+  activateFPO: async (id) => {
+    const response = await api.put(`/fpo/${id}/activate`);
+    return response.data;
+  },
+
+  // FPO List and Search
+  getAllFPOs: async (params = {}) => {
+    const response = await api.get('/fpo/list', { params });
+    return response.data;
+  },
+
+  searchFPOs: async (searchParams) => {
+    const response = await api.post('/fpo/search', searchParams);
+    return response.data;
+  },
+
+  getFPOsByState: async (state) => {
+    const response = await api.get(`/fpo/state/${state}`);
+    return response.data;
+  },
+
+  getFPOsByDistrict: async (district) => {
+    const response = await api.get(`/fpo/district/${district}`);
+    return response.data;
+  },
+
+  getDistinctStates: async () => {
+    const response = await api.get('/fpo/states');
+    return response.data;
+  },
+
+  getDistinctDistrictsByState: async (state) => {
+    const response = await api.get(`/fpo/districts/${state}`);
+    return response.data;
+  },
+
+  // FPO Dashboard
+  getFPODashboard: async (id) => {
+    const response = await api.get(`/fpo/${id}/dashboard`);
+    return response.data;
+  },
+
+  getFPODashboardByFpoId: async (fpoId) => {
+    const response = await api.get(`/fpo/fpo-id/${fpoId}/dashboard`);
+    return response.data;
+  },
+
+  // FPO Statistics
+  getTotalFPOsCount: async () => {
+    const response = await api.get('/fpo/stats/total');
+    return response.data;
+  },
+
+  getActiveFPOsCount: async () => {
+    const response = await api.get('/fpo/stats/active');
+    return response.data;
+  },
+
+  getFPOsCountByStatus: async (status) => {
+    const response = await api.get(`/fpo/stats/status/${status}`);
+    return response.data;
+  },
+
+  // FPO Members
+  getFPOMembers: async (fpoId) => {
+    const response = await api.get(`/fpo/${fpoId}/members`);
+    return response.data;
+  },
+
+  addMemberToFPO: async (fpoId, memberData) => {
+    const response = await api.post(`/fpo/${fpoId}/members`, memberData);
+    return response.data;
+  },
+
+  removeMemberFromFPO: async (fpoId, memberId) => {
+    const response = await api.delete(`/fpo/${fpoId}/members/${memberId}`);
+    return response.data;
+  },
+
+  updateMemberStatus: async (fpoId, memberId, status) => {
+    const response = await api.put(`/fpo/${fpoId}/members/${memberId}/status?status=${status}`);
+    return response.data;
+  },
+
+  // FPO Board Members
+  getFPOBoardMembers: async (fpoId) => {
+    const response = await api.get(`/fpo/${fpoId}/board-members`);
+    return response.data;
+  },
+
+  addBoardMember: async (fpoId, boardMemberData) => {
+    const response = await api.post(`/fpo/${fpoId}/board-members`, boardMemberData);
+    return response.data;
+  },
+
+  updateBoardMember: async (fpoId, boardMemberId, boardMemberData) => {
+    const response = await api.put(`/fpo/${fpoId}/board-members/${boardMemberId}`, boardMemberData);
+    return response.data;
+  },
+
+  removeBoardMember: async (fpoId, boardMemberId) => {
+    const response = await api.delete(`/fpo/${fpoId}/board-members/${boardMemberId}`);
+    return response.data;
+  },
+
+  // FPO Services
+  getFPOServices: async (fpoId) => {
+    const response = await api.get(`/fpo/${fpoId}/services`);
+    return response.data;
+  },
+
+  createService: async (fpoId, serviceData) => {
+    const response = await api.post(`/fpo/${fpoId}/services`, serviceData);
+    return response.data;
+  },
+
+  updateService: async (fpoId, serviceId, serviceData) => {
+    const response = await api.put(`/fpo/${fpoId}/services/${serviceId}`, serviceData);
+    return response.data;
+  },
+
+  updateServiceStatus: async (fpoId, serviceId, status) => {
+    const response = await api.put(`/fpo/${fpoId}/services/${serviceId}/status?status=${status}`);
+    return response.data;
+  },
+
+  removeService: async (fpoId, serviceId) => {
+    const response = await api.delete(`/fpo/${fpoId}/services/${serviceId}`);
+    return response.data;
+  },
+
+  // FPO Crops
+  getFPOCrops: async (fpoId) => {
+    const response = await api.get(`/fpo/${fpoId}/crops`);
+    return response.data;
+  },
+
+  createCrop: async (fpoId, cropData) => {
+    const response = await api.post(`/fpo/${fpoId}/crops`, cropData);
+    return response.data;
+  },
+
+  updateCrop: async (fpoId, cropId, cropData) => {
+    const response = await api.put(`/fpo/${fpoId}/crops/${cropId}`, cropData);
+    return response.data;
+  },
+
+  updateCropStatus: async (fpoId, cropId, status) => {
+    const response = await api.put(`/fpo/${fpoId}/crops/${cropId}/status?status=${status}`);
+    return response.data;
+  },
+
+  deleteCrop: async (fpoId, cropId) => {
+    const response = await api.delete(`/fpo/${fpoId}/crops/${cropId}`);
+    return response.data;
+  },
+
+  // FPO Input Shop
+  getFPOInputShops: async (fpoId) => {
+    const response = await api.get(`/fpo/${fpoId}/input-shops`);
+    return response.data;
+  },
+  createInputShop: async (fpoId, shopData) => {
+    const response = await api.post(`/fpo/${fpoId}/input-shops`, shopData);
+    return response.data;
+  },
+  updateInputShop: async (fpoId, shopId, shopData) => {
+    const response = await api.put(`/fpo/${fpoId}/input-shops/${shopId}`, shopData);
+    return response.data;
+  },
+  deleteInputShop: async (fpoId, shopId) => {
+    const response = await api.delete(`/fpo/${fpoId}/input-shops/${shopId}`);
+    return response.data;
+  },
+
+  // FPO Turnover
+  getFPOTurnovers: async (fpoId) => {
+    const response = await api.get(`/fpo/${fpoId}/turnovers`);
+    return response.data;
+  },
+
+  createTurnover: async (fpoId, turnoverData) => {
+    const response = await api.post(`/fpo/${fpoId}/turnovers`, turnoverData);
+    return response.data;
+  },
+
+  updateTurnover: async (fpoId, turnoverId, turnoverData) => {
+    const response = await api.put(`/fpo/${fpoId}/turnovers/${turnoverId}`, turnoverData);
+    return response.data;
+  },
+
+  deleteTurnover: async (fpoId, turnoverId) => {
+    const response = await api.delete(`/fpo/${fpoId}/turnovers/${turnoverId}`);
+    return response.data;
+  },
+
+  // FPO Products
+  getFPOProducts: async (fpoId) => {
+    const response = await api.get(`/fpo/${fpoId}/products`);
+    return response.data;
+  },
+
+  createProduct: async (fpoId, productData) => {
+    const response = await api.post(`/fpo/${fpoId}/products`, productData);
+    return response.data;
+  },
+
+  updateProduct: async (fpoId, productId, productData) => {
+    const response = await api.put(`/fpo/${fpoId}/products/${productId}`, productData);
+    return response.data;
+  },
+
+  updateProductStock: async (fpoId, productId, newStock) => {
+    const response = await api.put(`/fpo/${fpoId}/products/${productId}/stock?newStock=${newStock}`);
+    return response.data;
+  },
+
+  deleteProduct: async (fpoId, productId) => {
+    const response = await api.delete(`/fpo/${fpoId}/products/${productId}`);
+    return response.data;
+  },
+
+  // FPO Product Categories
+  getFPOProductCategories: async (fpoId) => {
+    const response = await api.get(`/fpo/${fpoId}/products/categories`);
+    return response.data;
+  },
+
+  createProductCategory: async (fpoId, categoryData) => {
+    const response = await api.post(`/fpo/${fpoId}/products/categories`, categoryData);
+    return response.data;
+  },
+
+  updateProductCategory: async (fpoId, categoryId, categoryData) => {
+    const response = await api.put(`/fpo/${fpoId}/products/categories/${categoryId}`, categoryData);
+    return response.data;
+  },
+
+  deleteProductCategory: async (fpoId, categoryId) => {
+    const response = await api.delete(`/fpo/${fpoId}/products/categories/${categoryId}`);
+    return response.data;
+  },
+
+  // FPO Notifications
+  getFPONotifications: async (fpoId) => {
+    const response = await api.get(`/fpo/${fpoId}/notifications`);
+    return response.data;
+  },
+
+  createNotification: async (fpoId, notificationData) => {
+    const response = await api.post(`/fpo/${fpoId}/notifications`, notificationData);
+    return response.data;
+  },
+
+  markNotificationAsRead: async (fpoId, notificationId) => {
+    const response = await api.put(`/fpo/${fpoId}/notifications/${notificationId}/read`);
+    return response.data;
+  },
+
+  deleteNotification: async (fpoId, notificationId) => {
+    const response = await api.delete(`/fpo/${fpoId}/notifications/${notificationId}`);
+    return response.data;
+  }
+};
+
+// FPO Users
+export const fpoUsersAPI = {
+  list: async (fpoId) => {
+    const response = await api.get(`/fpo/${fpoId}/users`);
+    return response.data;
+  },
+  create: async (fpoId, user) => {
+    // payload includes email, phone, firstName, lastName, role and password
+    const payload = {
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role, // admin | employee | farmer | fpo
+      password: user.password,
+    };
+    const response = await api.post(`/fpo/${fpoId}/users`, payload);
+    return response.data;
+  },
+  toggleActive: async (fpoId, userId, active) => {
+    const response = await api.put(`/fpo/${fpoId}/users/${userId}/status`, { active });
+    return response.data;
+  },
+  updatePassword: async (fpoId, userId, password) => {
+    const response = await api.put(`/fpo/${fpoId}/users/${userId}/password`, { password });
+    return response.data;
+  }
 };
 
 export default api; 

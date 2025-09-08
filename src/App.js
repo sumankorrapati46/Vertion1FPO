@@ -7,6 +7,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import EmployeeDashboard from './pages/EmployeeDashboard';
 import FarmerDashboard from './pages/FarmerDashboard';
+import FPODashboard from './pages/FPODashboard';
 import AboutScreen from './pages/AboutScreen';
 import MenuScreen from './pages/MenuScreen';
 
@@ -56,6 +57,8 @@ function App() {
             <Route path="/super-admin/dashboard" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><SuperAdminDashboard /></ProtectedRoute>} />
             <Route path="/employee/dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><EmployeeDashboard /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['FARMER']}><FarmerDashboard /></ProtectedRoute>} />
+            <Route path="/fpo/dashboard/:fpoId" element={<ProtectedRoute allowedRoles={['FPO']}><FPODashboard /></ProtectedRoute>} />
+            <Route path="/fpo/dashboard" element={<ProtectedRoute allowedRoles={['FPO']}><FPODashboard /></ProtectedRoute>} />
             <Route path="/analytics" element={<AnalyticsDashboard />} />
 
             
