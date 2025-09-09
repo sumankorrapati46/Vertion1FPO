@@ -89,6 +89,15 @@ const DataTable = ({ data, columns, onEdit, onDelete, onView, showDelete = false
                   {(() => {
                     if (!row || typeof row !== 'object') return 'N/A';
                     const value = row[column.key];
+                    // Allow custom render override per column
+                    if (column.render && typeof column.render === 'function') {
+                      try {
+                        return column.render(value, row);
+                      } catch (e) {
+                        console.error('DataTable: error in custom render for', column.key, e);
+                        return safeRender(value, column.key);
+                      }
+                    }
                     
                     // Handle status fields with special styling
                     if (column.key === 'kycStatus' || column.key === 'assignmentStatus' || column.key === 'status' || column.key === 'accessStatus') {

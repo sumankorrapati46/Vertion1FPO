@@ -4,24 +4,23 @@ import '../styles/FPOCreationForm.css';
 
 const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
   const [formData, setFormData] = useState({
+    // Basic
     fpoName: '',
+    registrationNumber: '',
     ceoName: '',
     phoneNumber: '',
     email: '',
-    village: '',
-    district: '',
+    // Address
+    address: '',
     state: '',
+    district: '',
+    mandal: '',
+    village: '',
+    streetName: '',
     pincode: '',
-    joinDate: '',
-    registrationType: 'COOPERATIVE',
-    numberOfMembers: 1,
-    registrationNumber: '',
-    panNumber: '',
-    gstNumber: '',
-    bankName: '',
-    accountNumber: '',
-    ifscCode: '',
-    branchName: ''
+    // Business
+    foodProcessingBusiness: '',
+    otherBusiness: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -86,10 +85,6 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
       newErrors.fpoName = 'FPO Name is required';
     }
 
-    if (!formData.ceoName.trim()) {
-      newErrors.ceoName = 'CEO/Contact Person Name is required';
-    }
-
     if (!formData.phoneNumber.trim()) {
       newErrors.phoneNumber = 'Phone Number is required';
     } else if (!/^\d{10}$/.test(formData.phoneNumber)) {
@@ -100,30 +95,17 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
       newErrors.email = 'Please provide a valid email address';
     }
 
-    if (!formData.village.trim()) {
-      newErrors.village = 'Village is required';
-    }
-
-    if (!formData.district.trim()) {
-      newErrors.district = 'District is required';
-    }
-
     if (!formData.state.trim()) {
       newErrors.state = 'State is required';
+    }
+    if (!formData.district.trim()) {
+      newErrors.district = 'District is required';
     }
 
     if (!formData.pincode.trim()) {
       newErrors.pincode = 'Pincode is required';
     } else if (!/^\d{6}$/.test(formData.pincode)) {
       newErrors.pincode = 'Pincode must be 6 digits';
-    }
-
-    if (!formData.joinDate) {
-      newErrors.joinDate = 'Join Date is required';
-    }
-
-    if (!formData.numberOfMembers || formData.numberOfMembers < 1) {
-      newErrors.numberOfMembers = 'Number of members must be at least 1';
     }
 
     setErrors(newErrors);
@@ -139,10 +121,35 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
 
     setLoading(true);
     try {
+      // Backend DTO expects additional fields. Provide sensible defaults
+      const payload = {
+        // required/new fields
+        fpoName: formData.fpoName,
+        registrationNumber: formData.registrationNumber || null,
+        ceoName: formData.ceoName || '',
+        phoneNumber: formData.phoneNumber,
+        email: formData.email || null,
+        // address mapping
+        address: formData.address || null,
+        state: formData.state,
+        district: formData.district,
+        mandal: formData.mandal || null,
+        village: formData.village || null,
+        streetName: formData.streetName || null,
+        pincode: formData.pincode,
+        // business info (optional)
+        foodProcessingBusiness: formData.foodProcessingBusiness || null,
+        otherBusiness: formData.otherBusiness || null,
+        // hidden defaults to keep backend happy
+        joinDate: new Date().toISOString().slice(0, 10),
+        registrationType: 'COOPERATIVE',
+        numberOfMembers: 1
+      };
+
       if (typeof onSubmit === 'function') {
-        await onSubmit(formData);
+        await onSubmit(payload);
       } else {
-        const response = await fpoAPI.createFPO(formData);
+        const response = await fpoAPI.createFPO(payload);
         if (typeof onFPOCreated === 'function') {
           onFPOCreated(response);
         }
@@ -160,13 +167,13 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
     <div className="modal-overlay">
       <div className="modal fpo-creation-modal">
         <div className="modal-header">
-          <h2>Create New FPO</h2>
+          <h2>Create FPO</h2>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
         
         <form onSubmit={handleSubmit} className="fpo-form">
+          {/* Basic */}
           <div className="form-section">
-            <h3>Basic Information</h3>
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="fpoName">FPO Name *</label>
@@ -180,24 +187,34 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
                 />
                 {errors.fpoName && <span className="error-message">{errors.fpoName}</span>}
               </div>
-              
               <div className="form-group">
-                <label htmlFor="ceoName">CEO/Contact Person Name *</label>
+                <label htmlFor="registrationNumber">Registration No</label>
+                <input
+                  type="text"
+                  id="registrationNumber"
+                  name="registrationNumber"
+                  value={formData.registrationNumber}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="ceoName">CEO Name</label>
                 <input
                   type="text"
                   id="ceoName"
                   name="ceoName"
                   value={formData.ceoName}
                   onChange={handleInputChange}
-                  className={errors.ceoName ? 'error' : ''}
                 />
-                {errors.ceoName && <span className="error-message">{errors.ceoName}</span>}
               </div>
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="phoneNumber">Phone Number *</label>
+                <label htmlFor="phoneNumber">Phone *</label>
                 <input
                   type="tel"
                   id="phoneNumber"
@@ -209,7 +226,6 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
                 />
                 {errors.phoneNumber && <span className="error-message">{errors.phoneNumber}</span>}
               </div>
-              
               <div className="form-group">
                 <label htmlFor="email">Email</label>
                 <input
@@ -225,22 +241,34 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
             </div>
           </div>
 
+          {/* Address */}
           <div className="form-section">
-            <h3>Address Information</h3>
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="village">Village *</label>
+                <label htmlFor="address">Address</label>
+                <textarea id="address" name="address" value={formData.address} onChange={handleInputChange} />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="state">State *</label>
                 <input
                   type="text"
-                  id="village"
-                  name="village"
-                  value={formData.village}
+                  id="state"
+                  name="state"
+                  value={formData.state}
                   onChange={handleInputChange}
-                  className={errors.village ? 'error' : ''}
+                  className={errors.state ? 'error' : ''}
+                  list="state-suggestions"
                 />
-                {errors.village && <span className="error-message">{errors.village}</span>}
+                <datalist id="state-suggestions">
+                  {states.map((state) => (
+                    <option key={state} value={state} />
+                  ))}
+                </datalist>
+                {errors.state && <span className="error-message">{errors.state}</span>}
               </div>
-              
               <div className="form-group">
                 <label htmlFor="district">District *</label>
                 <input
@@ -257,26 +285,20 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="state">State *</label>
-                <input
-                  type="text"
-                  id="state"
-                  name="state"
-                  placeholder="Enter State"
-                  value={formData.state}
-                  onChange={handleInputChange}
-                  className={errors.state ? 'error' : ''}
-                  list="state-suggestions"
-                />
-                {/* Optional datalist to help users, still free-text */}
-                <datalist id="state-suggestions">
-                  {states.map((state) => (
-                    <option key={state} value={state} />
-                  ))}
-                </datalist>
-                {errors.state && <span className="error-message">{errors.state}</span>}
+                <label htmlFor="mandal">Mandal</label>
+                <input type="text" id="mandal" name="mandal" value={formData.mandal} onChange={handleInputChange} />
               </div>
-              
+              <div className="form-group">
+                <label htmlFor="village">Village</label>
+                <input type="text" id="village" name="village" value={formData.village} onChange={handleInputChange} />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="streetName">Street Name</label>
+                <input type="text" id="streetName" name="streetName" value={formData.streetName} onChange={handleInputChange} />
+              </div>
               <div className="form-group">
                 <label htmlFor="pincode">Pincode *</label>
                 <input
@@ -293,136 +315,18 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
             </div>
           </div>
 
+          {/* Business */}
           <div className="form-section">
-            <h3>Registration Information</h3>
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="joinDate">Join Date *</label>
-                <input
-                  type="date"
-                  id="joinDate"
-                  name="joinDate"
-                  value={formData.joinDate}
-                  onChange={handleInputChange}
-                  className={errors.joinDate ? 'error' : ''}
-                />
-                {errors.joinDate && <span className="error-message">{errors.joinDate}</span>}
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="registrationType">Registration Type *</label>
-                <select
-                  id="registrationType"
-                  name="registrationType"
-                  value={formData.registrationType}
-                  onChange={handleInputChange}
-                >
-                  <option value="COMPANY">Company</option>
-                  <option value="COOPERATIVE">Cooperative</option>
-                  <option value="SOCIETY">Society</option>
-                </select>
+                <label htmlFor="foodProcessingBusiness">Food Processing Business</label>
+                <textarea id="foodProcessingBusiness" name="foodProcessingBusiness" value={formData.foodProcessingBusiness} onChange={handleInputChange} />
               </div>
             </div>
-
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="numberOfMembers">Number of Members *</label>
-                <input
-                  type="number"
-                  id="numberOfMembers"
-                  name="numberOfMembers"
-                  value={formData.numberOfMembers}
-                  onChange={handleInputChange}
-                  className={errors.numberOfMembers ? 'error' : ''}
-                  min="1"
-                />
-                {errors.numberOfMembers && <span className="error-message">{errors.numberOfMembers}</span>}
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="registrationNumber">Registration Number</label>
-                <input
-                  type="text"
-                  id="registrationNumber"
-                  name="registrationNumber"
-                  value={formData.registrationNumber}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="form-section">
-            <h3>Additional Information (Optional)</h3>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="panNumber">PAN Number</label>
-                <input
-                  type="text"
-                  id="panNumber"
-                  name="panNumber"
-                  value={formData.panNumber}
-                  onChange={handleInputChange}
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="gstNumber">GST Number</label>
-                <input
-                  type="text"
-                  id="gstNumber"
-                  name="gstNumber"
-                  value={formData.gstNumber}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="bankName">Bank Name</label>
-                <input
-                  type="text"
-                  id="bankName"
-                  name="bankName"
-                  value={formData.bankName}
-                  onChange={handleInputChange}
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="accountNumber">Account Number</label>
-                <input
-                  type="text"
-                  id="accountNumber"
-                  name="accountNumber"
-                  value={formData.accountNumber}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="ifscCode">IFSC Code</label>
-                <input
-                  type="text"
-                  id="ifscCode"
-                  name="ifscCode"
-                  value={formData.ifscCode}
-                  onChange={handleInputChange}
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="branchName">Branch Name</label>
-                <input
-                  type="text"
-                  id="branchName"
-                  name="branchName"
-                  value={formData.branchName}
-                  onChange={handleInputChange}
-                />
+                <label htmlFor="otherBusiness">Other Business</label>
+                <textarea id="otherBusiness" name="otherBusiness" value={formData.otherBusiness} onChange={handleInputChange} />
               </div>
             </div>
           </div>

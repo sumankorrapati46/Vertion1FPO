@@ -59,6 +59,7 @@ const AdminDashboard = () => {
   const [showFPOCreationForm, setShowFPOCreationForm] = useState(false);
   const [showFPOEdit, setShowFPOEdit] = useState(false);
   const [editingFPO, setEditingFPO] = useState(null);
+  const [toast, setToast] = useState(null);
   const [showFPODetail, setShowFPODetail] = useState(false);
   const [detailFPO, setDetailFPO] = useState(null);
   const [showBoardMembers, setShowBoardMembers] = useState(false);
@@ -2265,14 +2266,37 @@ const AdminDashboard = () => {
                         <DataTable
                           data={getFilteredFPOs()}
                           columns={[
-                            { key: 'fpoName', label: 'FPO Name' },
-                            { key: 'fpoId', label: 'FPO ID' },
-                            { key: 'ceoName', label: 'CEO Name' },
-                            { key: 'phoneNumber', label: 'Phone' },
-                            { key: 'state', label: 'State' },
-                            { key: 'district', label: 'District' },
-                            { key: 'status', label: 'Status' },
-                            { key: 'numberOfMembers', label: 'Members' }
+                            { key: 'fpoId', label: 'Id' },
+                            { key: 'fpoName', label: 'FPO name' },
+                            { key: 'ceoName', label: 'CEO name' },
+                            { key: 'phoneNumber', label: 'Phone number' },
+                            { key: 'joinDate', label: 'Join Date' },
+                            {
+                              key: 'status',
+                              label: 'Status',
+                              render: (value, row) => (
+                                <label className="switch">
+                                  <input
+                                    type="checkbox"
+                                    checked={(row.status || '').toUpperCase() === 'ACTIVE'}
+                                    onChange={async (e) => {
+                                      try {
+                                        const newStatus = e.target.checked ? 'ACTIVE' : 'INACTIVE';
+                                        await fpoAPI.updateFPOStatus(row.id, newStatus);
+                                        setFpos(prev => prev.map(f => f.id === row.id ? { ...f, status: newStatus } : f));
+                                        setToast({ type: 'success', message: `FPO status updated to ${newStatus}` });
+                                        setTimeout(() => setToast(null), 2000);
+                                      } catch (err) {
+                                        console.error('Failed to toggle FPO status:', err);
+                                        setToast({ type: 'error', message: 'Failed to update status' });
+                                        setTimeout(() => setToast(null), 2000);
+                                      }
+                                    }}
+                                  />
+                                  <span className="slider round"></span>
+                                </label>
+                              )
+                            }
                           ]}
                           customActions={[
                             { label: 'Dashboard', className: 'info', onClick: (fpo) => { setDetailFPO(fpo); setShowFPODetail(true); } },
@@ -2340,6 +2364,14 @@ const AdminDashboard = () => {
           {activeTab === 'bulk-operations' && <BulkOperations userRole="ADMIN" />}
         </div>
       </div>
+      {toast && (
+        <div className="toast-container">
+          <div className={`toast ${toast.type}`}>
+            <span className="icon">{toast.type === 'success' ? '✔' : '!'}</span>
+            <span>{toast.message}</span>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       {showFarmerForm && (

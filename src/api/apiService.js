@@ -1149,6 +1149,11 @@ export const fpoAPI = {
     return response.data;
   },
 
+  updateFPOStatus: async (id, status) => {
+    const response = await api.put(`/fpo/${id}/status?status=${status}`);
+    return response.data;
+  },
+
   getFPOById: async (id) => {
     const response = await api.get(`/fpo/${id}`);
     return response.data;
