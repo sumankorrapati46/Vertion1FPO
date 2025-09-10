@@ -1,0 +1,89 @@
+.fpo-admin-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+  background: #f6f7fb;
+  color: #0f172a;
+}
+
+.fpo-admin-sidebar {
+  background: #0b7a36;
+  color: #fff;
+  padding: 20px;
+}
+.fpo-admin-sidebar .section-label { margin: 14px 8px 6px; font-size: 12px; opacity: 0.8; }
+.fpo-admin-sidebar .brand {
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin-bottom: 24px;
+}
+.fpo-admin-sidebar .nav-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: #e6ffe6;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.fpo-admin-sidebar .nav-item.active,
+.fpo-admin-sidebar .nav-item:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.fpo-admin-main { padding: 24px; }
+
+.fpo-admin-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.fpo-admin-topbar .topbar-actions { display: flex; align-items: center; gap: 10px; }
+.fpo-admin-topbar .title h1 { margin: 0; font-size: 22px; }
+.fpo-admin-topbar .subtitle { color: #475569; margin-top: 4px; }
+.fpo-admin-topbar .divider { margin: 0 8px; color: #94a3b8; }
+.fpo-admin-topbar .btn { margin-left: 8px; }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  border-radius: 12px;
+  padding: 18px;
+  color: #fff;
+}
+.stat-card .stat-title { opacity: 0.9; font-size: 14px; }
+.stat-card .stat-value { font-size: 32px; font-weight: 800; margin-top: 6px; }
+.stat-card .stat-sub { margin-top: 6px; opacity: 0.9; }
+.stat-card.blue { background: #3b82f6; }
+.stat-card.teal { background: #14b8a6; }
+.stat-card.amber { background: #f59e0b; }
+
+.cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; }
+.panel-header h2 { margin: 0 0 8px; font-size: 18px; }
+.panel-desc { color: #475569; margin: 0 0 12px; }
+.panel-actions { display: flex; gap: 10px; }
+
+.fpo-table { width: 100%; border-collapse: collapse; }
+.fpo-table th, .fpo-table td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+.fpo-table th { background: #f8fafc; font-weight: 600; color: #334155; }
+
+.btn { border: 1px solid #e5e7eb; background: #fff; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+.btn:hover { background: #f1f5f9; }
+.btn.primary { background: #16a34a; color: #fff; border-color: #16a34a; }
+.btn.primary:hover { background: #15803d; }
+.btn.ghost { background: transparent; border-color: #cbd5e1; }
+
+.admin-loading { display: grid; place-items: center; min-height: 50vh; color: #475569; gap: 10px; }
+.admin-loading .spinner { width: 32px; height: 32px; border: 3px solid #e2e8f0; border-top-color: #16a34a; border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.admin-error { color: #b91c1c; background: #fee2e2; border: 1px solid #fecaca; padding: 12px; border-radius: 10px; margin: 16px; }
+
+
