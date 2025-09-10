@@ -21,6 +21,7 @@ import ChangeUserId from './pages/ChangeUserId';
 import OtpVerification from './pages/OtpVerification';
 import ProtectedRoute from './components/ProtectedRoute';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
+import MyIdCard from './pages/MyIdCard';
 import './App.css';
 
 function App() {
@@ -60,6 +61,9 @@ function App() {
             <Route path="/fpo/dashboard/:fpoId" element={<ProtectedRoute allowedRoles={['FPO']}><FPODashboard /></ProtectedRoute>} />
             <Route path="/fpo/dashboard" element={<ProtectedRoute allowedRoles={['FPO']}><FPODashboard /></ProtectedRoute>} />
             <Route path="/analytics" element={<AnalyticsDashboard />} />
+            
+            {/* ID Card Route */}
+            <Route path="/my-id-card" element={<ProtectedRoute allowedRoles={['FARMER', 'EMPLOYEE', 'ADMIN', 'SUPER_ADMIN']}><MyIdCard /></ProtectedRoute>} />
 
             
             {/* Default Routes */}

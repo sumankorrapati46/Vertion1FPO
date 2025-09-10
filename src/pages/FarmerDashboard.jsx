@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import UserProfileDropdown from '../components/UserProfileDropdown';
+import MyIdCard from '../components/MyIdCard';
 import { apiService } from '../api/apiService';
 import '../styles/Dashboard.css';
 
@@ -474,6 +475,12 @@ const FarmerDashboard = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+              
+              {/* ID Card Section */}
+              <div className="profile-card" style={{ marginTop: '20px' }}>
+                <h3>🆔 My ID Card</h3>
+                <MyIdCard userId={farmerData?.id} userType="FARMER" />
               </div>
             </div>
           )}

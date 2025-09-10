@@ -878,7 +878,8 @@ export const employeeAPI = {
 
   // Get employee profile
   getProfile: async () => {
-    const response = await api.get('/employees/profile');
+    // Use the dashboard-scoped profile endpoint
+    const response = await api.get('/employees/dashboard/profile');
     return response.data;
   },
 
@@ -1132,6 +1133,28 @@ export const apiService = {
     if (typeof employee === 'string') params.employeeEmail = employee;
     else if (employee != null) params.employeeId = employee;
     const response = await api.post('/bulk/assign/farmers-by-location', null, { params });
+    return response.data;
+  },
+
+  // ID Card API calls
+  getIdCardPdf: async (userId) => {
+    const response = await api.get(`/users/${userId}/idcard?t=${Date.now()}`, {
+      timeout: 60000, // 60 seconds for ID card generation
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+
+  uploadIdPhoto: async (userId, file) => {
+    const formData = new FormData();
+    formData.append('photo', file);
+    
+    const response = await api.put(`/users/${userId}/upload-photo`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 60000 // 60 seconds for photo upload
+    });
     return response.data;
   },
 };
@@ -1464,6 +1487,103 @@ export const fpoUsersAPI = {
   },
   updatePassword: async (fpoId, userId, password) => {
     const response = await api.put(`/fpo/${fpoId}/users/${userId}/password`, { password });
+    return response.data;
+  }
+};
+
+// ID Card API calls
+export const idCardAPI = {
+  // Generate ID card for farmer
+  generateFarmerIdCard: async (farmerId) => {
+    const response = await api.post(`/id-cards/generate/farmer/${farmerId}`);
+    return response.data;
+  },
+
+  // Generate ID card for employee
+  generateEmployeeIdCard: async (employeeId) => {
+    const response = await api.post(`/id-cards/generate/employee/${employeeId}`);
+    return response.data;
+  },
+
+  // Get ID card by card ID
+  getIdCard: async (cardId) => {
+    const response = await api.get(`/id-cards/${cardId}`);
+    return response.data;
+  },
+
+  // Get ID cards by holder ID
+  getIdCardsByHolder: async (holderId) => {
+    const response = await api.get(`/id-cards/holder/${holderId}`);
+    return response.data;
+  },
+
+  // Get all ID cards with pagination
+  getAllIdCards: async (page = 0, size = 10) => {
+    const response = await api.get(`/id-cards?page=${page}&size=${size}`);
+    return response.data;
+  },
+
+  // Get ID cards by type
+  getIdCardsByType: async (cardType, page = 0, size = 10) => {
+    const response = await api.get(`/id-cards/type/${cardType}?page=${page}&size=${size}`);
+    return response.data;
+  },
+
+  // Search ID cards
+  searchIdCards: async (params) => {
+    const queryParams = new URLSearchParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+        queryParams.append(key, params[key]);
+      }
+    });
+    const response = await api.get(`/id-cards/search?${queryParams.toString()}`);
+    return response.data;
+  },
+
+  // Get ID cards by state
+  getIdCardsByState: async (state, cardType, page = 0, size = 10) => {
+    const response = await api.get(`/id-cards/state/${state}?cardType=${cardType}&page=${page}&size=${size}`);
+    return response.data;
+  },
+
+  // Get ID cards by district
+  getIdCardsByDistrict: async (district, cardType, page = 0, size = 10) => {
+    const response = await api.get(`/id-cards/district/${district}?cardType=${cardType}&page=${page}&size=${size}`);
+    return response.data;
+  },
+
+  // Download ID card PDF
+  downloadIdCardPdf: async (cardId) => {
+    const response = await api.get(`/id-cards/${cardId}/download/pdf`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+
+  // Download ID card PNG
+  downloadIdCardPng: async (cardId) => {
+    const response = await api.get(`/id-cards/${cardId}/download/png?t=${Date.now()}` , {
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+
+  // Regenerate ID card
+  regenerateIdCard: async (cardId) => {
+    const response = await api.post(`/id-cards/${cardId}/regenerate`);
+    return response.data;
+  },
+
+  // Revoke ID card
+  revokeIdCard: async (cardId) => {
+    const response = await api.post(`/id-cards/${cardId}/revoke`);
+    return response.data;
+  },
+
+  // Get ID card statistics
+  getIdCardStatistics: async () => {
+    const response = await api.get('/id-cards/statistics');
     return response.data;
   }
 };

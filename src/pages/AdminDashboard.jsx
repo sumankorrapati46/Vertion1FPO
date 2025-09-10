@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { farmersAPI, employeesAPI, adminAPI, superAdminAPI, fpoAPI } from '../api/apiService';
+import { farmersAPI, employeesAPI, adminAPI, superAdminAPI, fpoAPI, idCardAPI } from '../api/apiService';
+import IdCardViewer from '../components/IdCardViewer';
 import '../styles/Dashboard.css';
 import FarmerForm from '../components/FarmerForm';
 import FarmerRegistrationForm from '../components/FarmerRegistrationForm';
@@ -111,6 +112,8 @@ const AdminDashboard = () => {
     employeeFilter: ''
   });
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showIdCardModal, setShowIdCardModal] = useState(false);
+  const [currentCardId, setCurrentCardId] = useState(null);
   
   // Add time filter state
   const [timeFilter, setTimeFilter] = useState('all'); // 'all', 'today', 'month', 'year'
@@ -1268,6 +1271,30 @@ const AdminDashboard = () => {
                   onClick: handleViewFarmer
                 },
                 {
+                  label: 'ID Card',
+                  className: 'action-btn-small primary',
+                  onClick: async (farmer) => {
+                    try {
+                      const list = await idCardAPI.getIdCardsByHolder(farmer.id.toString());
+                      if (Array.isArray(list) && list.length > 0) {
+                        setCurrentCardId(list[0].cardId);
+                        setShowIdCardModal(true);
+                        return;
+                      }
+                      const gen = await idCardAPI.generateFarmerIdCard(farmer.id);
+                      if (gen && gen.cardId) {
+                        setCurrentCardId(gen.cardId);
+                        setShowIdCardModal(true);
+                      } else {
+                        alert('Failed to generate ID card');
+                      }
+                    } catch (e) {
+                      console.error('ID Card action failed', e);
+                      alert('Unable to open or generate ID card');
+                    }
+                  }
+                },
+                {
                   label: 'Edit',
                   className: 'action-btn-small primary',
                   onClick: handleEditFarmer
@@ -1665,6 +1692,30 @@ const AdminDashboard = () => {
                 label: 'View',
                 className: 'action-btn-small info',
                 onClick: handleViewEmployee
+              },
+              {
+                label: 'ID Card',
+                className: 'action-btn-small primary',
+                onClick: async (employee) => {
+                  try {
+                    const list = await idCardAPI.getIdCardsByHolder(employee.id.toString());
+                    if (Array.isArray(list) && list.length > 0) {
+                      setCurrentCardId(list[0].cardId);
+                      setShowIdCardModal(true);
+                      return;
+                    }
+                    const gen = await idCardAPI.generateEmployeeIdCard(employee.id);
+                    if (gen && gen.cardId) {
+                      setCurrentCardId(gen.cardId);
+                      setShowIdCardModal(true);
+                    } else {
+                      alert('Failed to generate ID card');
+                    }
+                  } catch (e) {
+                    console.error('Employee ID Card action failed', e);
+                    alert('Unable to open or generate ID card');
+                  }
+                }
               },
               {
                 label: 'Edit',
@@ -2458,6 +2509,13 @@ const AdminDashboard = () => {
                      onReferBack={handleKYCReferBack}
                    />
                  )}
+
+      {showIdCardModal && currentCardId && (
+        <IdCardViewer
+          cardId={currentCardId}
+          onClose={() => { setShowIdCardModal(false); setCurrentCardId(null); }}
+        />
+      )}
 
       {showRegistrationDetailModal && selectedRegistrationForDetail && (
         <RegistrationDetailModal

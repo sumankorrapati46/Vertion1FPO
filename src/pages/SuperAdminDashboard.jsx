@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import IdCardViewer from '../components/IdCardViewer';
+import { idCardAPI } from '../api/apiService';
 import { useAuth } from '../contexts/AuthContext';
 import { farmersAPI, employeesAPI, superAdminAPI, adminAPI, fpoAPI } from '../api/apiService';
 import DataTable from '../components/DataTable';
@@ -37,6 +39,8 @@ import '../styles/Dashboard.css';
 
 const SuperAdminDashboard = () => {
   const { user, logout } = useAuth();
+  const [showIdCardModal, setShowIdCardModal] = useState(false);
+  const [currentCardId, setCurrentCardId] = useState(null);
   
   // Debug logging
   console.log('SuperAdminDashboard - User data:', user);
@@ -1739,6 +1743,32 @@ const SuperAdminDashboard = () => {
                             onClick: handleViewFarmer
                           },
                           {
+                            label: 'ID Card',
+                            className: 'primary',
+                            onClick: async (farmer) => {
+                              try {
+                                // Try to fetch existing cards
+                                const list = await idCardAPI.getIdCardsByHolder(farmer.id.toString());
+                                if (Array.isArray(list) && list.length > 0) {
+                                  setCurrentCardId(list[0].cardId);
+                                  setShowIdCardModal(true);
+                                  return;
+                                }
+                                // If none, generate then open
+                                const gen = await idCardAPI.generateFarmerIdCard(farmer.id);
+                                if (gen && gen.cardId) {
+                                  setCurrentCardId(gen.cardId);
+                                  setShowIdCardModal(true);
+                                } else {
+                                  alert('Failed to generate ID card');
+                                }
+                              } catch (e) {
+                                console.error('ID Card action failed', e);
+                                alert('Unable to open or generate ID card');
+                              }
+                            }
+                          },
+                          {
                             label: 'Delete',
                             className: 'danger',
                             onClick: (farmer) => handleDelete(farmer, 'farmer')
@@ -1809,6 +1839,16 @@ const SuperAdminDashboard = () => {
                   farmerData={viewingFarmer}
                   onBack={() => setViewingFarmer(null)}
                   onSave={handleSaveFarmer}
+                />
+              )}
+
+              {showIdCardModal && currentCardId && (
+                <IdCardViewer
+                  cardId={currentCardId}
+                  onClose={() => {
+                    setShowIdCardModal(false);
+                    setCurrentCardId(null);
+                  }}
                 />
               )}
             </>
@@ -1988,6 +2028,30 @@ const SuperAdminDashboard = () => {
                               label: 'View',
                               className: 'info',
                               onClick: handleViewEmployee
+                            },
+                            {
+                              label: 'ID Card',
+                              className: 'primary',
+                              onClick: async (employee) => {
+                                try {
+                                  const list = await idCardAPI.getIdCardsByHolder(employee.id.toString());
+                                  if (Array.isArray(list) && list.length > 0) {
+                                    setCurrentCardId(list[0].cardId);
+                                    setShowIdCardModal(true);
+                                    return;
+                                  }
+                                  const gen = await idCardAPI.generateEmployeeIdCard(employee.id);
+                                  if (gen && gen.cardId) {
+                                    setCurrentCardId(gen.cardId);
+                                    setShowIdCardModal(true);
+                                  } else {
+                                    alert('Failed to generate ID card');
+                                  }
+                                } catch (e) {
+                                  console.error('Employee ID Card action failed', e);
+                                  alert('Unable to open or generate ID card');
+                                }
+                              }
                             },
                             {
                               label: 'Delete',

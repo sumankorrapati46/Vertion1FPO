@@ -1,0 +1,271 @@
+.my-id-card {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.id-card-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.id-card-header h2 {
+  color: #2c3e50;
+  margin-bottom: 10px;
+  font-size: 2rem;
+}
+
+.id-card-header p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.1rem;
+}
+
+.loading {
+  color: #666;
+}
+
+.error {
+  color: #e74c3c;
+}
+
+.no-id-cards {
+  text-align: center;
+  padding: 60px 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 2px dashed #dee2e6;
+}
+
+.no-id-cards-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.no-id-cards h3 {
+  color: #2c3e50;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+}
+
+.no-id-cards p {
+  color: #666;
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+.id-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.id-card-item {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  transition: transform 0.3s, box-shadow 0.3s;
+  position: relative;
+}
+
+.id-card-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.card-info {
+  flex: 1;
+}
+
+.card-id {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.card-id h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-expired {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status-revoked {
+  background: #f5c6cb;
+  color: #721c24;
+}
+
+.status-unknown {
+  background: #e2e3e5;
+  color: #6c757d;
+}
+
+.card-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.card-details p {
+  margin: 5px 0;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.card-details strong {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 150px;
+}
+
+.action-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.action-btn.view {
+  background: #3498db;
+  color: white;
+}
+
+.action-btn.view:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+}
+
+.action-btn.download.pdf {
+  background: #e74c3c;
+  color: white;
+}
+
+.action-btn.download.pdf:hover {
+  background: #c0392b;
+  transform: translateY(-2px);
+}
+
+.action-btn.download.png {
+  background: #27ae60;
+  color: white;
+}
+
+.action-btn.download.png:hover {
+  background: #229954;
+  transform: translateY(-2px);
+}
+
+.expired-notice,
+.revoked-notice {
+  margin-top: 15px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expired-notice {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.revoked-notice {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .my-id-card {
+    padding: 15px;
+  }
+  
+  .card-main {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .card-actions {
+    flex-direction: row;
+    min-width: auto;
+  }
+  
+  .action-btn {
+    flex: 1;
+    padding: 12px 8px;
+    font-size: 0.85rem;
+  }
+  
+  .card-details {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Animation */
+.id-card-item {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

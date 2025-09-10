@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import api from '../api/apiService';
+import MyIdCard from '../components/MyIdCard';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/Dashboard.css';
 import FarmerRegistrationForm from '../components/FarmerRegistrationForm';
@@ -26,6 +28,7 @@ import { kycAPI, employeeAPI, farmersAPI, fpoAPI } from '../api/apiService';
 const EmployeeDashboard = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  const [employeeId, setEmployeeId] = useState(null);
   const [assignedFarmers, setAssignedFarmers] = useState([]);
   const [showFarmerForm, setShowFarmerForm] = useState(false);
   const [showKYCModal, setShowKYCModal] = useState(false);
@@ -35,6 +38,10 @@ const EmployeeDashboard = () => {
   const [showEmployeeDetails, setShowEmployeeDetails] = useState(false);
   const [selectedEmployeeData, setSelectedEmployeeData] = useState(null);
   const [editingFarmer, setEditingFarmer] = useState(null);
+  const [idCard, setIdCard] = useState(null);
+  const [idCardImageUrl, setIdCardImageUrl] = useState(null);
+  const [showIdCardModal, setShowIdCardModal] = useState(false);
+  const [loadingIdCard, setLoadingIdCard] = useState(false);
   
   // FPO States
   const [fpos, setFpos] = useState([]);
@@ -55,6 +62,20 @@ const EmployeeDashboard = () => {
   const [showInputShop, setShowInputShop] = useState(false);
   const [selectedFPOForInputShop, setSelectedFPOForInputShop] = useState(null);
   const [showProductCategories, setShowProductCategories] = useState(false);
+  // Resolve real employee id (entity id) for MyIdCard holder
+  useEffect(() => {
+    const loadEmployeeProfileId = async () => {
+      try {
+        const profile = await employeeAPI.getProfile();
+        if (profile && profile.id) {
+          setEmployeeId(profile.id);
+        }
+      } catch (e) {
+        // ignore; fallback to user.id
+      }
+    };
+    loadEmployeeProfileId();
+  }, []);
   const [selectedFPOForProductCategories, setSelectedFPOForProductCategories] = useState(null);
   const [showProducts, setShowProducts] = useState(false);
   const [selectedFPOForProducts, setSelectedFPOForProducts] = useState(null);
@@ -386,6 +407,98 @@ const EmployeeDashboard = () => {
 
   const handleLogout = () => {
     logout();
+  };
+
+  const API_BASE = process.env.REACT_APP_API_URL || api.defaults.baseURL || 'http://localhost:8080/api';
+
+  const viewFarmerIdCard = async (farmerId) => {
+    try {
+      setLoadingIdCard(true);
+      setIdCard(null);
+      setIdCardImageUrl(null);
+      const res = await api.get(`/employees/dashboard/farmers/${farmerId}/id-card`, {
+        withCredentials: true,
+        headers: { 'Accept': 'application/json' }
+      }).then(r => r).catch(err => (err && err.response) ? err.response : { status: 0, data: { message: err?.message || 'Network error' } });
+
+      if (!res || typeof res.status !== 'number') {
+        throw new Error(res?.data?.message || 'No response from server');
+      }
+
+      if (res.status === 403) {
+        alert("You don't have access to this farmer's ID card.");
+        return;
+      }
+      if (res.status === 404) {
+        // Fallback: fetch existing cards by holderId and display first FARMER card
+        const listRes = await api.get(`/id-cards/holder/${farmerId}`, {
+          withCredentials: true,
+          headers: { 'Accept': 'application/json' }
+        }).then(r => r).catch(err => (err && err.response) ? err.response : { status: 0, data: { message: err?.message || 'Network error' } });
+
+        if (!listRes || (listRes.status && listRes.status >= 400)) {
+          throw new Error(listRes?.data?.message || `Failed to fetch holder cards (${listRes?.status || 'unknown'})`);
+        }
+
+        const list = listRes?.data;
+        const card = Array.isArray(list)
+          ? (list.find(c => (c.cardType === 'FARMER' || c.cardType === 'farmer')) || list[0])
+          : null;
+
+        if (!card) {
+          alert('No ID card record found for this farmer.');
+          return;
+        }
+
+        const resultCard = {
+          cardId: card.cardId,
+          status: card.status,
+          holderId: card.holderId,
+          holderName: card.holderName,
+          pngUrl: `${API_BASE}/id-cards/${card.cardId}/download/png`,
+          pdfUrl: `${API_BASE}/id-cards/${card.cardId}/download/pdf`
+        };
+        setIdCard(resultCard);
+        try {
+          let pngPath = resultCard.pngUrl;
+          if (pngPath.startsWith(API_BASE)) pngPath = pngPath.substring(API_BASE.length);
+          if (pngPath.startsWith('/api/')) pngPath = pngPath.substring(4);
+          const blobRes = await api.get(pngPath, { responseType: 'blob' });
+          const objectUrl = URL.createObjectURL(blobRes.data);
+          setIdCardImageUrl(objectUrl);
+        } catch (e) {
+          // Fallback to direct URL if blob fetch fails
+          setIdCardImageUrl(resultCard.pngUrl);
+        }
+        setShowIdCardModal(true);
+        return;
+      }
+      if (res.status && (res.status < 200 || res.status >= 300)) {
+        const txt = res.data ? JSON.stringify(res.data) : String(res.status);
+        throw new Error(txt || `Failed (${res.status})`);
+      }
+      const data = res?.data;
+      if (!data) {
+        throw new Error('Empty response from server');
+      }
+      setIdCard(data);
+      try {
+        let pngPath = data.pngUrl;
+        if (pngPath.startsWith(API_BASE)) pngPath = pngPath.substring(API_BASE.length);
+        if (pngPath.startsWith('/api/')) pngPath = pngPath.substring(4);
+        const blobRes = await api.get(pngPath, { responseType: 'blob' });
+        const objectUrl = URL.createObjectURL(blobRes.data);
+        setIdCardImageUrl(objectUrl);
+      } catch (e) {
+        setIdCardImageUrl(data.pngUrl);
+      }
+      setShowIdCardModal(true);
+    } catch (e) {
+      console.error('ID Card load failed:', e);
+      alert(`Unable to load ID Card: ${e.message}`);
+    } finally {
+      setLoadingIdCard(false);
+    }
   };
 
 
@@ -1271,6 +1384,12 @@ const EmployeeDashboard = () => {
                       setSelectedFarmer(farmer);
                       setShowKYCModal(true);
                     }
+                  },
+                  {
+                    label: 'ID Card',
+                    icon: '🪪',
+                    className: 'primary',
+                    onClick: (farmer) => farmer && viewFarmerIdCard(farmer.id)
                   }
                 ]}
               />
@@ -2166,6 +2285,17 @@ const EmployeeDashboard = () => {
               </div>
               
               {renderOverview()}
+
+              {/* My Profile - ID Card */}
+              <div className="employee-overview-section">
+                <div className="employee-overview-header">
+                  <h2 className="employee-overview-title">My ID Card</h2>
+                  <p className="employee-overview-description">View and download your employee ID card.</p>
+                </div>
+                <div className="section-card">
+                  <MyIdCard userId={employeeId || user?.id} userType="EMPLOYEE" />
+                </div>
+              </div>
             </>
           )}
           {activeTab === 'farmers' && renderAssignedFarmers()}
