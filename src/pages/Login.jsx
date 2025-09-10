@@ -101,8 +101,9 @@ const Login = () => {
           role: 'FPO',
           forcePasswordChange: false,
           status: 'APPROVED',
-          fpoId: res.fpoId,
-          fpoName: res.fpoName
+          fpoId: res.fpoId || res.fpoID || res?.fpo?.id,
+          fpoName: res.fpoName || res?.fpo?.name,
+          fpoUserType: res.userType || res.userRole || res.type || (res.isAdmin ? 'ADMIN' : undefined)
         };
         
         // Store token and user data
@@ -110,9 +111,19 @@ const Login = () => {
         console.log('Storing token:', res.token);
         login(user, res.token);
         
-        // Route directly to FPO dashboard
-        if (res.fpoId) {
-          navigate(`/fpo/dashboard/${res.fpoId}`);
+        // If this FPO user is an Admin (from backend or username hint), go to FPO Admin Dashboard
+        const adminIndicators = ['ADMIN', 'FPO_ADMIN', 'FPO-ADMIN', 'FPOADMIN', 'ADMINISTRATOR'];
+        const possibleAdminFields = [res.userType, res.role, res.userRole, res.type, user.fpoUserType];
+        const isAdminByString = possibleAdminFields
+          .filter(v => typeof v === 'string')
+          .some(v => adminIndicators.includes(v.toUpperCase()));
+        const isFpoAdmin = isAdminByString || res.isAdmin === true || userName?.toLowerCase?.().includes('admin');
+
+        const resolvedFpoId = user.fpoId;
+        if (isFpoAdmin && resolvedFpoId) {
+          navigate(`/fpo-admin/dashboard/${resolvedFpoId}`);
+        } else if (resolvedFpoId) {
+          navigate(`/fpo/dashboard/${resolvedFpoId}`);
         } else {
           navigate('/fpo/dashboard');
         }
