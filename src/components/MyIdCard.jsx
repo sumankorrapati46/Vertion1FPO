@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { idCardAPI } from '../api/apiService';
+import { idCardAPI, employeeAPI, employeeSelfAPI, farmersAPI } from '../api/apiService';
 import IdCardViewer from './IdCardViewer';
 import '../styles/MyIdCard.css';
 
@@ -8,6 +8,8 @@ const MyIdCard = ({ userId, userType }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  // state removed: currentPhotoFileName
 
   useEffect(() => {
     if (userId) {
@@ -15,11 +17,47 @@ const MyIdCard = ({ userId, userType }) => {
     }
   }, [userId]);
 
+  // Load current employee photo for quick visual verification
+  // Optionally pre-load photo name for validation
+
   const fetchMyIdCards = async () => {
     try {
       setLoading(true);
-      const response = await idCardAPI.getIdCardsByHolder(userId.toString());
-      setIdCards(response);
+      // Determine correct holder id
+      let holderId = userId;
+      if (userType === 'EMPLOYEE') {
+        try {
+          const profile = await employeeAPI.getProfile();
+          if (profile?.id) holderId = profile.id;
+        } catch (e) {
+          console.warn('Failed to resolve employee profile id, falling back to userId', e);
+        }
+      }
+
+      const response = await idCardAPI.getIdCardsByHolder(String(holderId));
+      const listRaw = Array.isArray(response)
+        ? response
+        : (response?.content || response?.items || response?.data || []);
+      const list = Array.isArray(listRaw) ? listRaw : [];
+      // Ensure we only show the appropriate card type (EMPLOYEE/FARMER)
+      let filtered = userType ? list.filter((c) => c.cardType === userType) : list;
+
+      // Fallback: if nothing returned for holder, fetch by type and match holderId
+      if ((!filtered || filtered.length === 0) && userType === 'EMPLOYEE') {
+        try {
+          const page = await idCardAPI.getIdCardsByType('EMPLOYEE');
+          const arr = Array.isArray(page)
+            ? page
+            : (page?.content || page?.items || page?.data || []);
+          const all = Array.isArray(arr) ? arr : [];
+          const matches = all.filter((c) => String(c.holderId) === String(holderId) || String(c.holderId) === String(userId));
+          filtered = matches;
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      setIdCards(filtered || []);
     } catch (err) {
       setError('Failed to load ID cards');
       console.error('Error fetching ID cards:', err);
@@ -68,6 +106,50 @@ const MyIdCard = ({ userId, userType }) => {
     }
   };
 
+  const handleUploadPhoto = async (event) => {
+    try {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (!/image\/(png|jpeg|jpg)/.test(file.type)) {
+        alert('Please select a JPG or PNG image.');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File too large. Max 5 MB.');
+        return;
+      }
+
+      setUploading(true);
+
+      // holder id not needed here; API uses profile id internally
+      if (userType === 'EMPLOYEE') {
+        // Resolve employee entity id
+        let empId = userId;
+        try {
+          const profile = await employeeAPI.getProfile();
+          if (profile?.id) empId = profile.id;
+        } catch {}
+        await employeeSelfAPI.uploadPhoto(empId, file);
+        // no-op
+        // Optionally refresh profile cache after upload
+      } else if (userType === 'FARMER') {
+        // Farmer endpoint: PATCH /api/farmers/{id}/photo
+        await farmersAPI.uploadPhoto(userId, file);
+        // no-op
+      }
+
+      // Refresh list to ensure latest profile photo is used during rendering
+      setTimeout(fetchMyIdCards, 300);
+      alert('Photo updated successfully.');
+    } catch (err) {
+      console.error('Photo upload failed:', err);
+      alert(err.response?.data?.message || 'Failed to upload photo.');
+    } finally {
+      setUploading(false);
+      event.target.value = '';
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusClasses = {
       ACTIVE: 'status-active',
@@ -106,34 +188,6 @@ const MyIdCard = ({ userId, userType }) => {
           <h3>No ID Card Found</h3>
           <p>Your ID card will be generated automatically after your registration is approved.</p>
           <p>Please contact your administrator if you believe this is an error.</p>
-          
-          {/* Temporary manual generation button */}
-          <button 
-            onClick={async () => {
-              try {
-                const response = await idCardAPI.generateFarmerIdCard(userId);
-                if (response) {
-                  alert('ID Card generated successfully! Please refresh the page.');
-                  window.location.reload();
-                }
-              } catch (error) {
-                console.error('Error generating ID card:', error);
-                alert('Failed to generate ID card. Please contact administrator.');
-              }
-            }}
-            className="generate-id-card-btn"
-            style={{
-              marginTop: '20px',
-              padding: '10px 20px',
-              backgroundColor: '#3498db',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}
-          >
-            Generate ID Card Now
-          </button>
         </div>
       </div>
     );
@@ -147,6 +201,12 @@ const MyIdCard = ({ userId, userType }) => {
       </div>
 
       <div className="id-cards-list">
+        <div style={{ marginBottom: 12 }}>
+          <label className="action-btn" style={{ cursor: 'pointer' }}>
+            <input type="file" accept="image/png,image/jpeg" style={{ display: 'none' }} onChange={handleUploadPhoto} disabled={uploading} />
+            {uploading ? 'Uploading...' : 'Change Photo'}
+          </label>
+        </div>
         {idCards.map((card) => (
           <div key={card.id} className="id-card-item">
             <div className="card-main">

@@ -274,9 +274,9 @@
 
 .user-avatar {
 
-  width: 36px;
+  width: 48px;
 
-  height: 36px;
+  height: 48px;
 
   border-radius: 50%;
 
@@ -290,7 +290,7 @@
 
   font-weight: 700;
 
-  font-size: 16px;
+  font-size: 18px;
 
   color: white;
 
@@ -398,9 +398,9 @@
 
 .user-avatar-large {
 
-  width: 56px;
+  width: 72px;
 
-  height: 56px;
+  height: 72px;
 
   border-radius: 50%;
 
@@ -414,7 +414,7 @@
 
   font-weight: 700;
 
-  font-size: 20px;
+  font-size: 24px;
 
   color: white;
 
@@ -566,7 +566,7 @@
 
   width: 280px;
 
-  background: #006838;
+  background: #15803d;
 
   color: white;
 
@@ -3035,7 +3035,7 @@
 
 .status-assigned {
 
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
 
   color: #ffffff;
 
@@ -6374,7 +6374,7 @@ table td:last-child {
 
 .action-btn-modern.primary {
 
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
 
   color: white;
 
@@ -6384,11 +6384,11 @@ table td:last-child {
 
 .action-btn-modern.primary:hover {
 
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
 
   transform: translateY(-2px);
 
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
 
 }
 
@@ -6628,9 +6628,9 @@ table td:last-child {
 
 .quick-action-btn-modern.primary {
 
-  color: #3b82f6;
+  color: #15803d;
 
-  border: 2px solid #3b82f6;
+  border: 2px solid #15803d;
 
 }
 
@@ -6638,7 +6638,7 @@ table td:last-child {
 
 .quick-action-btn-modern.primary:hover {
 
-  background: #3b82f6;
+  background: #15803d;
 
   color: white;
 
@@ -7380,7 +7380,7 @@ table td:last-child {
 
 .action-btn-modern.primary {
 
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
 
   color: white;
 
@@ -7390,11 +7390,11 @@ table td:last-child {
 
 .action-btn-modern.primary:hover {
 
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
 
   transform: translateY(-2px);
 
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
 
 }
 

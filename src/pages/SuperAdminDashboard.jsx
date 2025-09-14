@@ -66,6 +66,36 @@ const SuperAdminDashboard = () => {
   const [fpos, setFpos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // State for unique IDs (persisted to localStorage to avoid flicker)
+  const [farmerUniqueIds, setFarmerUniqueIds] = useState(() => {
+    try {
+      const cached = localStorage.getItem('farmerUniqueIds');
+      return cached ? JSON.parse(cached) : {};
+    } catch { return {}; }
+  });
+  const [employeeUniqueIds, setEmployeeUniqueIds] = useState(() => {
+    try {
+      const cached = localStorage.getItem('employeeUniqueIds');
+      return cached ? JSON.parse(cached) : {};
+    } catch { return {}; }
+  });
+
+  const mergeAndPersistFarmerIds = (updates) => {
+    setFarmerUniqueIds(prev => {
+      const merged = { ...prev, ...updates };
+      try { localStorage.setItem('farmerUniqueIds', JSON.stringify(merged)); } catch {}
+      return merged;
+    });
+  };
+
+  const mergeAndPersistEmployeeIds = (updates) => {
+    setEmployeeUniqueIds(prev => {
+      const merged = { ...prev, ...updates };
+      try { localStorage.setItem('employeeUniqueIds', JSON.stringify(merged)); } catch {}
+      return merged;
+    });
+  };
 
   // Greeting function based on time of day
   const getGreeting = () => {
@@ -80,6 +110,75 @@ const SuperAdminDashboard = () => {
       return 'Good Night';
     }
   };
+
+  // Function to fetch unique IDs for farmers and employees
+  const fetchUniqueIds = async (farmersData, employeesData, onlyMissing = false) => {
+    try {
+      // Fetch unique IDs for farmers
+      const farmerIds = {};
+      for (const farmer of farmersData || []) {
+        if (onlyMissing && farmerUniqueIds[String(farmer.id)]) continue;
+        try {
+          const idCards = await idCardAPI.getIdCardsByHolder(farmer.id.toString());
+          if (idCards && idCards.length > 0) {
+            // Prefer FARMER cards only and matching holder
+            const farmerCards = idCards.filter(card => (
+              (card.cardType === 'FARMER' || (card.cardId || '').startsWith('FAM')) &&
+              (String(card.holderId) === String(farmer.id))
+            ));
+            const byPreference = farmerCards.length > 0 ? farmerCards : idCards;
+            const activeCard = byPreference.find(card => card.status === 'ACTIVE') || byPreference[0];
+            farmerIds[farmer.id] = activeCard.cardId;
+          }
+        } catch (error) {
+          console.warn(`Could not fetch ID card for farmer ${farmer.id}:`, error);
+        }
+      }
+      if (Object.keys(farmerIds).length) mergeAndPersistFarmerIds(farmerIds);
+
+      // Fetch unique IDs for employees
+      const employeeIds = {};
+      for (const employee of employeesData || []) {
+        if (onlyMissing && employeeUniqueIds[String(employee.id)]) continue;
+        try {
+          const idCards = await idCardAPI.getIdCardsByHolder(employee.id.toString());
+          if (idCards && idCards.length > 0) {
+            // Prefer EMPLOYEE cards only and matching holder
+            const employeeCards = idCards.filter(card => (
+              (card.cardType === 'EMPLOYEE' || (card.cardId || '').startsWith('EMP')) &&
+              (String(card.holderId) === String(employee.id))
+            ));
+            const byPreference = employeeCards.length > 0 ? employeeCards : idCards;
+            const activeCard = byPreference.find(card => card.status === 'ACTIVE') || byPreference[0];
+            employeeIds[employee.id] = activeCard.cardId;
+          }
+        } catch (error) {
+          console.warn(`Could not fetch ID card for employee ${employee.id}:`, error);
+        }
+      }
+      if (Object.keys(employeeIds).length) mergeAndPersistEmployeeIds(employeeIds);
+    } catch (error) {
+      console.error('Error fetching unique IDs:', error);
+    }
+  };
+
+  // Refresh unique IDs whenever data changes (fills DB-xx placeholders)
+  React.useEffect(() => {
+    if ((farmers?.length || 0) + (employees?.length || 0) === 0) return;
+    fetchUniqueIds(farmers, employees, true);
+  }, [farmers, employees]);
+
+  // Light polling for a short period to catch freshly-created records gaining IDs
+  React.useEffect(() => {
+    let runs = 0;
+    const maxRuns = 8; // ~2 minutes if 15s interval
+    const interval = setInterval(() => {
+      runs += 1;
+      fetchUniqueIds(farmers, employees, true);
+      if (runs >= maxRuns) clearInterval(interval);
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
   
   // Random greeting content
   const greetingVariants = [
@@ -304,6 +403,11 @@ const SuperAdminDashboard = () => {
       console.log('Fetched data:', { farmersData, employeesData, registrationsData });
       console.log('Final employees data:', finalEmployeesData);
       console.log('Final employees count:', finalEmployeesData?.length || 0);
+      
+      // Fetch unique IDs after data is loaded
+      setTimeout(() => {
+        fetchUniqueIds(finalFarmersData, finalEmployeesData);
+      }, 1000);
       
       // Test if employees are being set correctly
       console.log('=== SETTING EMPLOYEES ===');
@@ -1694,7 +1798,7 @@ const SuperAdminDashboard = () => {
                               <input
                                 type="checkbox"
                                 checked={getFilteredFarmers().length > 0 && getFilteredFarmers().every(f => selectedFarmerIds.includes(f.id))}
-                                indeterminate={!(getFilteredFarmers().every(f => selectedFarmerIds.includes(f.id))) && selectedFarmerIds.length > 0}
+                                {...(!(getFilteredFarmers().every(f => selectedFarmerIds.includes(f.id))) && selectedFarmerIds.length > 0 ? { indeterminate: true } : {})}
                                 onChange={(e) => {
                                   const visible = getFilteredFarmers();
                                   if (e.target.checked) {
@@ -1716,6 +1820,11 @@ const SuperAdminDashboard = () => {
                                 onChange={() => toggleFarmerSelection(row.id)}
                               />
                             )
+                          },
+                          { 
+                            key: 'id', 
+                            label: 'ID',
+                            render: (value, row) => farmerUniqueIds[row.id] || `DB-${row.id}`
                           },
                           { key: 'name', label: 'Name' },
                           { key: 'contactNumber', label: 'Phone' },
@@ -1747,24 +1856,37 @@ const SuperAdminDashboard = () => {
                             className: 'primary',
                             onClick: async (farmer) => {
                               try {
+                                console.log('🔄 Attempting to get ID card for farmer:', farmer.id, farmer.name);
+                                
                                 // Try to fetch existing cards
                                 const list = await idCardAPI.getIdCardsByHolder(farmer.id.toString());
+                                console.log('📋 Fetched ID cards list:', list);
+                                
                                 if (Array.isArray(list) && list.length > 0) {
-                                  setCurrentCardId(list[0].cardId);
+                                  const activeCard = list.find(card => card.status === 'ACTIVE') || list[0];
+                                  console.log('✅ Using existing ID card:', activeCard.cardId);
+                                  setCurrentCardId(activeCard.cardId);
                                   setShowIdCardModal(true);
                                   return;
                                 }
+                                
+                                console.log('🔄 No existing cards found, generating new one...');
                                 // If none, generate then open
                                 const gen = await idCardAPI.generateFarmerIdCard(farmer.id);
+                                console.log('🔄 Generated ID card response:', gen);
+                                
                                 if (gen && gen.cardId) {
+                                  console.log('✅ Successfully generated ID card:', gen.cardId);
                                   setCurrentCardId(gen.cardId);
                                   setShowIdCardModal(true);
                                 } else {
-                                  alert('Failed to generate ID card');
+                                  console.error('❌ Generated ID card response is invalid:', gen);
+                                  alert('Failed to generate ID card: Invalid response from server');
                                 }
                               } catch (e) {
-                                console.error('ID Card action failed', e);
-                                alert('Unable to open or generate ID card');
+                                console.error('❌ Farmer ID Card action failed:', e);
+                                console.error('Error details:', e.response?.data || e.message);
+                                alert(`Unable to open or generate ID card: ${e.response?.data?.message || e.message}`);
                               }
                             }
                           },
@@ -2017,6 +2139,11 @@ const SuperAdminDashboard = () => {
                         <DataTable
                           data={getFilteredEmployees()}
                           columns={[
+                            { 
+                              key: 'id', 
+                              label: 'ID',
+                              render: (value, row) => employeeUniqueIds[row.id] || `DB-${row.id}`
+                            },
                             { key: 'name', label: 'Name' },
                             { key: 'contactNumber', label: 'Phone' },
                             { key: 'email', label: 'Email' },
@@ -2034,22 +2161,35 @@ const SuperAdminDashboard = () => {
                               className: 'primary',
                               onClick: async (employee) => {
                                 try {
+                                  console.log('🔄 Attempting to get ID card for employee:', employee.id, employee.name);
+                                  
                                   const list = await idCardAPI.getIdCardsByHolder(employee.id.toString());
+                                  console.log('📋 Fetched ID cards list:', list);
+                                  
                                   if (Array.isArray(list) && list.length > 0) {
-                                    setCurrentCardId(list[0].cardId);
+                                    const activeCard = list.find(card => card.status === 'ACTIVE') || list[0];
+                                    console.log('✅ Using existing ID card:', activeCard.cardId);
+                                    setCurrentCardId(activeCard.cardId);
                                     setShowIdCardModal(true);
                                     return;
                                   }
+                                  
+                                  console.log('🔄 No existing cards found, generating new one...');
                                   const gen = await idCardAPI.generateEmployeeIdCard(employee.id);
+                                  console.log('🔄 Generated ID card response:', gen);
+                                  
                                   if (gen && gen.cardId) {
+                                    console.log('✅ Successfully generated ID card:', gen.cardId);
                                     setCurrentCardId(gen.cardId);
                                     setShowIdCardModal(true);
                                   } else {
-                                    alert('Failed to generate ID card');
+                                    console.error('❌ Generated ID card response is invalid:', gen);
+                                    alert('Failed to generate ID card: Invalid response from server');
                                   }
                                 } catch (e) {
-                                  console.error('Employee ID Card action failed', e);
-                                  alert('Unable to open or generate ID card');
+                                  console.error('❌ Employee ID Card action failed:', e);
+                                  console.error('Error details:', e.response?.data || e.message);
+                                  alert(`Unable to open or generate ID card: ${e.response?.data?.message || e.message}`);
                                 }
                               }
                             },
@@ -2128,6 +2268,16 @@ const SuperAdminDashboard = () => {
                       try {
                         const newEmployee = await employeesAPI.createEmployee(employeeData);
                         setEmployees(prev => [...prev, newEmployee]);
+                        // Try to ensure the employee unique ID is available immediately
+                        try {
+                          const gen = await idCardAPI.generateEmployeeIdCard(newEmployee.id);
+                          if (gen && gen.cardId) {
+                            setEmployeeUniqueIds(prev => ({ ...prev, [newEmployee.id]: gen.cardId }));
+                          }
+                        } catch (e) {
+                          // If generation fails (e.g., permissions), ignore; it will appear later when generated
+                          console.warn('Could not generate employee ID card right after creation:', e);
+                        }
                         alert('Employee created successfully!');
                         setShowEmployeeRegistration(false);
                       } catch (error) {

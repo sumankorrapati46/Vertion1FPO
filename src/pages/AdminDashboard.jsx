@@ -1275,22 +1275,37 @@ const AdminDashboard = () => {
                   className: 'action-btn-small primary',
                   onClick: async (farmer) => {
                     try {
+                      console.log('🔄 Attempting to get ID card for farmer:', farmer.id, farmer.name);
+                      
+                      // First, try to get existing ID cards
                       const list = await idCardAPI.getIdCardsByHolder(farmer.id.toString());
+                      console.log('📋 Existing ID cards found:', list);
+                      
                       if (Array.isArray(list) && list.length > 0) {
-                        setCurrentCardId(list[0].cardId);
+                        const activeCard = list.find(card => card.status === 'ACTIVE') || list[0];
+                        console.log('✅ Using existing ID card:', activeCard.cardId);
+                        setCurrentCardId(activeCard.cardId);
                         setShowIdCardModal(true);
                         return;
                       }
+                      
+                      // If no existing cards, generate a new one
+                      console.log('🔄 No existing ID cards found, generating new one...');
                       const gen = await idCardAPI.generateFarmerIdCard(farmer.id);
+                      console.log('🎯 Generated ID card response:', gen);
+                      
                       if (gen && gen.cardId) {
+                        console.log('✅ Successfully generated ID card:', gen.cardId);
                         setCurrentCardId(gen.cardId);
                         setShowIdCardModal(true);
                       } else {
-                        alert('Failed to generate ID card');
+                        console.error('❌ Generated ID card response is invalid:', gen);
+                        alert('Failed to generate ID card: Invalid response from server');
                       }
                     } catch (e) {
-                      console.error('ID Card action failed', e);
-                      alert('Unable to open or generate ID card');
+                      console.error('❌ Farmer ID Card action failed:', e);
+                      console.error('Error details:', e.response?.data || e.message);
+                      alert(`Unable to open or generate ID card: ${e.response?.data?.message || e.message}`);
                     }
                   }
                 },
@@ -1698,22 +1713,37 @@ const AdminDashboard = () => {
                 className: 'action-btn-small primary',
                 onClick: async (employee) => {
                   try {
+                    console.log('🔄 Attempting to get ID card for employee:', employee.id, employee.name);
+                    
+                    // First, try to get existing ID cards
                     const list = await idCardAPI.getIdCardsByHolder(employee.id.toString());
+                    console.log('📋 Existing ID cards found:', list);
+                    
                     if (Array.isArray(list) && list.length > 0) {
-                      setCurrentCardId(list[0].cardId);
+                      const activeCard = list.find(card => card.status === 'ACTIVE') || list[0];
+                      console.log('✅ Using existing ID card:', activeCard.cardId);
+                      setCurrentCardId(activeCard.cardId);
                       setShowIdCardModal(true);
                       return;
                     }
+                    
+                    // If no existing cards, generate a new one
+                    console.log('🔄 No existing ID cards found, generating new one...');
                     const gen = await idCardAPI.generateEmployeeIdCard(employee.id);
+                    console.log('🎯 Generated ID card response:', gen);
+                    
                     if (gen && gen.cardId) {
+                      console.log('✅ Successfully generated ID card:', gen.cardId);
                       setCurrentCardId(gen.cardId);
                       setShowIdCardModal(true);
                     } else {
-                      alert('Failed to generate ID card');
+                      console.error('❌ Generated ID card response is invalid:', gen);
+                      alert('Failed to generate ID card: Invalid response from server');
                     }
                   } catch (e) {
-                    console.error('Employee ID Card action failed', e);
-                    alert('Unable to open or generate ID card');
+                    console.error('❌ Employee ID Card action failed:', e);
+                    console.error('Error details:', e.response?.data || e.message);
+                    alert(`Unable to open or generate ID card: ${e.response?.data?.message || e.message}`);
                   }
                 }
               },
