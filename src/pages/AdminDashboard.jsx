@@ -515,9 +515,20 @@ const AdminDashboard = () => {
     });
   };
 
-  const handleFPOCreated = (newFPO) => {
-    setFpos(prev => [...prev, newFPO]);
-    setShowFPOCreationForm(false);
+  const handleFPOCreated = async (payload) => {
+    try {
+      const created = await fpoAPI.createFPO(payload);
+      setFpos(prev => [...prev, created]);
+      setToast({ type: 'success', message: 'FPO created successfully' });
+      setTimeout(() => setToast(null), 2000);
+    } catch (err) {
+      console.error('Admin Dashboard - Failed to create FPO:', err);
+      const msg = err?.response?.data?.message || 'Failed to create FPO';
+      setToast({ type: 'error', message: msg });
+      setTimeout(() => setToast(null), 2500);
+    } finally {
+      setShowFPOCreationForm(false);
+    }
   };
 
   const handleApproveRegistration = async (registrationId) => {
@@ -2317,7 +2328,7 @@ const AdminDashboard = () => {
                         <DataTable
                           data={getFilteredFPOs()}
                           columns={[
-                            { key: 'fpoId', label: 'Id' },
+                            { key: 'fpoId', label: 'Id', render: (v, row) => (row.fpoId || row.id || '') },
                             { key: 'fpoName', label: 'FPO name' },
                             { key: 'ceoName', label: 'CEO name' },
                             { key: 'phoneNumber', label: 'Phone number' },
@@ -2333,8 +2344,13 @@ const AdminDashboard = () => {
                                     onChange={async (e) => {
                                       try {
                                         const newStatus = e.target.checked ? 'ACTIVE' : 'INACTIVE';
-                                        await fpoAPI.updateFPOStatus(row.id, newStatus);
-                                        setFpos(prev => prev.map(f => f.id === row.id ? { ...f, status: newStatus } : f));
+                                        let numericId = row.id;
+                                        if (!numericId && row.fpoId) {
+                                          const full = await fpoAPI.getFPOByFpoId(row.fpoId);
+                                          numericId = full?.id;
+                                        }
+                                        await fpoAPI.updateFPOStatus(numericId, newStatus);
+                                        setFpos(prev => prev.map(f => (f.id === numericId || f.fpoId === row.fpoId) ? { ...f, id: numericId, status: newStatus } : f));
                                         setToast({ type: 'success', message: `FPO status updated to ${newStatus}` });
                                         setTimeout(() => setToast(null), 2000);
                                       } catch (err) {

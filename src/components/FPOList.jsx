@@ -105,15 +105,33 @@ const FPOList = ({
     }
   };
 
+  // Ensure we have numeric id; if not, resolve via fpoId first
+  const resolveFpoId = async (fpo) => {
+    if (fpo?.id) return fpo.id;
+    if (fpo?.fpoId) {
+      try {
+        const full = await fpoAPI.getFPOByFpoId(fpo.fpoId);
+        return full?.id;
+      } catch (e) {
+        console.error('Failed to resolve FPO id from fpoId', e);
+      }
+    }
+    return null;
+  };
+
   const handleStatusChange = async (fpo, newStatus) => {
     try {
-      if (newStatus === 'ACTIVE') {
-        await fpoAPI.activateFPO(fpo.id);
-      } else if (newStatus === 'INACTIVE') {
-        await fpoAPI.deactivateFPO(fpo.id);
+      const numericId = await resolveFpoId(fpo);
+      if (!numericId) {
+        alert('Unable to resolve FPO id to update status.');
+        return;
       }
-      
-      const updatedFPO = { ...fpo, status: newStatus };
+      if (newStatus === 'ACTIVE') {
+        await fpoAPI.activateFPO(numericId);
+      } else if (newStatus === 'INACTIVE') {
+        await fpoAPI.deactivateFPO(numericId);
+      }
+      const updatedFPO = { ...fpo, id: numericId, status: newStatus };
       onFPOUpdate(updatedFPO);
     } catch (err) {
       console.error('Error updating FPO status:', err);
@@ -204,7 +222,7 @@ const FPOList = ({
               <div className="fpo-header">
                 <div className="fpo-info">
                   <h3 className="fpo-name">{fpo.fpoName}</h3>
-                  <p className="fpo-id">FPO ID: {fpo.fpoId}</p>
+                  <p className="fpo-id">FPO ID: {fpo.fpoId || fpo.id}</p>
                 </div>
                 <div className="fpo-status">
                   {getStatusBadge(fpo.status)}

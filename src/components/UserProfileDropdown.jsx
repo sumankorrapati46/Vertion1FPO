@@ -15,13 +15,15 @@ const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShow
   // Handle change password navigation
   const handleChangePassword = () => {
     setIsOpen(false);
-    navigate('/change-password-dashboard');
+    // Use the universal route configured in App.js
+    navigate('/change-password');
   };
 
   // Handle change user ID navigation
   const handleChangeUserId = () => {
     setIsOpen(false);
-    navigate('/change-userid-dashboard');
+    // Use the universal route configured in App.js
+    navigate('/change-userid');
   };
 
   // Notifications state

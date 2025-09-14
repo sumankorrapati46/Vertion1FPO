@@ -37,13 +37,14 @@
   font-size: 1.5rem;
 }
 
+/* Match Super Admin banner style with DATE green theme */
 .selected-fpo-info {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 15px 20px;
-  border-radius: 8px;
+  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+  color: #ffffff;
+  padding: 16px 20px;
+  border-radius: 10px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 16px rgba(21, 128, 61, 0.25);
 }
 
 .selected-fpo-info h3 {
@@ -72,12 +73,13 @@
 }
 
 /* Dashboard Sidebar */
+/* Sidebar: clearer contrast and active state */
 .dashboard-sidebar {
   width: 250px;
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   height: fit-content;
 }
 
@@ -92,25 +94,25 @@
   border: none;
   background: transparent;
   text-align: left;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   font-size: 0.95rem;
-  color: #495057;
+  color: #0f172a; /* slate-900-like for readability */
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
 .nav-item:hover:not(:disabled) {
-  background: #e9ecef;
-  color: #2c3e50;
+  background: #f0fdf4; /* light green hover */
+  color: #15803d;
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  font-weight: 500;
+  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .nav-item:disabled {
@@ -125,10 +127,10 @@
 }
 
 .tab-content {
-  background: white;
-  border-radius: 8px;
+  background: #ffffff;
+  border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   min-height: 500px;
 }
 
@@ -189,6 +191,51 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
+}
+
+/* Top-right profile pill contrast fix inside green header bars */
+/* Make sure the user pill is readable on this page regardless of inherited styles */
+.fpo-dashboard-container .user-profile-trigger,
+.fpo-dashboard-container .header-right .user-profile-trigger {
+  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+.fpo-dashboard-container .user-profile-trigger .user-email,
+.fpo-dashboard-container .user-profile-trigger .dropdown-arrow,
+.fpo-dashboard-container .user-profile-trigger .user-avatar {
+  color: #ffffff !important;
+}
+
+/* Input placeholders on green banner sections */
+.selected-fpo-info input::placeholder,
+.selected-fpo-info .placeholder, 
+.selected-fpo-info .muted {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Farm Services and small card boxes */
+.fpo-detail-overview .card h3 {
+  color: #0f172a;
+}
+
+.fpo-detail-overview .card input,
+.fpo-detail-overview .card .input,
+.fpo-detail-overview .card .select {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+.fpo-detail-overview .card input::placeholder,
+.fpo-detail-overview .card .input::placeholder {
+  color: #64748b !important;
+}
+
+.fpo-detail-overview .section-title,
+.fpo-detail-overview h3 {
+  color: #0f172a;
 }
 
 .btn-primary {

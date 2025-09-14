@@ -85,6 +85,10 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
       newErrors.fpoName = 'FPO Name is required';
     }
 
+    if (!formData.ceoName.trim()) {
+      newErrors.ceoName = 'CEO Name is required';
+    }
+
     if (!formData.phoneNumber.trim()) {
       newErrors.phoneNumber = 'Phone Number is required';
     } else if (!/^\d{10}$/.test(formData.phoneNumber)) {
@@ -100,6 +104,10 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
     }
     if (!formData.district.trim()) {
       newErrors.district = 'District is required';
+    }
+
+    if (!formData.village.trim()) {
+      newErrors.village = 'Village is required';
     }
 
     if (!formData.pincode.trim()) {
@@ -126,7 +134,7 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
         // required/new fields
         fpoName: formData.fpoName,
         registrationNumber: formData.registrationNumber || null,
-        ceoName: formData.ceoName || '',
+        ceoName: formData.ceoName,
         phoneNumber: formData.phoneNumber,
         email: formData.email || null,
         // address mapping
@@ -134,7 +142,7 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
         state: formData.state,
         district: formData.district,
         mandal: formData.mandal || null,
-        village: formData.village || null,
+        village: formData.village,
         streetName: formData.streetName || null,
         pincode: formData.pincode,
         // business info (optional)
@@ -157,7 +165,8 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
       onClose && onClose();
     } catch (err) {
       console.error('Error creating FPO:', err);
-      alert('Failed to create FPO. Please try again.');
+      const msg = err?.response?.data?.message || err?.response?.data?.error || 'Failed to create FPO. Please check required fields.';
+      alert(msg);
     } finally {
       setLoading(false);
     }
@@ -208,7 +217,9 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
                   name="ceoName"
                   value={formData.ceoName}
                   onChange={handleInputChange}
+                  className={errors.ceoName ? 'error' : ''}
                 />
+                {errors.ceoName && <span className="error-message">{errors.ceoName}</span>}
               </div>
             </div>
 
@@ -290,7 +301,8 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
               </div>
               <div className="form-group">
                 <label htmlFor="village">Village</label>
-                <input type="text" id="village" name="village" value={formData.village} onChange={handleInputChange} />
+                <input type="text" id="village" name="village" value={formData.village} onChange={handleInputChange} className={errors.village ? 'error' : ''} />
+                {errors.village && <span className="error-message">{errors.village}</span>}
               </div>
             </div>
 
