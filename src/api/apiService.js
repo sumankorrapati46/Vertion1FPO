@@ -811,6 +811,16 @@ export const farmersAPI = {
   getFarmerStats: async () => {
     const response = await api.get('/super-admin/farmers/stats');
     return response.data;
+  },
+
+  // Upload/Change farmer photo
+  uploadPhoto: async (farmerId, file) => {
+    const form = new FormData();
+    form.append('photo', file);
+    const response = await api.patch(`/farmers/${farmerId}/photo`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
   }
 };
 
@@ -857,6 +867,19 @@ export const employeesAPI = {
   // Get employee statistics
   getEmployeeStats: async () => {
     const response = await api.get('/super-admin/employees/stats');
+    return response.data;
+  }
+};
+
+// Direct employee API for self-service actions
+export const employeeSelfAPI = {
+  // Upload/Change current employee photo
+  uploadPhoto: async (employeeId, file) => {
+    const form = new FormData();
+    form.append('photo', file);
+    const response = await api.patch(`/employees/${employeeId}/photo`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
     return response.data;
   }
 };

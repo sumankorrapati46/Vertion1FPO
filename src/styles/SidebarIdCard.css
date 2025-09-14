@@ -1,0 +1,41 @@
+/* Sidebar ID Card Section Styles */
+.sidebar-id-card-section {
+  margin: 20px 0;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-id-card-header {
+  margin-bottom: 12px;
+}
+
+.sidebar-id-card-header h4 {
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
+
+.sidebar-id-card-content {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments for sidebar ID card */
+@media (max-width: 768px) {
+  .sidebar-id-card-section {
+    margin: 16px 0;
+    padding: 12px;
+  }
+  
+  .sidebar-id-card-content {
+    padding: 8px;
+  }
+}

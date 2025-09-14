@@ -13,6 +13,20 @@ const FarmerDashboard = () => {
   const [error, setError] = useState('');
   const [farmerData, setFarmerData] = useState(null);
   const [activeSection, setActiveSection] = useState('overview');
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+
+  const toggleUserDropdown = () => {
+    setShowUserDropdown(prev => !prev);
+  };
+
+  const handleChangePassword = () => {
+    navigate('/change-password-dashboard');
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   useEffect(() => {
     // Check if user needs to change password
@@ -145,7 +159,72 @@ const FarmerDashboard = () => {
           </div>
         </div>
         <div className="header-right">
-          <UserProfileDropdown />
+          <div className="user-profile-dropdown">
+            <div className="user-profile-trigger" onClick={toggleUserDropdown}>
+              <div className="user-avatar">
+                {(() => {
+                  const resolvedPhoto = farmerData?.photoFileName || (typeof window !== 'undefined' ? (JSON.parse(localStorage.getItem('farmerProfile') || '{}').photoFileName || localStorage.getItem('farmerPhotoFileName') || user?.photoFileName) : null);
+                  return resolvedPhoto ? (
+                    <img 
+                      src={`http://localhost:8080/uploads/photos/${resolvedPhoto}`}
+                      alt="avatar"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  ) : (
+                    (user?.name || 'F')?.charAt(0)
+                  );
+                })()}
+              </div>
+              <span className="user-email">{user?.email || 'farmer@example.com'}</span>
+              <i className={`fas fa-chevron-down dropdown-arrow ${showUserDropdown ? 'rotated' : ''}`}></i>
+            </div>
+            <div className={`user-dropdown-menu ${showUserDropdown ? 'show' : ''}`}>
+              <div className="dropdown-header">
+                <div className="user-avatar-large">
+                  {(() => {
+                    const resolvedPhoto = farmerData?.photoFileName || (typeof window !== 'undefined' ? (JSON.parse(localStorage.getItem('farmerProfile') || '{}').photoFileName || localStorage.getItem('farmerPhotoFileName') || user?.photoFileName) : null);
+                    return resolvedPhoto ? (
+                      <img 
+                        src={`http://localhost:8080/uploads/photos/${resolvedPhoto}`}
+                        alt="avatar"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    ) : (
+                      (user?.name || 'F')?.charAt(0)
+                    );
+                  })()}
+                </div>
+                <div className="user-details">
+                  <div className="user-name-large">{user?.name || 'Farmer'}</div>
+                  <div className="user-email">{user?.email || 'farmer@example.com'}</div>
+                  {(() => {
+                    try {
+                      const cache = localStorage.getItem('farmerUniqueIds');
+                      const map = cache ? JSON.parse(cache) : {};
+                      const idToShow = map ? map[String(farmerData?.id)] : null;
+                      return idToShow ? (
+                        <div className="user-email" style={{ fontWeight: 700 }}>ID: {idToShow}</div>
+                      ) : null;
+                    } catch (_) {
+                      return null;
+                    }
+                  })()}
+                </div>
+              </div>
+              <div className="dropdown-actions">
+                <button className="dropdown-action-btn" onClick={handleChangePassword}>
+                  <i className="fas fa-key"></i>
+                  Change Password
+                </button>
+                <button className="dropdown-action-btn logout" onClick={handleLogout}>
+                  <i className="fas fa-sign-out-alt"></i>
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -203,6 +282,14 @@ const FarmerDashboard = () => {
           >
             <i className="fas fa-gift"></i>
             <span>Benefits</span>
+          </div>
+          
+          <div 
+            className={`nav-item ${activeSection === 'id-card' ? 'active' : ''}`}
+            onClick={() => setActiveSection('id-card')}
+          >
+            <i className="fas fa-id-card"></i>
+            <span>My ID Card</span>
           </div>
           
           <div 
@@ -694,6 +781,20 @@ const FarmerDashboard = () => {
                   </div>
                   <p className="benefit-note">Benefits are calculated based on your crop registrations and government schemes</p>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'id-card' && (
+            <div className="farmer-overview-section">
+              <div className="farmer-section-header">
+                <h3 className="farmer-section-title">My ID Card</h3>
+                <p className="section-description">
+                  View and download your farmer ID card.
+                </p>
+              </div>
+              <div className="profile-card">
+                <MyIdCard userId={farmerData?.id} userType="FARMER" />
               </div>
             </div>
           )}

@@ -75,12 +75,14 @@
 /* Dashboard Sidebar */
 /* Sidebar: clearer contrast and active state */
 .dashboard-sidebar {
+
   width: 250px;
   background: #ffffff;
   border-radius: 12px;
   padding: 18px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   height: fit-content;
+
 }
 
 .sidebar-nav {
@@ -90,9 +92,9 @@
 }
 
 .nav-item {
-  padding: 12px 16px;
-  border: none;
-  background: transparent;
+  padding: 14px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
   text-align: left;
   border-radius: 10px;
   cursor: pointer;
@@ -101,7 +103,12 @@
   color: #0f172a; /* slate-900-like for readability */
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(6px);
 }
 
 .nav-item:hover:not(:disabled) {
@@ -118,6 +125,25 @@
 .nav-item:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Left accent bar indicator */
+.nav-item::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 60%;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #ffffff, rgba(255,255,255,0.6));
+  transition: width 0.25s ease;
+}
+
+.nav-item:hover::before,
+.nav-item.active::before {
+  width: 4px;
 }
 
 /* Dashboard Main Content */
@@ -141,8 +167,12 @@
   }
   
   .dashboard-sidebar {
-    width: 100%;
-    margin-bottom: 20px;
+    width: 280px;
+    margin-bottom: 0;
+    position: fixed;
+    top: 96px;
+    left: 0;
+    height: calc(100vh - 96px);
   }
   
   .dashboard-main {

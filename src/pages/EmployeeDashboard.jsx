@@ -23,12 +23,15 @@ import FPOProductsModal from '../components/FPOProductsModal';
 import FPOCropEntriesModal from '../components/FPOCropEntriesModal';
 import FPOUsersModal from '../components/FPOUsersModal';
 import FPODashboard from '../pages/FPODashboard';
-import { kycAPI, employeeAPI, farmersAPI, fpoAPI } from '../api/apiService';
+import { kycAPI, employeeAPI, farmersAPI, fpoAPI, idCardAPI } from '../api/apiService';
 
 const EmployeeDashboard = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [employeeId, setEmployeeId] = useState(null);
+  const [employeeProfile, setEmployeeProfile] = useState(null);
+  const [employeePhoto, setEmployeePhoto] = useState('');
+  const [employeeCardId, setEmployeeCardId] = useState('');
   const [assignedFarmers, setAssignedFarmers] = useState([]);
   const [showFarmerForm, setShowFarmerForm] = useState(false);
   const [showKYCModal, setShowKYCModal] = useState(false);
@@ -70,12 +73,41 @@ const EmployeeDashboard = () => {
         if (profile && profile.id) {
           setEmployeeId(profile.id);
         }
+        if (profile) {
+          setEmployeeProfile(profile);
+        }
+        if (profile?.photoFileName) {
+          setEmployeePhoto(profile.photoFileName);
+        }
       } catch (e) {
         // ignore; fallback to user.id
       }
     };
     loadEmployeeProfileId();
   }, []);
+
+  // Load employee ID Card number once we know the entity id
+  useEffect(() => {
+    const loadCardId = async () => {
+      try {
+        if (!employeeId) return;
+        const list = await idCardAPI.getIdCardsByHolder(String(employeeId));
+        if (Array.isArray(list) && list.length > 0) {
+          const active = list.find((c) => c.status === 'ACTIVE') || list[0];
+          if (active?.cardId) setEmployeeCardId(active.cardId);
+          if (!employeePhoto && active?.photoFileName) {
+            setEmployeePhoto(active.photoFileName);
+            try {
+              localStorage.setItem('employeePhotoFileName', active.photoFileName);
+            } catch (_) {}
+          }
+        }
+      } catch (e) {
+        // silently ignore; header will just not show card id
+      }
+    };
+    loadCardId();
+  }, [employeeId]);
   const [selectedFPOForProductCategories, setSelectedFPOForProductCategories] = useState(null);
   const [showProducts, setShowProducts] = useState(false);
   const [selectedFPOForProducts, setSelectedFPOForProducts] = useState(null);
@@ -2081,15 +2113,15 @@ const EmployeeDashboard = () => {
               style={{
                 background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
                 color: 'white',
-                padding: '10px 16px',
+                padding: '12px 18px',
                 border: 'none',
                 borderRadius: '12px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
-                fontWeight: '600',
-                fontSize: '14px'
+                gap: '14px',
+                fontWeight: '700',
+                fontSize: '15px'
               }}
               onClick={() => {
                 const dropdown = document.getElementById('simple-dropdown');
@@ -2097,20 +2129,59 @@ const EmployeeDashboard = () => {
               }}
             >
               <div style={{
-                width: '36px',
-                height: '36px',
+                width: '44px',
+                height: '44px',
                 borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.2)',
+                overflow: 'hidden',
+                border: '2px solid rgba(255, 255, 255, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontWeight: '700',
-                fontSize: '16px',
-                border: '2px solid rgba(255, 255, 255, 0.3)'
+                background: 'rgba(255, 255, 255, 0.2)'
               }}>
-                {user?.name?.charAt(0) || 'U'}
+                {(() => {
+                  let resolvedPhoto = employeePhoto;
+                  try {
+                    if (!resolvedPhoto && typeof window !== 'undefined') {
+                      const cached = JSON.parse(localStorage.getItem('employeeProfile') || '{}');
+                      resolvedPhoto = cached.photoFileName || localStorage.getItem('employeePhotoFileName') || user?.photoFileName;
+                    }
+                  } catch (_) {
+                    resolvedPhoto = employeePhoto || user?.photoFileName;
+                  }
+                  return resolvedPhoto ? (
+                  <img
+                    src={`http://localhost:8080/uploads/photos/${resolvedPhoto}`}
+                    alt="avatar"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                  ) : (
+                  <span style={{
+                    fontWeight: 700,
+                    fontSize: 18,
+                    color: 'white'
+                  }}>{user?.name?.charAt(0) || 'U'}</span>
+                  );
+                })()}
               </div>
-              <span>{user?.name || 'User'}</span>
+              <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
+                <span style={{fontSize: 16}}>{user?.name || 'User'}</span>
+                {(() => {
+                  try {
+                    const cache = localStorage.getItem('employeeUniqueIds');
+                    const cachedId = cache ? JSON.parse(cache)[String(employeeId)] : null;
+                    const idToShow = cachedId || employeeCardId;
+                    return idToShow ? (
+                      <span style={{fontSize: '13px', fontWeight: 600, opacity: 0.95}}>ID: {idToShow}</span>
+                    ) : null;
+                  } catch (_) {
+                    return employeeCardId ? (
+                      <span style={{fontSize: '13px', fontWeight: 600, opacity: 0.95}}>ID: {employeeCardId}</span>
+                    ) : null;
+                  }
+                })()}
+              </div>
               <i className="fas fa-chevron-down"></i>
             </button>
             
@@ -2250,6 +2321,22 @@ const EmployeeDashboard = () => {
             <i className="fas fa-building"></i>
             <span>FPO</span>
           </div>
+
+          <div 
+            className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+            onClick={() => setActiveTab('profile')}
+          >
+            <i className="fas fa-user"></i>
+            <span>My Profile</span>
+          </div>
+          
+          <div 
+            className={`nav-item ${activeTab === 'id-card' ? 'active' : ''}`}
+            onClick={() => setActiveTab('id-card')}
+          >
+            <i className="fas fa-id-card"></i>
+            <span>My ID Card</span>
+          </div>
           
           <div 
             className={`nav-item ${activeTab === 'todo' ? 'active' : ''}`}
@@ -2297,23 +2384,23 @@ const EmployeeDashboard = () => {
               </div>
               
               {renderOverview()}
-
-              {/* My Profile - ID Card */}
-              <div className="employee-overview-section">
-                <div className="employee-overview-header">
-                  <h2 className="employee-overview-title">My ID Card</h2>
-                  <p className="employee-overview-description">View and download your employee ID card.</p>
-                </div>
-                <div className="section-card">
-                  <MyIdCard userId={employeeId || user?.id} userType="EMPLOYEE" />
-                </div>
-              </div>
             </>
           )}
           {activeTab === 'farmers' && renderAssignedFarmers()}
           {activeTab === 'progress' && renderKYCProgress()}
           {activeTab === 'todo' && renderTodoList()}
           {activeTab === 'kyc-summary' && renderKYCSummary()}
+          {activeTab === 'id-card' && (
+            <div className="employee-overview-section">
+              <div className="employee-overview-header">
+                <h2 className="employee-overview-title">My ID Card</h2>
+                <p className="employee-overview-description">View and download your employee ID card.</p>
+              </div>
+              <div className="section-card">
+                <MyIdCard userId={employeeId || user?.id} userType="EMPLOYEE" />
+              </div>
+            </div>
+          )}
           {activeTab === 'fpo' && (
             <div className="superadmin-overview-section">
               {!showFPOCreationForm ? (
@@ -2582,6 +2669,165 @@ const EmployeeDashboard = () => {
                   />
                 </div>
               )}
+            </div>
+          )}
+          {activeTab === 'profile' && (
+            <div className="superadmin-overview-section">
+              <div className="superadmin-overview-header">
+                <div className="header-left">
+                  <h2 className="superadmin-overview-title">My Profile</h2>
+                  <p className="overview-description">View and manage your personal information and details.</p>
+                </div>
+              </div>
+              <div className="section-card">
+                <div className="data-sections-grid">
+                  <div className="section-card" style={{ margin: 0 }}>
+                    <h3 style={{ marginBottom: 16 }}>Personal Information</h3>
+                    <div className="details-grid">
+                      <div>
+                        <div className="detail-label">Full Name:</div>
+                        <div className="detail-value">{employeeProfile?.name || user?.name || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Email:</div>
+                        <div className="detail-value">{employeeProfile?.email || user?.email || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Phone:</div>
+                        <div className="detail-value">{employeeProfile?.phoneNumber || user?.phoneNumber || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Date of Birth:</div>
+                        <div className="detail-value">{employeeProfile?.dateOfBirth || employeeProfile?.dob || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Gender:</div>
+                        <div className="detail-value">{employeeProfile?.gender || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Father's Name:</div>
+                        <div className="detail-value">{employeeProfile?.fatherName || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Marital Status:</div>
+                        <div className="detail-value">{employeeProfile?.maritalStatus || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Nationality:</div>
+                        <div className="detail-value">{employeeProfile?.nationality || '—'}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="section-card" style={{ margin: 0 }}>
+                    <h3 style={{ marginBottom: 16 }}>Address Information</h3>
+                    <div className="details-grid">
+                      <div>
+                        <div className="detail-label">Country:</div>
+                        <div className="detail-value">{employeeProfile?.country || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">State:</div>
+                        <div className="detail-value">{employeeProfile?.state || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">District:</div>
+                        <div className="detail-value">{employeeProfile?.district || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Block:</div>
+                        <div className="detail-value">{employeeProfile?.block || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Village/City:</div>
+                        <div className="detail-value">{employeeProfile?.village || employeeProfile?.city || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Pincode:</div>
+                        <div className="detail-value">{employeeProfile?.pincode || employeeProfile?.postalCode || '—'}</div>
+                      </div>
+                      <div style={{ gridColumn: '1 / -1' }}>
+                        <div className="detail-label">Address:</div>
+                        <div className="detail-value">{employeeProfile?.address || '—'}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="section-card" style={{ margin: 0 }}>
+                    <h3 style={{ marginBottom: 16 }}>Work Information</h3>
+                    <div className="details-grid">
+                      <div>
+                        <div className="detail-label">Employee ID:</div>
+                        <div className="detail-value">{employeeCardId || (() => { try { const cache = localStorage.getItem('employeeUniqueIds'); return cache ? JSON.parse(cache)[String(employeeId)] : '—'; } catch { return '—'; } })()}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Designation:</div>
+                        <div className="detail-value">{employeeProfile?.designation || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Department:</div>
+                        <div className="detail-value">{employeeProfile?.department || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Join Date:</div>
+                        <div className="detail-value">{employeeProfile?.joinDate || employeeProfile?.dateOfJoining || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Experience (years):</div>
+                        <div className="detail-value">{employeeProfile?.experience || employeeProfile?.experienceYears || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Reporting Manager:</div>
+                        <div className="detail-value">{employeeProfile?.managerName || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Office Location:</div>
+                        <div className="detail-value">{employeeProfile?.officeLocation || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Employment Type:</div>
+                        <div className="detail-value">{employeeProfile?.employmentType || '—'}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="section-card" style={{ margin: 0 }}>
+                    <h3 style={{ marginBottom: 16 }}>Identity Details</h3>
+                    <div className="details-grid">
+                      <div>
+                        <div className="detail-label">Aadhaar Number:</div>
+                        <div className="detail-value">{employeeProfile?.aadhaarNumber || employeeProfile?.aadharNumber || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">PAN Number:</div>
+                        <div className="detail-value">{employeeProfile?.panNumber || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">KYC Status:</div>
+                        <div className="detail-value">{employeeProfile?.kycStatus || '—'}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="section-card" style={{ margin: 0 }}>
+                    <h3 style={{ marginBottom: 16 }}>Bank Details</h3>
+                    <div className="details-grid">
+                      <div>
+                        <div className="detail-label">Bank Name:</div>
+                        <div className="detail-value">{employeeProfile?.bankName || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">Account Number:</div>
+                        <div className="detail-value">{employeeProfile?.accountNumber || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="detail-label">IFSC Code:</div>
+                        <div className="detail-value">{employeeProfile?.ifscCode || '—'}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
