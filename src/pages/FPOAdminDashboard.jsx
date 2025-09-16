@@ -2,13 +2,26 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { fpoAPI } from '../api/apiService';
-import '../styles/FPOAdminDashboard.css';
+import '../styles/Dashboard.css';
+import '../styles/FPOManagement.css';
 import UserProfileDropdown from '../components/UserProfileDropdown';
+import FPOList from '../components/FPOList';
+import FPOEditModal from '../components/FPOEditModal';
+import FPODetailModal from '../components/FPODetailModal';
+import FPOCreationForm from '../components/FPOCreationForm';
+import FPOBoardMembersModal from '../components/FPOBoardMembersModal';
+import FPOFarmServicesModal from '../components/FPOFarmServicesModal';
+import FPOTurnoverModal from '../components/FPOTurnoverModal';
+import FPOCropEntriesModal from '../components/FPOCropEntriesModal';
+import FPOInputShopModal from '../components/FPOInputShopModal';
+import FPOProductCategoriesModal from '../components/FPOProductCategoriesModal';
+import FPOProductsModal from '../components/FPOProductsModal';
+import FPOUsersModal from '../components/FPOUsersModal';
 
 const FPOAdminDashboard = () => {
   const { fpoId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [fpo, setFpo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -17,6 +30,123 @@ const FPOAdminDashboard = () => {
   const [employees, setEmployees] = useState([]);
   const [farmerSearch, setFarmerSearch] = useState('');
   const [employeeSearch, setEmployeeSearch] = useState('');
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  
+  // FPO Management States
+  const [fpos, setFpos] = useState([]);
+  const [showFPOCreationForm, setShowFPOCreationForm] = useState(false);
+  const [viewingFPO, setViewingFPO] = useState(false);
+  const [selectedFPO, setSelectedFPO] = useState(null);
+  const [fpoFilters, setFpoFilters] = useState({
+    state: '',
+    district: '',
+    status: ''
+  });
+  const [fpoSearch, setFpoSearch] = useState('');
+  const [showFPOEditModal, setShowFPOEditModal] = useState(false);
+  const [showFPODetailModal, setShowFPODetailModal] = useState(false);
+  const [showFPOBoardMembersModal, setShowFPOBoardMembersModal] = useState(false);
+  const [showFPOFarmServicesModal, setShowFPOFarmServicesModal] = useState(false);
+  const [showFPOTurnoverModal, setShowFPOTurnoverModal] = useState(false);
+  const [showFPOCropEntriesModal, setShowFPOCropEntriesModal] = useState(false);
+  const [showFPOInputShopModal, setShowFPOInputShopModal] = useState(false);
+  const [showFPOProductCategoriesModal, setShowFPOProductCategoriesModal] = useState(false);
+  const [showFPOProductsModal, setShowFPOProductsModal] = useState(false);
+  const [showFPOUsersModal, setShowFPOUsersModal] = useState(false);
+
+  // Greeting function based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return 'Good Morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Good Afternoon';
+    } else if (hour >= 17 && hour < 21) {
+      return 'Good Evening';
+    } else {
+      return 'Good Night';
+    }
+  };
+
+  const toggleUserDropdown = () => {
+    setShowUserDropdown(!showUserDropdown);
+  };
+
+  const handleChangePassword = () => {
+    navigate('/change-password-dashboard');
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  // FPO Management Functions
+  const loadFPOs = async () => {
+    try {
+      const data = await fpoAPI.getAllFPOs();
+      setFpos(data || []);
+    } catch (error) {
+      console.error('Error loading FPOs:', error);
+      setFpos([]);
+    }
+  };
+
+  const handleAddFPO = () => {
+    setShowFPOCreationForm(true);
+  };
+
+  const handleEditFPO = (fpo) => {
+    setSelectedFPO(fpo);
+    setShowFPOEditModal(true);
+  };
+
+  const handleViewFPO = (fpo, viewType = 'overview') => {
+    setSelectedFPO(fpo);
+    setViewingFPO(true);
+    if (viewType === 'board-members') {
+      setShowFPOBoardMembersModal(true);
+    } else if (viewType === 'services') {
+      setShowFPOFarmServicesModal(true);
+    } else if (viewType === 'turnover') {
+      setShowFPOTurnoverModal(true);
+    } else if (viewType === 'crops') {
+      setShowFPOCropEntriesModal(true);
+    } else if (viewType === 'input-shop') {
+      setShowFPOInputShopModal(true);
+    } else if (viewType === 'product-categories') {
+      setShowFPOProductCategoriesModal(true);
+    } else if (viewType === 'products') {
+      setShowFPOProductsModal(true);
+    } else if (viewType === 'users') {
+      setShowFPOUsersModal(true);
+    } else {
+      setShowFPODetailModal(true);
+    }
+  };
+
+  const handleDeleteFPO = async (fpo) => {
+    if (window.confirm(`Are you sure you want to delete FPO "${fpo.fpoName || fpo.name}"?`)) {
+      try {
+        await fpoAPI.deleteFPO(fpo.id);
+        await loadFPOs();
+      } catch (error) {
+        console.error('Error deleting FPO:', error);
+        alert('Failed to delete FPO');
+      }
+    }
+  };
+
+  const handleFPOCreated = () => {
+    setShowFPOCreationForm(false);
+    loadFPOs();
+  };
+
+  const handleFPOUpdated = () => {
+    setShowFPOEditModal(false);
+    setSelectedFPO(null);
+    loadFPOs();
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -63,6 +193,7 @@ const FPOAdminDashboard = () => {
     };
     if (view === 'farmers') loadFarmers();
     if (view === 'employees') loadEmployees();
+    if (view === 'fpo') loadFPOs();
   }, [view, fpoId]);
 
   if (loading) {
@@ -82,81 +213,185 @@ const FPOAdminDashboard = () => {
   const fpoCode = fpo?.fpoId || fpo?.id || '—';
 
   return (
-    <div className="fpo-admin-layout">
-      <aside className="fpo-admin-sidebar">
-        <div className="brand">DATE CROP</div>
-        <div className="section-label">navigation</div>
-        <nav>
-          <button className="nav-item active">Admin Dashboard</button>
-        </nav>
-        <div className="section-label">components</div>
-        <nav>
-          <button className={`nav-item ${view==='farmers' ? 'active' : ''}`} onClick={() => setView('farmers')}>Farmers</button>
-          <button className={`nav-item ${view==='employees' ? 'active' : ''}`} onClick={() => setView('employees')}>Employees</button>
-          <button className="nav-item" onClick={() => navigate(`/fpo/dashboard/${fpoId}`)}>FPO</button>
-        </nav>
-      </aside>
-
-      <main className="fpo-admin-main">
-        <header className="fpo-admin-topbar">
-          <div className="title">
-            <h1>FPO Admin Dashboard</h1>
-            <div className="subtitle">
-              <span className="muted">Selected FPO:</span> <strong>{fpoName}</strong>
-              <span className="divider">•</span>
-              <span className="muted">FPO ID:</span> <strong>{fpoCode}</strong>
+    <div className="dashboard">
+      {/* Top Frame - Modern Professional Header */}
+      <div className="dashboard-header">
+        <div className="header-left">
+          <div className="logo-section">
+            <h1 className="logo-title">DATE</h1>
+            <p className="logo-subtitle">Digital Agristack</p>
+          </div>
+        </div>
+        <div className="header-right">
+          <div className="user-profile-dropdown">
+            <div className="user-profile-trigger" onClick={toggleUserDropdown}>
+              <div className="user-avatar">
+                {user?.name?.charAt(0) || 'A'}
+              </div>
+              <span className="user-email">{user?.email || 'admin@fpo.com'}</span>
+              <i className={`fas fa-chevron-down dropdown-arrow ${showUserDropdown ? 'rotated' : ''}`}></i>
+            </div>
+            <div className={`user-dropdown-menu ${showUserDropdown ? 'show' : ''}`}>
+              <div className="dropdown-header">
+                <div className="user-avatar-large">
+                  {user?.name?.charAt(0) || 'A'}
+                </div>
+                <div className="user-details">
+                  <div className="user-name-large">{user?.name || 'FPO Admin'}</div>
+                  <div className="user-email">{user?.email || 'admin@fpo.com'}</div>
+                </div>
+              </div>
+              <div className="dropdown-actions">
+                <button className="dropdown-action-btn" onClick={handleChangePassword}>
+                  <i className="fas fa-key"></i>
+                  Change Password
+                </button>
+                <button className="dropdown-action-btn logout" onClick={handleLogout}>
+                  <i className="fas fa-sign-out-alt"></i>
+                  Logout
+                </button>
+              </div>
             </div>
           </div>
-          <div className="topbar-actions">
-            <button className="btn ghost" onClick={() => navigate(`/fpo/dashboard/${fpoId}`)}>Open FPO Dashboard</button>
-            <UserProfileDropdown variant="compact" />
+        </div>
+      </div>
+
+      {/* Sidebar */}
+      <div className="dashboard-sidebar">
+        <div className="sidebar-header">
+          <h2 className="sidebar-welcome">Welcome!!!</h2>
+          <div className="sidebar-role">FPO Admin</div>
+        </div>
+        
+        <div className="sidebar-nav">
+          <div 
+            className={`nav-item ${view === 'overview' ? 'active' : ''}`}
+            onClick={() => setView('overview')}
+          >
+            <i className="fas fa-th-large"></i>
+            <span>Dashboard</span>
           </div>
-        </header>
+
+          <div 
+            className={`nav-item ${view === 'farmers' ? 'active' : ''}`}
+            onClick={() => setView('farmers')}
+          >
+            <i className="fas fa-users"></i>
+            <span>Farmers</span>
+          </div>
+          
+          <div 
+            className={`nav-item ${view === 'employees' ? 'active' : ''}`}
+            onClick={() => setView('employees')}
+          >
+            <i className="fas fa-user-tie"></i>
+            <span>Employees</span>
+          </div>
+
+          <div 
+            className={`nav-item ${view === 'fpo' ? 'active' : ''}`}
+            onClick={() => setView('fpo')}
+          >
+            <i className="fas fa-building"></i>
+            <span>FPO</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="dashboard-main">
+        <div className="welcome-section">
+          <h1 className="welcome-title">
+            {getGreeting()}, {user?.name || 'FPO Admin'}! 👋
+          </h1>
+          <p className="welcome-subtitle">
+            Welcome to your FPO Admin Dashboard. Manage farmers and employees for <strong>{fpoName}</strong> (ID: {fpoCode}).
+          </p>
+        </div>
 
         {view === 'overview' && (
-        <section className="stats-grid">
-          <div className="stat-card blue">
-            <div className="stat-title">Farmers</div>
-            <div className="stat-value">0</div>
-            <div className="stat-sub">0% Increase</div>
+        <div className="stats-grid">
+          <div className="stats-card">
+            <div className="stats-icon">
+              <i className="fas fa-users"></i>
+            </div>
+            <div className="stats-content">
+              <div className="stats-value">{farmers.length}</div>
+              <div className="stats-label">Farmers</div>
+              <div className="stats-change positive">+0% from last month</div>
+            </div>
           </div>
-          <div className="stat-card teal">
-            <div className="stat-title">Employees</div>
-            <div className="stat-value">0</div>
-            <div className="stat-sub">0% Increase</div>
+          
+          <div className="stats-card">
+            <div className="stats-icon">
+              <i className="fas fa-user-tie"></i>
+            </div>
+            <div className="stats-content">
+              <div className="stats-value">{employees.length}</div>
+              <div className="stats-label">Employees</div>
+              <div className="stats-change positive">+0% from last month</div>
+            </div>
           </div>
-          <div className="stat-card amber">
-            <div className="stat-title">FPO</div>
-            <div className="stat-value">1</div>
-            <div className="stat-sub">Active</div>
+          
+          <div className="stats-card">
+            <div className="stats-icon">
+              <i className="fas fa-building"></i>
+            </div>
+            <div className="stats-content">
+              <div className="stats-value">1</div>
+              <div className="stats-label">FPO</div>
+              <div className="stats-change positive">Active</div>
+            </div>
           </div>
-        </section>
+        </div>
         )}
 
         {view === 'overview' && (
-        <section className="cards-grid">
-          <div className="panel">
-            <div className="panel-header">
-              <h2>Manage Farmers</h2>
+        <div className="content-grid">
+          <div className="content-card">
+            <div className="card-header">
+              <div className="card-icon">
+                <i className="fas fa-users"></i>
+              </div>
+              <div className="card-title">
+                <h3>Manage Farmers</h3>
+                <p>Add and manage farmers belonging to this FPO only.</p>
+              </div>
             </div>
-            <p className="panel-desc">Add and manage farmers belonging to this FPO only.</p>
-            <div className="panel-actions">
-              <button className="btn primary" onClick={() => navigate(`/register-farmer`, { state: { role: 'FARMER', fpoId } })}>Add Farmer</button>
-              <button className="btn" onClick={() => setView('farmers')}>View Farmers</button>
+            <div className="card-actions">
+              <button className="btn btn-primary" onClick={() => navigate(`/register-farmer`, { state: { role: 'FARMER', fpoId } })}>
+                <i className="fas fa-plus"></i>
+                Add Farmer
+              </button>
+              <button className="btn btn-secondary" onClick={() => setView('farmers')}>
+                <i className="fas fa-eye"></i>
+                View Farmers
+              </button>
             </div>
           </div>
 
-          <div className="panel">
-            <div className="panel-header">
-              <h2>Manage Employees</h2>
+          <div className="content-card">
+            <div className="card-header">
+              <div className="card-icon">
+                <i className="fas fa-user-tie"></i>
+              </div>
+              <div className="card-title">
+                <h3>Manage Employees</h3>
+                <p>Create and manage employees scoped to this FPO.</p>
+              </div>
             </div>
-            <p className="panel-desc">Create and manage employees scoped to this FPO.</p>
-            <div className="panel-actions">
-              <button className="btn primary" onClick={() => navigate(`/register-employee`, { state: { role: 'EMPLOYEE', fpoId } })}>Add Employee</button>
-              <button className="btn" onClick={() => setView('employees')}>View Employees</button>
+            <div className="card-actions">
+              <button className="btn btn-primary" onClick={() => navigate(`/register-employee`, { state: { role: 'EMPLOYEE', fpoId } })}>
+                <i className="fas fa-plus"></i>
+                Add Employee
+              </button>
+              <button className="btn btn-secondary" onClick={() => setView('employees')}>
+                <i className="fas fa-eye"></i>
+                View Employees
+              </button>
             </div>
           </div>
-        </section>
+        </div>
         )}
 
         {view === 'farmers' && (
@@ -286,7 +521,259 @@ const FPOAdminDashboard = () => {
             </table>
           </section>
         )}
-      </main>
+
+        {view === 'fpo' && (
+          <div className="superadmin-overview-section">
+            {!showFPOCreationForm ? (
+              <>
+                {!viewingFPO ? (
+                  <>
+                    <div className="superadmin-overview-header">
+                      <div className="header-left">
+                        <h2 className="superadmin-overview-title">FPO Management</h2>
+                        <p className="overview-description">
+                          Manage Farmer Producer Organizations and their operations.
+                        </p>
+                      </div>
+                      <div className="header-right">
+                        <div className="overview-actions">
+                          <button 
+                            onClick={handleAddFPO}
+                            className="btn btn-primary"
+                            style={{
+                              background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '8px',
+                              padding: '12px 24px',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              fontWeight: '600',
+                              transition: 'all 0.3s ease',
+                              boxShadow: '0 4px 12px rgba(21, 128, 61, 0.25)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}
+                          >
+                            <i className="fas fa-plus"></i>
+                            Add FPO
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* FPO Filters */}
+                    <div className="filters-section">
+                      <div className="filter-group">
+                        <label className="filter-label">State</label>
+                        <select 
+                          value={fpoFilters.state} 
+                          onChange={(e) => setFpoFilters(prev => ({ ...prev, state: e.target.value }))}
+                          className="filter-select"
+                        >
+                          <option value="">All States</option>
+                          <option value="Telangana">Telangana</option>
+                          <option value="Andhrapradesh">Andhrapradesh</option>
+                          <option value="Maharashtra">Maharashtra</option>
+                          <option value="Gujarat">Gujarat</option>
+                          <option value="Punjab">Punjab</option>
+                          <option value="Uttar Pradesh">Uttar Pradesh</option>
+                          <option value="Tamil Nadu">Tamil Nadu</option>
+                        </select>
+                      </div>
+                      
+                      <div className="filter-group">
+                        <label className="filter-label">District</label>
+                        <select 
+                          value={fpoFilters.district} 
+                          onChange={(e) => setFpoFilters(prev => ({ ...prev, district: e.target.value }))}
+                          className="filter-select"
+                        >
+                          <option value="">All Districts</option>
+                          <option value="Karimnagar">Karimnagar</option>
+                          <option value="rangareddy">Rangareddy</option>
+                          <option value="kadapa">Kadapa</option>
+                          <option value="Kadapa">Kadapa</option>
+                          <option value="kadpaa">Kadpaa</option>
+                          <option value="Kuppam">Kuppam</option>
+                          <option value="Pune">Pune</option>
+                          <option value="Ahmedabad">Ahmedabad</option>
+                          <option value="Amritsar">Amritsar</option>
+                          <option value="Lucknow">Lucknow</option>
+                          <option value="Chennai">Chennai</option>
+                        </select>
+                      </div>
+                      
+                      <div className="filter-group">
+                        <label className="filter-label">Status</label>
+                        <select 
+                          value={fpoFilters.status} 
+                          onChange={(e) => setFpoFilters(prev => ({ ...prev, status: e.target.value }))}
+                          className="filter-select"
+                        >
+                          <option value="">All Status</option>
+                          <option value="ACTIVE">Active</option>
+                          <option value="INACTIVE">Inactive</option>
+                          <option value="PENDING">Pending</option>
+                        </select>
+                      </div>
+                      
+                      <div className="filter-group">
+                        <label className="filter-label">Search</label>
+                        <input
+                          type="text"
+                          placeholder="Search FPOs..."
+                          value={fpoSearch}
+                          onChange={(e) => setFpoSearch(e.target.value)}
+                          className="filter-input"
+                        />
+                      </div>
+                    </div>
+
+                    {/* FPO List */}
+                    <FPOList
+                      fpos={fpos}
+                      onEdit={handleEditFPO}
+                      onView={handleViewFPO}
+                      onDelete={handleDeleteFPO}
+                      filters={fpoFilters}
+                      searchTerm={fpoSearch}
+                    />
+                  </>
+                ) : (
+                  <div className="fpo-detail-view">
+                    <div className="fpo-detail-header">
+                      <button 
+                        className="btn btn-secondary"
+                        onClick={() => setViewingFPO(false)}
+                        style={{ marginBottom: '20px' }}
+                      >
+                        <i className="fas fa-arrow-left"></i>
+                        Back to FPO List
+                      </button>
+                    </div>
+                    <div className="fpo-detail-content">
+                      <h2>FPO Details: {selectedFPO?.fpoName || selectedFPO?.name}</h2>
+                      <p>FPO ID: {selectedFPO?.fpoId || selectedFPO?.id}</p>
+                      <p>Status: {selectedFPO?.status}</p>
+                      <p>State: {selectedFPO?.state}</p>
+                      <p>District: {selectedFPO?.district}</p>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <FPOCreationForm
+                onSuccess={handleFPOCreated}
+                onCancel={() => setShowFPOCreationForm(false)}
+              />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* FPO Modals */}
+      {showFPOEditModal && selectedFPO && (
+        <FPOEditModal
+          fpo={selectedFPO}
+          onClose={() => {
+            setShowFPOEditModal(false);
+            setSelectedFPO(null);
+          }}
+          onSuccess={handleFPOUpdated}
+        />
+      )}
+
+      {showFPODetailModal && selectedFPO && (
+        <FPODetailModal
+          fpo={selectedFPO}
+          onClose={() => {
+            setShowFPODetailModal(false);
+            setSelectedFPO(null);
+          }}
+        />
+      )}
+
+      {showFPOBoardMembersModal && selectedFPO && (
+        <FPOBoardMembersModal
+          fpo={selectedFPO}
+          onClose={() => {
+            setShowFPOBoardMembersModal(false);
+            setSelectedFPO(null);
+          }}
+        />
+      )}
+
+      {showFPOFarmServicesModal && selectedFPO && (
+        <FPOFarmServicesModal
+          fpo={selectedFPO}
+          onClose={() => {
+            setShowFPOFarmServicesModal(false);
+            setSelectedFPO(null);
+          }}
+        />
+      )}
+
+      {showFPOTurnoverModal && selectedFPO && (
+        <FPOTurnoverModal
+          fpo={selectedFPO}
+          onClose={() => {
+            setShowFPOTurnoverModal(false);
+            setSelectedFPO(null);
+          }}
+        />
+      )}
+
+      {showFPOCropEntriesModal && selectedFPO && (
+        <FPOCropEntriesModal
+          fpo={selectedFPO}
+          onClose={() => {
+            setShowFPOCropEntriesModal(false);
+            setSelectedFPO(null);
+          }}
+        />
+      )}
+
+      {showFPOInputShopModal && selectedFPO && (
+        <FPOInputShopModal
+          fpo={selectedFPO}
+          onClose={() => {
+            setShowFPOInputShopModal(false);
+            setSelectedFPO(null);
+          }}
+        />
+      )}
+
+      {showFPOProductCategoriesModal && selectedFPO && (
+        <FPOProductCategoriesModal
+          fpo={selectedFPO}
+          onClose={() => {
+            setShowFPOProductCategoriesModal(false);
+            setSelectedFPO(null);
+          }}
+        />
+      )}
+
+      {showFPOProductsModal && selectedFPO && (
+        <FPOProductsModal
+          fpo={selectedFPO}
+          onClose={() => {
+            setShowFPOProductsModal(false);
+            setSelectedFPO(null);
+          }}
+        />
+      )}
+
+      {showFPOUsersModal && selectedFPO && (
+        <FPOUsersModal
+          fpo={selectedFPO}
+          onClose={() => {
+            setShowFPOUsersModal(false);
+            setSelectedFPO(null);
+          }}
+        />
+      )}
     </div>
   );
 };

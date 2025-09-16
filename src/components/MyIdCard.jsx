@@ -34,27 +34,46 @@ const MyIdCard = ({ userId, userType }) => {
         }
       }
 
-      const response = await idCardAPI.getIdCardsByHolder(String(holderId));
+      const response = await idCardAPI.getMyIdCards(String(holderId));
+      // Debug: allow both single object and paged arrays
+      if (response && (response.cardId || response.pngUrl || response.pdfUrl)) {
+        setIdCards([response]);
+        return;
+      }
       const listRaw = Array.isArray(response)
         ? response
         : (response?.content || response?.items || response?.data || []);
       const list = Array.isArray(listRaw) ? listRaw : [];
-      // Ensure we only show the appropriate card type (EMPLOYEE/FARMER)
-      let filtered = userType ? list.filter((c) => c.cardType === userType) : list;
+      // Prefer cards that belong to this holder id first
+      let filtered = list.filter((c) => String(c.holderId) === String(holderId));
+      // If none match strictly by holder, fall back to type-based filtering but be tolerant
+      if ((!filtered || filtered.length === 0) && userType) {
+        const acceptedTypes = ['EMPLOYEE', 'EMP', 'EMPLOYEE_CARD', 'FARMER', 'FAM', 'FARMER_CARD'];
+        const wantEmp = userType === 'EMPLOYEE';
+        filtered = list.filter((c) => {
+          const t = String(c.cardType || '').toUpperCase();
+          return wantEmp ? acceptedTypes.includes(t) && t.includes('EMP') : acceptedTypes.includes(t) && t.includes('FARM');
+        });
+      }
 
       // Fallback: if nothing returned for holder, fetch by type and match holderId
+      // Avoid calling admin-only endpoints from employee UI. If not found, retry with fallback holder id.
       if ((!filtered || filtered.length === 0) && userType === 'EMPLOYEE') {
         try {
-          const page = await idCardAPI.getIdCardsByType('EMPLOYEE');
-          const arr = Array.isArray(page)
-            ? page
-            : (page?.content || page?.items || page?.data || []);
-          const all = Array.isArray(arr) ? arr : [];
-          const matches = all.filter((c) => String(c.holderId) === String(holderId) || String(c.holderId) === String(userId));
-          filtered = matches;
+          if (String(holderId) !== String(userId)) {
+            const res2 = await idCardAPI.getIdCardsByHolder(String(userId));
+            const arrRaw = Array.isArray(res2) ? res2 : (res2?.content || res2?.items || res2?.data || []);
+            const arr = Array.isArray(arrRaw) ? arrRaw : [];
+            const matches = arr.filter((c) => String(c.holderId) === String(userId));
+            filtered = matches;
+          }
         } catch (e) {
           // ignore
         }
+      }
+      // Final fallback: if still empty, show any cards at all (helps diagnose)
+      if ((!filtered || filtered.length === 0) && list.length > 0) {
+        filtered = list;
       }
 
       setIdCards(filtered || []);
@@ -181,6 +200,24 @@ const MyIdCard = ({ userId, userType }) => {
   }
 
   if (idCards.length === 0) {
+    const tryGenerate = async () => {
+      try {
+        let holderId = userId;
+        if (userType === 'EMPLOYEE') {
+          try {
+            const profile = await employeeAPI.getProfile();
+            if (profile?.id) holderId = profile.id;
+          } catch {}
+        }
+        await idCardAPI.generateMyEmployeeIdCard(String(holderId));
+        setTimeout(fetchMyIdCards, 500);
+        alert('Requested ID card generation. If permitted, it will appear shortly.');
+      } catch (e) {
+        console.error('ID card generate failed:', e);
+        alert(e?.response?.data?.message || 'Unable to generate ID card. Please contact admin.');
+      }
+    };
+
     return (
       <div className="my-id-card">
         <div className="no-id-cards">
@@ -188,6 +225,9 @@ const MyIdCard = ({ userId, userType }) => {
           <h3>No ID Card Found</h3>
           <p>Your ID card will be generated automatically after your registration is approved.</p>
           <p>Please contact your administrator if you believe this is an error.</p>
+          <div style={{ marginTop: 12 }}>
+            <button className="action-btn" onClick={tryGenerate}>Generate my ID card</button>
+          </div>
         </div>
       </div>
     );
@@ -217,10 +257,16 @@ const MyIdCard = ({ userId, userType }) => {
                 </div>
                 
                 <div className="card-details">
-                  <p><strong>Type:</strong> {card.cardType}</p>
-                  <p><strong>Generated:</strong> {new Date(card.generatedAt).toLocaleDateString()}</p>
-                  <p><strong>Expires:</strong> {new Date(card.expiresAt).toLocaleDateString()}</p>
-                  <p><strong>Location:</strong> {card.village}, {card.district}, {card.state}</p>
+                  {card.cardType && <p><strong>Type:</strong> {card.cardType}</p>}
+                  {card.generatedAt && (
+                    <p><strong>Generated:</strong> {new Date(card.generatedAt).toLocaleDateString()}</p>
+                  )}
+                  {card.expiresAt && (
+                    <p><strong>Expires:</strong> {new Date(card.expiresAt).toLocaleDateString()}</p>
+                  )}
+                  {(card.village || card.district || card.state) && (
+                    <p><strong>Location:</strong> {card.village || ''}{card.village && (card.district || card.state) ? ', ' : ''}{card.district || ''}{card.district && card.state ? ', ' : ''}{card.state || ''}</p>
+                  )}
                 </div>
               </div>
               

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fpoAPI } from '../api/apiService';
+import '../styles/FPOModal.css';
 
 const FPOFarmServicesModal = ({ isOpen, onClose, fpoId, fpoName }) => {
   const [farmServices, setFarmServices] = useState([]);

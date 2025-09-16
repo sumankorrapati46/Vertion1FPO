@@ -2182,7 +2182,7 @@ const AdminDashboard = () => {
             className={`nav-item ${activeTab === 'bulk-operations' ? 'active' : ''}`}
             onClick={() => setActiveTab('bulk-operations')}
           >
-            <i className="fas fa-upload"></i>
+            <i className="fas fa-tasks"></i>
             <span>Bulk Operations</span>
           </div>
         </div>

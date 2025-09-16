@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { apiService } from '../api/apiService';
 import '../styles/BulkOperations.css';
 
-const BulkOperations = ({ userRole }) => {
+const BulkOperations = ({ userRole, hideHeader = false }) => {
   const [activeTab, setActiveTab] = useState('import');
   const [importType, setImportType] = useState('FARMER');
   const [selectedFile, setSelectedFile] = useState(null);
@@ -167,10 +167,12 @@ const BulkOperations = ({ userRole }) => {
 
   return (
     <div className="bulk-operations">
-      <div className="bulk-header">
-        <h2>Bulk Operations</h2>
-        <p>Import and export large datasets efficiently</p>
-      </div>
+      {!hideHeader && (
+        <div className="bulk-header">
+          <h2>Bulk Operations</h2>
+          <p>Import and export large datasets efficiently</p>
+        </div>
+      )}
 
       <div className="bulk-tabs">
         <button 

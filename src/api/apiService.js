@@ -1516,6 +1516,56 @@ export const fpoUsersAPI = {
 
 // ID Card API calls
 export const idCardAPI = {
+  // Employee-friendly: get current user's ID cards with multiple fallbacks
+  getMyIdCards: async (holderId) => {
+    // Preferred: employee dashboard self endpoints
+    try {
+      const res = await api.get('/employees/dashboard/my/id-card');
+      return res.data;
+    } catch (e0) {
+      // Fall through to older routes
+    }
+    // Try holder endpoint first
+    try {
+      const res = await api.get(`/id-cards/holder/${holderId}`);
+      return res.data;
+    } catch (e1) {
+      // Try employee-scoped endpoints that some backends expose
+      try {
+        const res = await api.get('/employees/id-cards');
+        return res.data;
+      } catch (e2) {
+        try {
+          const res = await api.get(`/users/${holderId}/id-cards`);
+          return res.data;
+        } catch (e3) {
+          throw e1; // surface original
+        }
+      }
+    }
+  },
+
+  // Employee-friendly: generate card with multiple fallbacks
+  generateMyEmployeeIdCard: async (employeeId) => {
+    // Preferred: employee dashboard self endpoint
+    try {
+      const res = await api.post('/employees/dashboard/my/id-card');
+      return res.data;
+    } catch (e0) {
+      // continue to fallbacks
+    }
+    try {
+      const res = await api.post(`/id-cards/generate/employee/${employeeId}`);
+      return res.data;
+    } catch (e1) {
+      try {
+        const res = await api.post('/employees/id-cards/generate', { employeeId });
+        return res.data;
+      } catch (e2) {
+        throw e1;
+      }
+    }
+  },
   // Generate ID card for farmer
   generateFarmerIdCard: async (farmerId) => {
     const response = await api.post(`/id-cards/generate/farmer/${farmerId}`);

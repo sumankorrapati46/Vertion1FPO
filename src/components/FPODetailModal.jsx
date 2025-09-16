@@ -4,6 +4,7 @@ import FPOServices from './FPOServices';
 import FPOCrops from './FPOCrops';
 import FPOTurnover from './FPOTurnover';
 import FPOProducts from './FPOProducts';
+import '../styles/FPOModal.css';
 
 const FPODetailModal = ({ fpo, onClose }) => {
   if (!fpo) return null;

@@ -97,6 +97,46 @@ const SuperAdminDashboard = () => {
     });
   };
 
+  // Helper: robustly compute a display ID for employees
+  const getEmployeeDisplayId = (row) => {
+    const candidates = [
+      row?.employeeId,
+      row?.employeeCode,
+      row?.employeeUniqueId,
+      row?.empId,
+      row?.empCode,
+      row?.userUniqueId,
+      row?.userId,
+      row?.uniqueId,
+      employeeUniqueIds?.[row?.id],
+      row?.cardId
+    ];
+    const firstNonEmpty = candidates.find(v => v !== undefined && v !== null && String(v).trim() !== '');
+    if (firstNonEmpty) return String(firstNonEmpty);
+    const fallbackNumeric = row?.id ? String(row.id).padStart(6, '0') : '000000';
+    return `EMP${fallbackNumeric}`;
+  };
+
+  // Helper: robustly compute a display ID for farmers
+  const getFarmerDisplayId = (row) => {
+    const candidates = [
+      row?.farmerId,
+      row?.farmerCode,
+      row?.farmerUniqueId,
+      row?.famId,
+      row?.famCode,
+      row?.userUniqueId,
+      row?.userId,
+      row?.uniqueId,
+      farmerUniqueIds?.[row?.id],
+      row?.cardId
+    ];
+    const firstNonEmpty = candidates.find(v => v !== undefined && v !== null && String(v).trim() !== '');
+    if (firstNonEmpty) return String(firstNonEmpty);
+    const fallbackNumeric = row?.id ? String(row.id).padStart(6, '0') : '000000';
+    return `FAM${fallbackNumeric}`;
+  };
+
   // Greeting function based on time of day
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -1055,6 +1095,7 @@ const SuperAdminDashboard = () => {
     }
   };
 
+
   const stats = getStats();
 
   if (loading) {
@@ -1138,7 +1179,7 @@ const SuperAdminDashboard = () => {
             onClick={() => setActiveTab('dashboard')}
           >
             <i className="fas fa-th-large"></i>
-            <span>Dashboard Overview</span>
+            <span>Dashboard</span>
           </div>
 
           <div 
@@ -1177,8 +1218,40 @@ const SuperAdminDashboard = () => {
             className={`nav-item ${activeTab === 'bulk-operations' ? 'active' : ''}`}
             onClick={() => setActiveTab('bulk-operations')}
           >
-            <i className="fas fa-upload"></i>
+            <i className="fas fa-tasks"></i>
             <span>Bulk Operations</span>
+          </div>
+
+          <div 
+            className={`nav-item ${activeTab === 'personalization' ? 'active' : ''}`}
+            onClick={() => setActiveTab('personalization')}
+          >
+            <i className="fas fa-palette"></i>
+            <span>Personalization</span>
+          </div>
+
+          <div 
+            className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('settings')}
+          >
+            <i className="fas fa-cog"></i>
+            <span>Settings</span>
+          </div>
+
+          <div 
+            className={`nav-item ${activeTab === 'my-account' ? 'active' : ''}`}
+            onClick={() => setActiveTab('my-account')}
+          >
+            <i className="fas fa-user"></i>
+            <span>My Account</span>
+          </div>
+
+          <div 
+            className="nav-item logout"
+            onClick={handleLogout}
+          >
+            <i className="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
           </div>
         </div>
       </div>
@@ -1824,7 +1897,7 @@ const SuperAdminDashboard = () => {
                           { 
                             key: 'id', 
                             label: 'ID',
-                            render: (value, row) => farmerUniqueIds[row.id] || `DB-${row.id}`
+                            render: (value, row) => getFarmerDisplayId(row)
                           },
                           { key: 'name', label: 'Name' },
                           { key: 'contactNumber', label: 'Phone' },
@@ -2142,7 +2215,7 @@ const SuperAdminDashboard = () => {
                             { 
                               key: 'id', 
                               label: 'ID',
-                              render: (value, row) => employeeUniqueIds[row.id] || `DB-${row.id}`
+                              render: (value, row) => getEmployeeDisplayId(row)
                             },
                             { key: 'name', label: 'Name' },
                             { key: 'contactNumber', label: 'Phone' },
@@ -2549,8 +2622,107 @@ const SuperAdminDashboard = () => {
             </div>
           )}
 
+
+          {/* New Navigation Items Content */}
+          {activeTab === 'add-farmer' && (
+            <div className="overview-section">
+              <div className="overview-header">
+                <h2 className="overview-title">Add New Farmer</h2>
+                <p className="overview-description">Register a new farmer in the system.</p>
+              </div>
+              <FarmerRegistrationForm 
+                onClose={() => setActiveTab('farmers')}
+                onSubmit={(farmerData) => {
+                  console.log('New farmer data:', farmerData);
+                  // Handle farmer creation
+                  setActiveTab('farmers');
+                }}
+              />
+            </div>
+          )}
+
+          {activeTab === 'view-farmers' && (
+            <div className="overview-section">
+              <div className="overview-header">
+                <h2 className="overview-title">View Farmers</h2>
+                <p className="overview-description">Manage and view all farmers in the system.</p>
+              </div>
+              <div className="farmers-section">
+                <div className="section-header">
+                  <h3 className="section-title">Farmers List</h3>
+                  <div className="section-actions">
+                    <button 
+                      className="action-btn primary"
+                      onClick={() => setActiveTab('add-farmer')}
+                    >
+                      <i className="fas fa-plus"></i>
+                      Add Farmer
+                    </button>
+                  </div>
+                </div>
+                <DataTable
+                  data={getFilteredFarmers()}
+                  columns={[
+                    { key: 'name', label: 'Name' },
+                    { key: 'contactNumber', label: 'Contact' },
+                    { key: 'state', label: 'State' },
+                    { key: 'district', label: 'District' },
+                    { key: 'kycStatus', label: 'KYC Status' }
+                  ]}
+                  customActions={[
+                    { label: 'View', className: 'info', onClick: (farmer) => handleViewFarmer(farmer) },
+                    { label: 'Edit', className: 'warning', onClick: (farmer) => handleEditFarmer(farmer) },
+                    { label: 'Delete', className: 'danger', onClick: (farmer) => handleDelete(farmer, 'farmer') }
+                  ]}
+                />
+              </div>
+            </div>
+          )}
+
           {activeTab === 'bulk-operations' && (
-            <BulkOperations userRole="SUPER_ADMIN" />
+            <BulkOperations userRole="SUPER_ADMIN" hideHeader={false} />
+          )}
+
+          {activeTab === 'personalization' && (
+            <div className="overview-section">
+              <div className="overview-header">
+                <h2 className="overview-title">Personalization</h2>
+                <p className="overview-description">Customize your dashboard and preferences.</p>
+              </div>
+              <div className="coming-soon">
+                <i className="fas fa-palette"></i>
+                <h3>Coming Soon</h3>
+                <p>Personalization features are under development.</p>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="overview-section">
+              <div className="overview-header">
+                <h2 className="overview-title">Settings</h2>
+                <p className="overview-description">Configure system settings and preferences.</p>
+              </div>
+              <div className="coming-soon">
+                <i className="fas fa-cog"></i>
+                <h3>Coming Soon</h3>
+                <p>Settings panel is under development.</p>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'my-account' && (
+            <div className="overview-section">
+              <div className="overview-header">
+                <h2 className="overview-title">My Account</h2>
+                <p className="overview-description">Manage your account information and preferences.</p>
+              </div>
+              <div className="coming-soon">
+                <i className="fas fa-user"></i>
+                <h3>Coming Soon</h3>
+                <p>Account management features are under development.</p>
+              </div>
+            </div>
           )}
         </div>
       </div>
