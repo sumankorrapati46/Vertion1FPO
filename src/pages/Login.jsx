@@ -94,11 +94,13 @@ const Login = () => {
         console.log('FPO Login Response:', res);
         console.log('FPO Login Token:', res.token);
         
+        const normalizedType = (res.userType || res.userRole || res.type || '').toString().toUpperCase();
+        const isEmployeeUser = normalizedType.includes('EMPLOYEE');
         const user = {
           userName: res.email,
           name: res.email,
           email: res.email,
-          role: 'FPO',
+          role: isEmployeeUser ? 'EMPLOYEE' : 'FPO',
           forcePasswordChange: false,
           status: 'APPROVED',
           fpoId: res.fpoId || res.fpoID || res?.fpo?.id,
@@ -120,7 +122,9 @@ const Login = () => {
         const isFpoAdmin = isAdminByString || res.isAdmin === true || userName?.toLowerCase?.().includes('admin');
 
         const resolvedFpoId = user.fpoId;
-        if (isFpoAdmin && resolvedFpoId) {
+        if (isEmployeeUser) {
+          navigate('/employee/dashboard');
+        } else if (isFpoAdmin && resolvedFpoId) {
           navigate(`/fpo-admin/dashboard/${resolvedFpoId}`);
         } else if (resolvedFpoId) {
           navigate(`/fpo/dashboard/${resolvedFpoId}`);

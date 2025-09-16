@@ -4,12 +4,14 @@ import { fpoAPI } from '../api/apiService';
 const FPOProducts = ({ fpoId }) => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     loadProducts();
     loadCategories();
+    loadShops();
   }, [fpoId]);
 
   const loadProducts = async () => {
@@ -34,6 +36,16 @@ const FPOProducts = ({ fpoId }) => {
     }
   };
 
+  const loadShops = async () => {
+    try {
+      const res = await fpoAPI.getFPOInputShops(fpoId);
+      const data = res?.data || res || [];
+      setShops(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setShops([]);
+    }
+  };
+
   if (loading) {
     return <div className="loading">Loading products...</div>;
   }
@@ -44,53 +56,20 @@ const FPOProducts = ({ fpoId }) => {
 
   return (
     <div className="fpo-products">
-      <div className="section-header">
-        <h3>Products & Input Shop</h3>
-        <div className="header-actions">
-          <button className="btn btn-secondary">Manage Categories</button>
-          <button className="btn btn-primary">Add Product</button>
-        </div>
-      </div>
-      
-      <div className="products-list">
+      <div className="products-list" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {products.length === 0 ? (
           <div className="no-data">No products found</div>
         ) : (
           products.map(product => (
-            <div key={product.id} className="product-card">
-              <div className="product-info">
-                <h4>{product.productName}</h4>
-                <p className="category">{product.categoryName}</p>
-                <p className="brand">Brand: {product.brand}</p>
-                <div className="product-details">
-                  <div className="price">
-                    <span className="label">Price:</span>
-                    <span className="value">₹{product.price}</span>
-                  </div>
-                  <div className="stock">
-                    <span className="label">Stock:</span>
-                    <span className={`value ${product.stockQuantity <= product.minimumStock ? 'low-stock' : ''}`}>
-                      {product.stockQuantity} {product.unit}
-                    </span>
-                  </div>
-                  <div className="supplier">
-                    <span className="label">Supplier:</span>
-                    <span className="value">{product.supplier}</span>
-                  </div>
-                </div>
-                <div className="product-status">
-                  <span className={`status-badge ${product.status.toLowerCase().replace('_', '-')}`}>
-                    {product.status.replace('_', ' ')}
-                  </span>
-                  {product.stockQuantity <= product.minimumStock && (
-                    <span className="low-stock-warning">⚠️ Low Stock</span>
-                  )}
-                </div>
-              </div>
-              <div className="product-actions">
-                <button className="btn btn-secondary btn-sm">Edit</button>
-                <button className="btn btn-warning btn-sm">Update Stock</button>
-              </div>
+            <div key={product.id} className="product-card item-card">
+              <h4 style={{ marginTop: 0 }}>{product.productName}{product.categoryName ? ` (${product.categoryName})` : ''}</h4>
+              <p style={{ margin: '8px 0 0 0' }}>Shop: {product.brand || product.supplier || product.shopName || product.shop || '—'}</p>
+              <p style={{ margin: '8px 0 0 0' }}>Sold: {(() => {
+                const qty = product.quantitySold ?? product.stockQuantity;
+                if (qty == null) return '—';
+                const unit = product.unit || 'MT';
+                return `${Number(qty).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${unit}`;
+              })()}</p>
             </div>
           ))
         )}

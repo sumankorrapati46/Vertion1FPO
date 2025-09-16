@@ -971,8 +971,8 @@ export const kycAPI = {
     return response.data;
   },
 
-  // Approve KYC
-  approveKYC: async (farmerId, approvalData) => {
+  // Approve KYC (no body required in your backend)
+  approveKYC: async (farmerId) => {
     const response = await api.put(`/employees/kyc/approve/${farmerId}`);
     return response.data;
   },

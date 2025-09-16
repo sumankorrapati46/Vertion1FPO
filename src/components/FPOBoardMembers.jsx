@@ -33,26 +33,17 @@ const FPOBoardMembers = ({ fpoId }) => {
 
   return (
     <div className="fpo-board-members">
-      <div className="section-header">
-        <h3>Board Members</h3>
-        <button className="btn btn-primary">Add Board Member</button>
-      </div>
-      
-      <div className="board-members-list">
+      <div className="board-members-list" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
         {boardMembers.length === 0 ? (
           <div className="no-data">No board members found</div>
         ) : (
           boardMembers.map(member => (
             <div key={member.id} className="board-member-card">
-              <div className="member-info">
-                <h4>{member.name}</h4>
-                <p className="role">{member.role}</p>
-                <p className="contact">{member.phoneNumber}</p>
-              </div>
-              <div className="member-actions">
-                <button className="btn btn-secondary btn-sm">Edit</button>
-                <button className="btn btn-danger btn-sm">Remove</button>
-              </div>
+              <h4 style={{ marginTop: 0 }}>{member.name} {member.role ? `- ${member.role}` : ''}</h4>
+              <p style={{ margin: '12px 0 0 0' }}><strong>Mobile:</strong> {member.phoneNumber || '—'}</p>
+              <p style={{ margin: '12px 0 0 0' }}><strong>Email:</strong> {member.email || '—'}</p>
+              <p style={{ margin: '12px 0 0 0' }}><strong>Location:</strong> {member.location || '—'}</p>
+              <p style={{ margin: '12px 0 0 0' }}><strong>LinkedIn:</strong> {member.linkedin || '—'}</p>
             </div>
           ))
         )}

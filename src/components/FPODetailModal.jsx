@@ -4,6 +4,7 @@ import FPOServices from './FPOServices';
 import FPOCrops from './FPOCrops';
 import FPOTurnover from './FPOTurnover';
 import FPOProducts from './FPOProducts';
+import FPOInputShops from './FPOInputShops';
 import '../styles/FPOModal.css';
 
 const FPODetailModal = ({ fpo, onClose }) => {
@@ -62,13 +63,18 @@ const FPODetailModal = ({ fpo, onClose }) => {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 24 }}>
             <div>
+              <h3>Input Shops</h3>
+              <FPOInputShops fpoId={fpo.id} />
+            </div>
+            <div>
               <h3>Products Sold</h3>
               <FPOProducts fpoId={fpo.id} />
             </div>
-            <div>
-              <h3>Crop Entries</h3>
-              <FPOCrops fpoId={fpo.id} />
-            </div>
+          </div>
+
+          <div style={{ marginTop: 24 }}>
+            <h3>Crop Entries</h3>
+            <FPOCrops fpoId={(typeof fpo.id === 'number' && fpo.id) || (Number(fpo.id) ? Number(fpo.id) : fpo.id) || fpo.fpoId} />
           </div>
         </div>
       </div>

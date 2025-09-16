@@ -14,13 +14,45 @@ const FPOCrops = ({ fpoId }) => {
     try {
       setLoading(true);
       const response = await fpoAPI.getFPOCrops(fpoId);
-      setCrops(response);
+      const data = response?.data || response?.content || response || [];
+      setCrops(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError('Failed to load crops');
-      console.error('Error loading crops:', err);
+      const msg = err?.response?.data?.message || err?.message || 'Failed to load crops';
+      setError(msg);
+      console.error('Error loading crops:', err?.response || err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatCropYear = (crop) => {
+    // Direct display fields
+    const display = crop.financialYearDisplay || crop.cropYearDisplay || crop.yearDisplay || crop.yearRange || crop.fyLabel;
+    if (display) return display;
+
+    // If year is already a string like "2024-2025"
+    const stringish = crop.financialYear || crop.cropYear || crop.year;
+    if (typeof stringish === 'string') {
+      const trimmed = stringish.trim();
+      if (/\d{4}\s*-\s*\d{4}/.test(trimmed)) return trimmed.replace(/\s*/g, '').replace('-', '-');
+      const asNum = Number(trimmed);
+      if (!Number.isNaN(asNum) && asNum > 0) return `${asNum}-${asNum + 1}`;
+    }
+
+    // Start/end numeric forms with many possible keys
+    const start = [
+      crop.financialYear, crop.year, crop.cropYear, crop.cropYearStart, crop.yearStart, crop.startYear, crop.fyStart
+    ].map((v) => (typeof v === 'string' ? Number(v) : v)).find((v) => typeof v === 'number' && !Number.isNaN(v));
+
+    const end = [
+      crop.financialYearEnd, crop.yearEnd, crop.cropYearEnd, crop.endYear, crop.fyEnd
+    ].map((v) => (typeof v === 'string' ? Number(v) : v)).find((v) => typeof v === 'number' && !Number.isNaN(v));
+
+    if (typeof start === 'number') {
+      return `${start}-${typeof end === 'number' ? end : start + 1}`;
+    }
+
+    return '-';
   };
 
   if (loading) {
@@ -33,31 +65,33 @@ const FPOCrops = ({ fpoId }) => {
 
   return (
     <div className="fpo-crops">
-      <div className="section-header">
-        <h3>Crops</h3>
-        <button className="btn btn-primary">Add Crop</button>
-      </div>
-      
-      <div className="crops-list">
-        {crops.length === 0 ? (
-          <div className="no-data">No crops found</div>
-        ) : (
-          crops.map(crop => (
-            <div key={crop.id} className="crop-card">
-              <div className="crop-info">
-                <h4>{crop.cropName}</h4>
-                <p className="variety">Variety: {crop.variety}</p>
-                <p className="area">Area: {crop.area} acres</p>
-                <p className="season">Season: {crop.season}</p>
-                <p className="status">Status: {crop.status}</p>
-              </div>
-              <div className="crop-actions">
-                <button className="btn btn-secondary btn-sm">Edit</button>
-                <button className="btn btn-warning btn-sm">Update Status</button>
-              </div>
-            </div>
-          ))
-        )}
+      <div className="table-container">
+        <table className="turnover-table">
+          <thead>
+            <tr>
+              <th>Crop Year</th>
+              <th>Crop Name</th>
+              <th>Area (Acres)</th>
+              <th>Production (MT)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {crops.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="no-data-cell">No crops found</td>
+              </tr>
+            ) : (
+              crops.map((crop, index) => (
+                <tr key={crop.id || index}>
+                  <td>{formatCropYear(crop)}</td>
+                  <td>{crop.cropName || '-'}</td>
+                  <td>{Number((crop.area ?? crop.areaInAcres ?? crop.acres ?? 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td>{Number((crop.production ?? crop.productionInMetricTons ?? crop.productionMT ?? crop.productionInMT ?? 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

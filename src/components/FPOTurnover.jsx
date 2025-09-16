@@ -33,47 +33,21 @@ const FPOTurnover = ({ fpoId }) => {
 
   return (
     <div className="fpo-turnover">
-      <div className="section-header">
-        <h3>Turnover & Financial Data</h3>
-        <button className="btn btn-primary">Add Turnover Entry</button>
-      </div>
-      
       <div className="turnover-list">
         {turnovers.length === 0 ? (
           <div className="no-data">No turnover data found</div>
         ) : (
           turnovers.map(turnover => (
-            <div key={turnover.id} className="turnover-card">
+            <div key={turnover.id} className="turnover-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
               <div className="turnover-info">
-                <h4>FY {turnover.financialYear} - {turnover.turnoverType}</h4>
-                <p className="period">
+                <h4 style={{ margin: 0 }}>{turnover.financialYear ? `${turnover.financialYear}-${(turnover.financialYear + 1)}` : ''} - {turnover.turnoverType || 'YEARLY'}</h4>
+                <p className="period" style={{ margin: '6px 0 0 0', color: '#475569' }}>
                   {turnover.turnoverType === 'MONTHLY' ? `Month: ${turnover.month}` : 
                    turnover.turnoverType === 'QUARTERLY' ? `Quarter: ${turnover.quarter}` : 
                    'Yearly'}
                 </p>
-                <div className="financial-details">
-                  <div className="revenue">
-                    <span className="label">Revenue:</span>
-                    <span className="value">₹{turnover.revenue?.toLocaleString()}</span>
-                  </div>
-                  <div className="expenses">
-                    <span className="label">Expenses:</span>
-                    <span className="value">₹{turnover.expenses?.toLocaleString()}</span>
-                  </div>
-                  <div className="profit-loss">
-                    <span className="label">
-                      {turnover.profit > 0 ? 'Profit:' : 'Loss:'}
-                    </span>
-                    <span className={`value ${turnover.profit > 0 ? 'profit' : 'loss'}`}>
-                      ₹{Math.abs(turnover.profit || turnover.loss || 0).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
               </div>
-              <div className="turnover-actions">
-                <button className="btn btn-secondary btn-sm">Edit</button>
-                <button className="btn btn-danger btn-sm">Delete</button>
-              </div>
+              <span style={{ background: '#3b82f6', color: '#ffffff', padding: '6px 12px', borderRadius: 999, fontWeight: 700 }}>₹ {Number(turnover.revenue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
           ))
         )}

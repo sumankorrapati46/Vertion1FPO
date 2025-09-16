@@ -17,6 +17,7 @@ import FPOInputShopModal from '../components/FPOInputShopModal';
 import FPOProductCategoriesModal from '../components/FPOProductCategoriesModal';
 import FPOProductsModal from '../components/FPOProductsModal';
 import FPOUsersModal from '../components/FPOUsersModal';
+import FarmerRegistrationForm from '../components/FarmerRegistrationForm';
 
 const FPOAdminDashboard = () => {
   const { fpoId } = useParams();
@@ -35,6 +36,7 @@ const FPOAdminDashboard = () => {
   // FPO Management States
   const [fpos, setFpos] = useState([]);
   const [showFPOCreationForm, setShowFPOCreationForm] = useState(false);
+  const [showInlineFarmerCreate, setShowInlineFarmerCreate] = useState(false);
   const [viewingFPO, setViewingFPO] = useState(false);
   const [selectedFPO, setSelectedFPO] = useState(null);
   const [fpoFilters, setFpoFilters] = useState({
@@ -359,7 +361,7 @@ const FPOAdminDashboard = () => {
               </div>
             </div>
             <div className="card-actions">
-              <button className="btn btn-primary" onClick={() => navigate(`/register-farmer`, { state: { role: 'FARMER', fpoId } })}>
+              <button className="btn btn-primary" onClick={() => setShowInlineFarmerCreate(true)}>
                 <i className="fas fa-plus"></i>
                 Add Farmer
               </button>
@@ -674,6 +676,24 @@ const FPOAdminDashboard = () => {
       </div>
 
       {/* FPO Modals */}
+
+      {showInlineFarmerCreate && (
+        <div className="form-modal-overlay">
+          <div className="form-modal-content" style={{ width: '90%', maxWidth: 1100 }}>
+            <div className="form-modal-header">
+              <h3>Create Farmer</h3>
+              <button className="close-btn" onClick={() => setShowInlineFarmerCreate(false)}>×</button>
+            </div>
+            <div className="form-modal-body">
+              <FarmerRegistrationForm
+                isInDashboard
+                onClose={() => setShowInlineFarmerCreate(false)}
+                onSubmit={() => setShowInlineFarmerCreate(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
       {showFPOEditModal && selectedFPO && (
         <FPOEditModal
           fpo={selectedFPO}

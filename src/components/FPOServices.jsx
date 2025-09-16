@@ -33,26 +33,19 @@ const FPOServices = ({ fpoId }) => {
 
   return (
     <div className="fpo-services">
-      <div className="section-header">
-        <h3>Services</h3>
-        <button className="btn btn-primary">Add Service</button>
-      </div>
-      
       <div className="services-list">
         {services.length === 0 ? (
           <div className="no-data">No services found</div>
         ) : (
           services.map(service => (
-            <div key={service.id} className="service-card">
+            <div key={service.id} className="service-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
               <div className="service-info">
-                <h4>{service.serviceType}</h4>
-                <p className="description">{service.description}</p>
-                <p className="status">Status: {service.status}</p>
+                <h4 style={{ margin: 0 }}>{service.serviceType?.toString().replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</h4>
+                <p className="description" style={{ margin: '6px 0 0 0', color: '#475569' }}>{service.description || '—'}</p>
               </div>
-              <div className="service-actions">
-                <button className="btn btn-secondary btn-sm">Edit</button>
-                <button className="btn btn-warning btn-sm">Update Status</button>
-              </div>
+              <span className={`status-pill ${service.status === 'APPROVED' ? 'status-active' : ''}`} style={{ background: service.status === 'APPROVED' ? '#10b981' : '#e2e8f0', color: service.status === 'APPROVED' ? '#ffffff' : '#0f172a', padding: '6px 12px', borderRadius: 999, fontWeight: 700 }}>
+                {service.status === 'APPROVED' ? 'Active' : (service.status || 'Pending')}
+              </span>
             </div>
           ))
         )}
