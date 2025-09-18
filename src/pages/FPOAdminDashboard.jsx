@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { fpoAPI } from '../api/apiService';
@@ -55,6 +55,38 @@ const FPOAdminDashboard = () => {
   const [showFPOProductCategoriesModal, setShowFPOProductCategoriesModal] = useState(false);
   const [showFPOProductsModal, setShowFPOProductsModal] = useState(false);
   const [showFPOUsersModal, setShowFPOUsersModal] = useState(false);
+  // Photo upload state (persisted in localStorage)
+  const [userPhoto, setUserPhoto] = useState(null);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      const savedPhoto = localStorage.getItem('userProfilePhoto:FPO_ADMIN');
+      if (savedPhoto) setUserPhoto(savedPhoto);
+    } catch {}
+  }, []);
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload a valid image file.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const data = ev.target?.result;
+      if (typeof data === 'string') { setUserPhoto(data); try { localStorage.setItem('userProfilePhoto:FPO_ADMIN', data); } catch {} }
+    };
+    reader.onerror = () => alert('Error reading the file. Please try again.');
+    reader.readAsDataURL(file);
+  };
+
+  const handlePhotoClick = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleRemovePhoto = () => { setUserPhoto(null); try { localStorage.removeItem('userProfilePhoto:FPO_ADMIN'); } catch {} };
 
   // Greeting function based on time of day
   const getGreeting = () => {
@@ -227,16 +259,30 @@ const FPOAdminDashboard = () => {
         <div className="header-right">
           <div className="user-profile-dropdown">
             <div className="user-profile-trigger" onClick={toggleUserDropdown}>
-              <div className="user-avatar">
-                {user?.name?.charAt(0) || 'A'}
+              <div className="user-avatar user-avatar-with-upload" onClick={(e) => { e.stopPropagation(); handlePhotoClick(); }}>
+                {userPhoto ? (
+                  <img src={userPhoto} alt="Profile" className="user-avatar-photo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                ) : (
+                  <div className="user-avatar-initials">{user?.name?.charAt(0) || 'A'}</div>
+                )}
+                <div className="avatar-upload-overlay">
+                  <i className="fas fa-camera"></i>
+                </div>
               </div>
               <span className="user-email">{user?.email || 'admin@fpo.com'}</span>
               <i className={`fas fa-chevron-down dropdown-arrow ${showUserDropdown ? 'rotated' : ''}`}></i>
             </div>
             <div className={`user-dropdown-menu ${showUserDropdown ? 'show' : ''}`}>
               <div className="dropdown-header">
-                <div className="user-avatar-large">
-                  {user?.name?.charAt(0) || 'A'}
+                <div className="user-avatar-large user-avatar-with-upload" onClick={handlePhotoClick}>
+                  {userPhoto ? (
+                    <img src={userPhoto} alt="Profile" className="user-avatar-photo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                  ) : (
+                    <div className="user-avatar-initials">{user?.name?.charAt(0) || 'A'}</div>
+                  )}
+                  <div className="avatar-upload-overlay">
+                    <i className="fas fa-camera"></i>
+                  </div>
                 </div>
                 <div className="user-details">
                   <div className="user-name-large">{user?.name || 'FPO Admin'}</div>
@@ -244,6 +290,16 @@ const FPOAdminDashboard = () => {
                 </div>
               </div>
               <div className="dropdown-actions">
+                <button className="dropdown-action-btn" onClick={handlePhotoClick}>
+                  <i className="fas fa-camera"></i>
+                  {userPhoto ? 'Change Photo' : 'Upload Photo'}
+                </button>
+                {userPhoto && (
+                  <button className="dropdown-action-btn" onClick={handleRemovePhoto}>
+                    <i className="fas fa-trash"></i>
+                    Remove Photo
+                  </button>
+                )}
                 <button className="dropdown-action-btn" onClick={handleChangePassword}>
                   <i className="fas fa-key"></i>
                   Change Password
@@ -794,6 +850,8 @@ const FPOAdminDashboard = () => {
           }}
         />
       )}
+      {/* Hidden file input for photo upload */}
+      <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" style={{ display: 'none' }} />
     </div>
   );
 };

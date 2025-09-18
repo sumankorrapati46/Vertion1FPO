@@ -1,39 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import IdCardViewer from '../components/IdCardViewer';
+import React, { useState, useEffect, useRef } from 'react';
+import IdCardContentViewer from '../components/IdCardContentViewer';
 import { idCardAPI } from '../api/apiService';
 import { useAuth } from '../contexts/AuthContext';
 import { farmersAPI, employeesAPI, superAdminAPI, adminAPI, fpoAPI } from '../api/apiService';
 import DataTable from '../components/DataTable';
 
 // import RegistrationApprovalModal from '../components/RegistrationApprovalModal';
-import RegistrationDetailModal from '../components/RegistrationDetailModal';
 import RegistrationDetailsInline from '../components/RegistrationDetailsInline';
-import ViewFarmerRegistrationDetails from '../components/ViewFarmerRegistrationDetails';
 import ViewFarmer from '../components/ViewFarmer';
 import AssignmentModal from '../components/AssignmentModal';
 import AssignmentInline from '../components/AssignmentInline';
 import FarmerForm from '../components/FarmerForm';
 import FarmerRegistrationForm from '../components/FarmerRegistrationForm';
-import ViewEditEmployeeDetails from '../components/ViewEditEmployeeDetails';
-import ViewEmployeeDetails from '../components/ViewEmployeeDetails';
 import ViewEmployee from '../components/ViewEmployee';
+import ViewEditEmployeeDetails from '../components/ViewEditEmployeeDetails';
 import EmployeeRegistrationForm from '../components/EmployeeRegistrationForm';
 import KYCDocumentUpload from '../components/KYCDocumentUpload';
 import DeleteModal from '../components/DeleteModal';
-import UserProfileDropdown from '../components/UserProfileDropdown';
 import BulkOperations from '../components/BulkOperations';
-import FPOList from '../components/FPOList';
+import FPOCreationForm from '../components/FPOCreationForm';
 import FPOEditModal from '../components/FPOEditModal';
 import FPODetailModal from '../components/FPODetailModal';
-import FPOCreationForm from '../components/FPOCreationForm';
+import FPODetailsView from '../components/FPODetailsView';
+import FPOEditForm from '../components/FPOEditForm';
 import FPOBoardMembersModal from '../components/FPOBoardMembersModal';
+import FPOBoardMembersView from '../components/FPOBoardMembersView';
 import FPOFarmServicesModal from '../components/FPOFarmServicesModal';
+import FPOFarmServicesView from '../components/FPOFarmServicesView';
 import FPOTurnoverModal from '../components/FPOTurnoverModal';
+import FPOTurnoverView from '../components/FPOTurnoverView';
 import FPOCropEntriesModal from '../components/FPOCropEntriesModal';
+import FPOCropEntriesView from '../components/FPOCropEntriesView';
 import FPOInputShopModal from '../components/FPOInputShopModal';
+import FPOInputShopView from '../components/FPOInputShopView';
 import FPOProductCategoriesModal from '../components/FPOProductCategoriesModal';
+import FPOProductCategoriesView from '../components/FPOProductCategoriesView';
 import FPOProductsModal from '../components/FPOProductsModal';
+import FPOProductsView from '../components/FPOProductsView';
 import FPOUsersModal from '../components/FPOUsersModal';
+import FPOUsersView from '../components/FPOUsersView';
 import FPODashboard from '../pages/FPODashboard';
 import '../styles/Dashboard.css';
 
@@ -41,6 +46,7 @@ const SuperAdminDashboard = () => {
   const { user, logout } = useAuth();
   const [showIdCardModal, setShowIdCardModal] = useState(false);
   const [currentCardId, setCurrentCardId] = useState(null);
+  const [showIdCardContent, setShowIdCardContent] = useState(false);
   
   // Debug logging
   console.log('SuperAdminDashboard - User data:', user);
@@ -231,50 +237,135 @@ const SuperAdminDashboard = () => {
 
   const [randomGreeting, setRandomGreeting] = useState(greetingVariants[0]);
 
+  // Photo upload state
+  const [userPhoto, setUserPhoto] = useState(null);
+  const fileInputRef = useRef(null);
+
   useEffect(() => {
     const idx = Math.floor(Math.random() * greetingVariants.length);
     setRandomGreeting(greetingVariants[idx]);
   }, []);
+
+  // Load saved photo on component mount
+  useEffect(() => {
+    const PROFILE_PHOTO_KEY = 'userProfilePhoto:SUPER_ADMIN';
+    const savedPhoto = localStorage.getItem(PROFILE_PHOTO_KEY);
+    if (savedPhoto) {
+      setUserPhoto(savedPhoto);
+    }
+  }, []);
+
+  // Photo upload handlers
+  const handlePhotoUpload = (event) => {
+    console.log('Photo upload triggered:', event);
+    const file = event.target.files[0];
+    console.log('Selected file:', file);
+    
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file.');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB.');
+        return;
+      }
+
+      console.log('File validation passed, reading file...');
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const photoData = e.target.result;
+        console.log('Photo data loaded:', photoData.substring(0, 50) + '...');
+        setUserPhoto(photoData);
+        try { localStorage.setItem('userProfilePhoto:SUPER_ADMIN', photoData); } catch {}
+        console.log('Photo saved to localStorage and state');
+      };
+      reader.onerror = (error) => {
+        console.error('Error reading file:', error);
+        alert('Error reading the file. Please try again.');
+      };
+      reader.readAsDataURL(file);
+    } else {
+      console.log('No file selected');
+    }
+  };
+
+  const handlePhotoClick = () => {
+    console.log('Photo click triggered');
+    console.log('fileInputRef.current:', fileInputRef.current);
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+      console.log('File input clicked');
+    } else {
+      console.error('File input ref is null');
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setUserPhoto(null);
+    try { localStorage.removeItem('userProfilePhoto:SUPER_ADMIN'); } catch {}
+  };
   
   // Modal states
 
-  const [showFarmerDetails, setShowFarmerDetails] = useState(false);
-  const [selectedFarmer, setSelectedFarmer] = useState(null);
   const [viewingFarmer, setViewingFarmer] = useState(null);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [showAssignmentInline, setShowAssignmentInline] = useState(false);
   const [showFarmerForm, setShowFarmerForm] = useState(false);
-  const [showEmployeeDetails, setShowEmployeeDetails] = useState(false); // edit modal
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [showEmployeeView, setShowEmployeeView] = useState(false); // read-only view
   const [viewingEmployee, setViewingEmployee] = useState(null);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showEmployeeDetails, setShowEmployeeDetails] = useState(false);
   const [showEmployeeRegistration, setShowEmployeeRegistration] = useState(false);
   const [showKYCModal, setShowKYCModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [toast, setToast] = useState(null);
   const [editingFarmer, setEditingFarmer] = useState(null);
+  const [editingFPO, setEditingFPO] = useState(null);
+  const [showFPOEdit, setShowFPOEdit] = useState(false);
+  const [showFPOEditForm, setShowFPOEditForm] = useState(false);
+  const [selectedFPOEdit, setSelectedFPOEdit] = useState(null);
   const [showFPOCreationForm, setShowFPOCreationForm] = useState(false);
   const [viewingFPO, setViewingFPO] = useState(null); // page-level view
-  const [editingFPO, setEditingFPO] = useState(null);
   const [showFPODetail, setShowFPODetail] = useState(false);
   const [detailFPO, setDetailFPO] = useState(null); // modal view only
+  const [showFPODetailsView, setShowFPODetailsView] = useState(false);
+  const [selectedFPODetails, setSelectedFPODetails] = useState(null); // full-width view
   const [showBoardMembers, setShowBoardMembers] = useState(false);
   const [selectedFPOForBoard, setSelectedFPOForBoard] = useState(null);
+  const [showBoardMembersView, setShowBoardMembersView] = useState(false);
+  const [selectedFPOBoardMembers, setSelectedFPOBoardMembers] = useState(null);
   const [showFarmServices, setShowFarmServices] = useState(false);
   const [selectedFPOForServices, setSelectedFPOForServices] = useState(null);
+  const [showFarmServicesView, setShowFarmServicesView] = useState(false);
+  const [selectedFPOFarmServices, setSelectedFPOFarmServices] = useState(null);
   const [showTurnover, setShowTurnover] = useState(false);
   const [selectedFPOForTurnover, setSelectedFPOForTurnover] = useState(null);
+  const [showTurnoverView, setShowTurnoverView] = useState(false);
+  const [selectedFPOTurnover, setSelectedFPOTurnover] = useState(null);
   const [showCropEntries, setShowCropEntries] = useState(false);
   const [selectedFPOForCropEntries, setSelectedFPOForCropEntries] = useState(null);
+  const [showCropEntriesView, setShowCropEntriesView] = useState(false);
+  const [selectedFPOCropEntries, setSelectedFPOCropEntries] = useState(null);
   const [showInputShop, setShowInputShop] = useState(false);
   const [selectedFPOForInputShop, setSelectedFPOForInputShop] = useState(null);
+  const [showInputShopView, setShowInputShopView] = useState(false);
+  const [selectedFPOInputShop, setSelectedFPOInputShop] = useState(null);
   const [showProductCategories, setShowProductCategories] = useState(false);
   const [selectedFPOForCategories, setSelectedFPOForCategories] = useState(null);
+  const [showProductCategoriesView, setShowProductCategoriesView] = useState(false);
+  const [selectedFPOProductCategories, setSelectedFPOProductCategories] = useState(null);
   const [showProducts, setShowProducts] = useState(false);
   const [selectedFPOForProducts, setSelectedFPOForProducts] = useState(null);
+  const [showProductsView, setShowProductsView] = useState(false);
+  const [selectedFPOProducts, setSelectedFPOProducts] = useState(null);
   const [showFpoUsers, setShowFpoUsers] = useState(false);
   const [selectedFPOForUsers, setSelectedFPOForUsers] = useState(null);
+  const [showUsersView, setShowUsersView] = useState(false);
+  const [selectedFPOUsers, setSelectedFPOUsers] = useState(null);
   const [registrationFilters, setRegistrationFilters] = useState({
     role: '',
     status: ''
@@ -738,6 +829,7 @@ const SuperAdminDashboard = () => {
     }
   };
 
+
   const handleAddEmployee = () => {
     setShowEmployeeRegistration(true);
   };
@@ -785,6 +877,21 @@ const SuperAdminDashboard = () => {
       console.error('Error updating farmer:', error);
       alert('Failed to update farmer. Please try again.');
     }
+  };
+
+  const handleViewFPO = async (fpo) => {
+    try {
+      const fullFpo = await fpoAPI.getFPOById(fpo.id);
+      setViewingFPO(fullFpo || fpo);
+    } catch (e) {
+      console.warn('Falling back to row FPO data:', e);
+      setViewingFPO(fpo);
+    }
+  };
+
+  const handleEditFPO = (fpo) => {
+    setEditingFPO(fpo);
+    setShowFPOEdit(true);
   };
 
   const handleManualRefresh = async () => {
@@ -983,65 +1090,49 @@ const SuperAdminDashboard = () => {
     setShowDeleteModal(true);
   };
 
-  // FPO Handler Functions
-  const handleViewFPO = async (fpo) => {
-    try {
-      const fullFpo = await fpoAPI.getFPOById(fpo.id);
-      setViewingFPO(fullFpo || fpo);
-    } catch (e) {
-      console.warn('Falling back to row FPO data:', e);
-      setViewingFPO(fpo);
-    }
-  };
-
-  const handleEditFPO = (fpo) => {
-    setEditingFPO(fpo);
-    setShowFPOCreationForm(true);
-  };
-
   const handleAddFPO = () => {
     setEditingFPO(null);
     setShowFPOCreationForm(true);
   };
 
   const handleBoardMembers = (fpo) => {
-    setSelectedFPOForBoard(fpo);
-    setShowBoardMembers(true);
+    setSelectedFPOBoardMembers(fpo);
+    setShowBoardMembersView(true);
   };
 
   const handleFarmServices = (fpo) => {
-    setSelectedFPOForServices(fpo);
-    setShowFarmServices(true);
+    setSelectedFPOFarmServices(fpo);
+    setShowFarmServicesView(true);
   };
 
   const handleTurnover = (fpo) => {
-    setSelectedFPOForTurnover(fpo);
-    setShowTurnover(true);
+    setSelectedFPOTurnover(fpo);
+    setShowTurnoverView(true);
   };
 
   const handleCropEntries = (fpo) => {
-    setSelectedFPOForCropEntries(fpo);
-    setShowCropEntries(true);
+    setSelectedFPOCropEntries(fpo);
+    setShowCropEntriesView(true);
   };
 
   const handleInputShop = (fpo) => {
-    setSelectedFPOForInputShop(fpo);
-    setShowInputShop(true);
+    setSelectedFPOInputShop(fpo);
+    setShowInputShopView(true);
   };
 
   const handleProductCategories = (fpo) => {
-    setSelectedFPOForCategories(fpo);
-    setShowProductCategories(true);
+    setSelectedFPOProductCategories(fpo);
+    setShowProductCategoriesView(true);
   };
 
   const handleProducts = (fpo) => {
-    setSelectedFPOForProducts(fpo);
-    setShowProducts(true);
+    setSelectedFPOProducts(fpo);
+    setShowProductsView(true);
   };
 
   const handleFpoUsers = (fpo) => {
-    setSelectedFPOForUsers(fpo);
-    setShowFpoUsers(true);
+    setSelectedFPOUsers(fpo);
+    setShowUsersView(true);
   };
 
   const handleSaveFPO = async (fpoData) => {
@@ -1135,16 +1226,40 @@ const SuperAdminDashboard = () => {
         <div className="header-right">
           <div className="user-profile-dropdown">
             <div className="user-profile-trigger" onClick={toggleUserDropdown}>
-              <div className="user-avatar">
-                {user?.name?.charAt(0) || 'S'}
+              <div className="user-avatar user-avatar-with-upload" onClick={(e) => { e.stopPropagation(); handlePhotoClick(); }}>
+                {userPhoto ? (
+                  <img 
+                    src={userPhoto} 
+                    alt="Profile" 
+                    className="user-avatar-photo"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                  />
+                ) : (
+                  <div className="user-avatar-initials">{user?.name?.charAt(0) || 'S'}</div>
+                )}
+                <div className="avatar-upload-overlay">
+                  <i className="fas fa-camera"></i>
+                </div>
               </div>
               <span className="user-email">{user?.email || 'super@admin.com'}</span>
               <i className={`fas fa-chevron-down dropdown-arrow ${showUserDropdown ? 'rotated' : ''}`}></i>
             </div>
             <div className={`user-dropdown-menu ${showUserDropdown ? 'show' : ''}`}>
               <div className="dropdown-header">
-                <div className="user-avatar-large">
-                  {user?.name?.charAt(0) || 'S'}
+                <div className="user-avatar-large user-avatar-with-upload" onClick={handlePhotoClick}>
+                  {userPhoto ? (
+                    <img 
+                      src={userPhoto} 
+                      alt="Profile" 
+                      className="user-avatar-photo"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                    />
+                  ) : (
+                    <div className="user-avatar-initials">{user?.name?.charAt(0) || 'S'}</div>
+                  )}
+                  <div className="avatar-upload-overlay">
+                    <i className="fas fa-camera"></i>
+                  </div>
                 </div>
                 <div className="user-details">
                   <div className="user-name-large">{user?.name || 'Super Admin'}</div>
@@ -1152,6 +1267,16 @@ const SuperAdminDashboard = () => {
                 </div>
               </div>
               <div className="dropdown-actions">
+                <button className="dropdown-action-btn" onClick={handlePhotoClick}>
+                  <i className="fas fa-camera"></i>
+                  {userPhoto ? 'Change Photo' : 'Upload Photo'}
+                </button>
+                {userPhoto && (
+                  <button className="dropdown-action-btn" onClick={handleRemovePhoto}>
+                    <i className="fas fa-trash"></i>
+                    Remove Photo
+                  </button>
+                )}
                 <button className="dropdown-action-btn" onClick={handleChangePassword}>
                   <i className="fas fa-key"></i>
                   Change Password
@@ -1592,7 +1717,15 @@ const SuperAdminDashboard = () => {
 
           {activeTab === 'farmers' && (
             <>
-              {!viewingFarmer && !showAssignmentInline ? (
+              {showIdCardContent && currentCardId ? (
+                <IdCardContentViewer
+                  cardId={currentCardId}
+                  onClose={() => {
+                    setShowIdCardContent(false);
+                    setCurrentCardId(null);
+                  }}
+                />
+              ) : !viewingFarmer && !showAssignmentInline ? (
                 <div className="superadmin-overview-section">
                   <div className="superadmin-overview-header">
                     <div className="header-left">
@@ -1939,7 +2072,7 @@ const SuperAdminDashboard = () => {
                                   const activeCard = list.find(card => card.status === 'ACTIVE') || list[0];
                                   console.log('✅ Using existing ID card:', activeCard.cardId);
                                   setCurrentCardId(activeCard.cardId);
-                                  setShowIdCardModal(true);
+                                  setShowIdCardContent(true);
                                   return;
                                 }
                                 
@@ -1951,7 +2084,7 @@ const SuperAdminDashboard = () => {
                                 if (gen && gen.cardId) {
                                   console.log('✅ Successfully generated ID card:', gen.cardId);
                                   setCurrentCardId(gen.cardId);
-                                  setShowIdCardModal(true);
+                                  setShowIdCardContent(true);
                                 } else {
                                   console.error('❌ Generated ID card response is invalid:', gen);
                                   alert('Failed to generate ID card: Invalid response from server');
@@ -2038,7 +2171,7 @@ const SuperAdminDashboard = () => {
               )}
 
               {showIdCardModal && currentCardId && (
-                <IdCardViewer
+                <IdCardContentViewer
                   cardId={currentCardId}
                   onClose={() => {
                     setShowIdCardModal(false);
@@ -2050,8 +2183,16 @@ const SuperAdminDashboard = () => {
           )}
 
           {activeTab === 'employees' && (
-            <div className="superadmin-overview-section">
-              {!showEmployeeRegistration ? (
+            <>
+              {showIdCardContent && currentCardId ? (
+                <IdCardContentViewer
+                  cardId={currentCardId}
+                  onClose={() => {
+                    setShowIdCardContent(false);
+                    setCurrentCardId(null);
+                  }}
+                />
+              ) : !showEmployeeRegistration ? (
                 <>
                   {!viewingEmployee ? (
                     <>
@@ -2243,7 +2384,7 @@ const SuperAdminDashboard = () => {
                                     const activeCard = list.find(card => card.status === 'ACTIVE') || list[0];
                                     console.log('✅ Using existing ID card:', activeCard.cardId);
                                     setCurrentCardId(activeCard.cardId);
-                                    setShowIdCardModal(true);
+                                    setShowIdCardContent(true);
                                     return;
                                   }
                                   
@@ -2254,7 +2395,7 @@ const SuperAdminDashboard = () => {
                                   if (gen && gen.cardId) {
                                     console.log('✅ Successfully generated ID card:', gen.cardId);
                                     setCurrentCardId(gen.cardId);
-                                    setShowIdCardModal(true);
+                                    setShowIdCardContent(true);
                                   } else {
                                     console.error('❌ Generated ID card response is invalid:', gen);
                                     alert('Failed to generate ID card: Invalid response from server');
@@ -2361,14 +2502,104 @@ const SuperAdminDashboard = () => {
                   />
                 </div>
               )}
-            </div>
+            </>
           )}
 
           {activeTab === 'fpo' && (
-            <div className="superadmin-overview-section">
-              {!showFPOCreationForm ? (
-                <>
-                  {!viewingFPO ? (
+            <>
+              {showFPODetailsView && selectedFPODetails ? (
+                <FPODetailsView
+                  fpo={selectedFPODetails}
+                  onClose={() => {
+                    setShowFPODetailsView(false);
+                    setSelectedFPODetails(null);
+                  }}
+                />
+              ) : showFPOEditForm && selectedFPOEdit ? (
+                <FPOEditForm
+                  fpo={selectedFPOEdit}
+                  onClose={() => {
+                    setShowFPOEditForm(false);
+                    setSelectedFPOEdit(null);
+                  }}
+                  onUpdated={(updated) => {
+                    setFpos(prev => prev.map(fpo => 
+                      fpo.id === selectedFPOEdit.id ? updated : fpo
+                    ));
+                    setShowFPOEditForm(false);
+                    setSelectedFPOEdit(null);
+                    alert('FPO updated successfully!');
+                  }}
+                />
+              ) : showBoardMembersView && selectedFPOBoardMembers ? (
+                <FPOBoardMembersView
+                  fpo={selectedFPOBoardMembers}
+                  onClose={() => {
+                    setShowBoardMembersView(false);
+                    setSelectedFPOBoardMembers(null);
+                  }}
+                />
+              ) : showFarmServicesView && selectedFPOFarmServices ? (
+                <FPOFarmServicesView
+                  fpo={selectedFPOFarmServices}
+                  onClose={() => {
+                    setShowFarmServicesView(false);
+                    setSelectedFPOFarmServices(null);
+                  }}
+                />
+              ) : showTurnoverView && selectedFPOTurnover ? (
+                <FPOTurnoverView
+                  fpo={selectedFPOTurnover}
+                  onClose={() => {
+                    setShowTurnoverView(false);
+                    setSelectedFPOTurnover(null);
+                  }}
+                />
+              ) : showCropEntriesView && selectedFPOCropEntries ? (
+                <FPOCropEntriesView
+                  fpo={selectedFPOCropEntries}
+                  onClose={() => {
+                    setShowCropEntriesView(false);
+                    setSelectedFPOCropEntries(null);
+                  }}
+                />
+              ) : showInputShopView && selectedFPOInputShop ? (
+                <FPOInputShopView
+                  fpo={selectedFPOInputShop}
+                  onClose={() => {
+                    setShowInputShopView(false);
+                    setSelectedFPOInputShop(null);
+                  }}
+                />
+              ) : showProductCategoriesView && selectedFPOProductCategories ? (
+                <FPOProductCategoriesView
+                  fpo={selectedFPOProductCategories}
+                  onClose={() => {
+                    setShowProductCategoriesView(false);
+                    setSelectedFPOProductCategories(null);
+                  }}
+                />
+              ) : showProductsView && selectedFPOProducts ? (
+                <FPOProductsView
+                  fpo={selectedFPOProducts}
+                  onClose={() => {
+                    setShowProductsView(false);
+                    setSelectedFPOProducts(null);
+                  }}
+                />
+              ) : showUsersView && selectedFPOUsers ? (
+                <FPOUsersView
+                  fpo={selectedFPOUsers}
+                  onClose={() => {
+                    setShowUsersView(false);
+                    setSelectedFPOUsers(null);
+                  }}
+                />
+              ) : (
+                <div className="superadmin-overview-section">
+                  {!showFPOCreationForm ? (
+                    <>
+                      {!viewingFPO ? (
                     <>
                       <div className="superadmin-overview-header">
                         <div className="header-left">
@@ -2538,8 +2769,8 @@ const SuperAdminDashboard = () => {
                             }
                           ]}
                           customActions={[
-                            { label: 'Dashboard', className: 'info', onClick: (fpo) => { setDetailFPO(fpo); setShowFPODetail(true); } },
-                            { label: 'Edit FPO', className: 'warning', onClick: (fpo) => setEditingFPO(fpo) },
+                            { label: 'Dashboard', className: 'info', onClick: (fpo) => { setSelectedFPODetails(fpo); setShowFPODetailsView(true); } },
+                            { label: 'Edit FPO', className: 'warning', onClick: (fpo) => { setSelectedFPOEdit(fpo); setShowFPOEditForm(true); } },
                             { label: 'FPO Board Members', onClick: handleBoardMembers },
                             { label: 'FPO Farm Services', onClick: handleFarmServices },
                             { label: 'FPO Turnover', onClick: handleTurnover },
@@ -2619,7 +2850,9 @@ const SuperAdminDashboard = () => {
                   />
                 </div>
               )}
-            </div>
+                </div>
+              )}
+            </>
           )}
 
 
@@ -2884,6 +3117,15 @@ const SuperAdminDashboard = () => {
           message={`Are you sure you want to delete this ${itemToDelete?.type}?`}
         />
       )}
+
+      {/* Hidden file input for photo upload */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handlePhotoUpload}
+        accept="image/*"
+        style={{ display: 'none' }}
+      />
     </div>
   );
 };

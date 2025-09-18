@@ -105,8 +105,8 @@ const FPOProductCategoriesModal = ({ isOpen, onClose, fpoId }) => {
                         <button className="dropdown-toggle" onClick={() => setActiveDropdown(activeDropdown === cat.id ? null : cat.id)}>⋯</button>
                         {activeDropdown === cat.id && (
                           <div className={`dropdown-menu ${index >= 2 ? 'dropdown-menu-bottom' : 'dropdown-menu-top'}`}>
-                            <button className="dropdown-item edit-item" onClick={() => { handleEdit(cat); setActiveDropdown(null); }}>Edit</button>
-                            <button className="dropdown-item delete-item" onClick={() => { handleDelete(cat.id); setActiveDropdown(null); }}>Delete</button>
+                            <button className="dropdown-item-enhanced edit-item" onClick={() => { handleEdit(cat); setActiveDropdown(null); }}>Edit</button>
+                            <button className="dropdown-item-enhanced delete-item" onClick={() => { handleDelete(cat.id); setActiveDropdown(null); }}>Delete</button>
                           </div>
                         )}
                       </div>

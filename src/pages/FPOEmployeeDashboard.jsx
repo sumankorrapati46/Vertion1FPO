@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { fpoAPI, farmersAPI, kycAPI } from '../api/apiService';
@@ -22,6 +22,9 @@ const FPOEmployeeDashboard = () => {
   const [farmerViewData, setFarmerViewData] = useState(null);
   const [tab, setTab] = useState('pending'); // pending | approved | all
   const [search, setSearch] = useState('');
+  // Photo upload state (persisted in localStorage)
+  const [userPhoto, setUserPhoto] = useState(null);
+  const fileInputRef = useRef(null);
 
   const employeeFpoId = user?.fpoId || user?.assignedFpoId || user?.fpo?.id || user?.fpo?.fpoId;
 
@@ -73,6 +76,33 @@ const FPOEmployeeDashboard = () => {
     load();
   }, [employeeFpoId]);
 
+  // Load saved photo
+  useEffect(() => {
+    try {
+      const savedPhoto = localStorage.getItem('userProfilePhoto:FPO_EMPLOYEE');
+      if (savedPhoto) setUserPhoto(savedPhoto);
+    } catch {}
+  }, []);
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('Please upload an image'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const data = ev.target?.result;
+      if (typeof data === 'string') {
+        setUserPhoto(data);
+        try { localStorage.setItem('userProfilePhoto', data); } catch {}
+      }
+    };
+    reader.onerror = () => alert('Error reading the file');
+    reader.readAsDataURL(file);
+  };
+
+  const handlePhotoClick = () => { if (fileInputRef.current) fileInputRef.current.click(); };
+  const handleRemovePhoto = () => { setUserPhoto(null); try { localStorage.removeItem('userProfilePhoto:FPO_EMPLOYEE'); } catch {} };
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return farmers.filter(f => {
@@ -123,7 +153,14 @@ const FPOEmployeeDashboard = () => {
         <div className="header-right">
           <div className="user-profile-dropdown">
             <div className="user-profile-trigger">
-              <div className="user-avatar">{(user?.name || 'E').charAt(0)}</div>
+              <div className="user-avatar user-avatar-with-upload" onClick={handlePhotoClick}>
+                {userPhoto ? (
+                  <img src={userPhoto} alt="Profile" className="user-avatar-photo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                ) : (
+                  <div className="user-avatar-initials">{(user?.name || 'E').charAt(0)}</div>
+                )}
+                <div className="avatar-upload-overlay"><i className="fas fa-camera"></i></div>
+              </div>
               <span className="user-email">{user?.email}</span>
             </div>
           </div>
@@ -217,7 +254,7 @@ const FPOEmployeeDashboard = () => {
                   <td>
                     <div className="action-dropdown" style={{ position: 'relative' }}>
                       <button className="dropdown-toggle">⋯</button>
-                      <div className="dropdown-menu dropdown-menu-bottom" style={{ display: 'block', position: 'absolute', right: 0 }}>
+                      <div className="dropdown-menu-enhanced" style={{ position: 'absolute', right: 0 }}>
                         <button className="dropdown-item" onClick={async () => {
                           try {
                             const dto = await farmersAPI.getFarmerById(f.farmerId || f.id);

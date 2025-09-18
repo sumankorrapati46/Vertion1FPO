@@ -98,8 +98,8 @@ const FPOUsersModal = ({ isOpen, onClose, fpoId }) => {
                         <button className="dropdown-toggle" onClick={()=>setActiveDropdown(activeDropdown===u.id?null:u.id)}>⋯</button>
                         {activeDropdown===u.id && (
                           <div className={`dropdown-menu ${index>=2?'dropdown-menu-bottom':'dropdown-menu-top'}`}>
-                            <button className="dropdown-item edit-item" onClick={()=>{ setEditing(u); setFormData({ email: u.email, phoneNumber: u.phoneNumber, firstName: u.firstName, lastName: u.lastName, role: u.role, password: '' }); setShowForm(true); setActiveDropdown(null); }}>Edit</button>
-                            <button className="dropdown-item edit-item" onClick={()=>{ openPasswordModal(u); setActiveDropdown(null); }}>Edit Password</button>
+                            <button className="dropdown-item-enhanced edit-item" onClick={()=>{ setEditing(u); setFormData({ email: u.email, phoneNumber: u.phoneNumber, firstName: u.firstName, lastName: u.lastName, role: u.role, password: '' }); setShowForm(true); setActiveDropdown(null); }}>Edit</button>
+                            <button className="dropdown-item-enhanced edit-item" onClick={()=>{ openPasswordModal(u); setActiveDropdown(null); }}>Edit Password</button>
                           </div>
                         )}
                       </div>

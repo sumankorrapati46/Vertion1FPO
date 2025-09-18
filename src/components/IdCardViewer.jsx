@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { idCardAPI } from '../api/apiService';
 import '../styles/IdCardViewer.css';
 
@@ -9,21 +9,7 @@ const IdCardViewer = ({ cardId, onClose, inlineMode = false }) => {
   const [error, setError] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
 
-  useEffect(() => {
-    if (cardId) {
-      fetchIdCard();
-    }
-
-    const onKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose?.();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [cardId, onClose]);
-
-  const fetchIdCard = async () => {
+  const fetchIdCard = useCallback(async () => {
     try {
       setLoading(true);
       const response = await idCardAPI.getIdCard(cardId);
@@ -48,7 +34,21 @@ const IdCardViewer = ({ cardId, onClose, inlineMode = false }) => {
       console.error('Error fetching ID card:', err);
       setLoading(false);
     }
-  };
+  }, [cardId]);
+
+  useEffect(() => {
+    if (cardId) {
+      fetchIdCard();
+    }
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose?.();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [cardId, onClose, fetchIdCard]);
 
   const handleDownloadPDF = async () => {
     try {
@@ -126,24 +126,44 @@ const IdCardViewer = ({ cardId, onClose, inlineMode = false }) => {
   }
 
   return (
-    <div className="id-card-modal" onClick={onClose}>
-      <div className="id-card-content" onClick={(e) => e.stopPropagation()}>
-        <div className="id-card-header">
-          <h2>ID Card <span className="muted">{idCard.cardId}</span></h2>
-          <button onClick={onClose} className="close-btn" aria-label="Close viewer">&times;</button>
+    <div className="id-card-modal-fullscreen" onClick={onClose}>
+      <div className="id-card-content-fullscreen" onClick={(e) => e.stopPropagation()}>
+        {/* Header Section */}
+        <div className="id-card-header-fullscreen">
+          <h1 className="id-card-title">ID Card {idCard.cardId}</h1>
+          <button onClick={onClose} className="close-btn-fullscreen" aria-label="Close viewer">
+            <i className="fas fa-times"></i>
+          </button>
         </div>
-        <div className="id-card-body">
-          <div className="id-card-preview">
-            {imageUrl ? (
-              <img src={imageUrl} alt="ID Card Preview" className="id-card-image" />
-            ) : (
-              <div className="loading">{imageLoading ? 'Rendering preview…' : 'Preview unavailable'}</div>
-            )}
+
+        {/* Middle Section - ID Card Display */}
+        <div className="id-card-body-fullscreen">
+          <div className="id-card-display-container">
+            <div className="id-card-display">
+              {imageUrl ? (
+                <img src={imageUrl} alt="ID Card Preview" className="id-card-image-fullscreen" />
+              ) : (
+                <div className="loading-fullscreen">
+                  <i className="fas fa-spinner fa-spin"></i>
+                  <p>{imageLoading ? 'Rendering ID card…' : 'Preview unavailable'}</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-        <div className="id-card-actions">
-          <button onClick={handleDownloadPDF} className="download-btn pdf">Download PDF</button>
-          <button onClick={handleDownloadPNG} className="download-btn png">Download PNG</button>
+
+        {/* Footer Section - Action Buttons */}
+        <div className="id-card-actions-fullscreen">
+          <div className="action-buttons-container">
+            <button onClick={handleDownloadPDF} className="download-btn-fullscreen pdf">
+              <i className="fas fa-file-pdf"></i>
+              Download PDF
+            </button>
+            <button onClick={handleDownloadPNG} className="download-btn-fullscreen png">
+              <i className="fas fa-image"></i>
+              Download PNG
+            </button>
+          </div>
         </div>
       </div>
     </div>

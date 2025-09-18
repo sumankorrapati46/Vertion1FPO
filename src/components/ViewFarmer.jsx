@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import '../styles/ViewFarmerDetails.css';
 
 const ViewFarmer = ({ farmerData, onBack, onSave }) => {
-	const navigate = useNavigate();
 	const [isEditMode, setIsEditMode] = useState(false);
 	const [formData, setFormData] = useState({});
 
@@ -161,34 +159,6 @@ const ViewFarmer = ({ farmerData, onBack, onSave }) => {
 		}
 	};
 
-	const renderField = (label, field, type = 'text', options = []) => {
-		if (isEditMode) {
-			if (type === 'select') {
-				return (
-					<select
-						value={formData[field] || ''}
-						onChange={(e) => handleInputChange(field, e.target.value)}
-						className="edit-input"
-					>
-						{options.map(option => (
-							<option key={option.value} value={option.value}>
-								{option.label}
-							</option>
-						))}
-					</select>
-				);
-			}
-			return (
-				<input
-					type={type}
-					value={formData[field] || ''}
-					onChange={(e) => handleInputChange(field, e.target.value)}
-					className="edit-input"
-				/>
-			);
-		}
-		return <span>{safeRender(normalized[field])}</span>;
-	};
 
 	return (
 		<div className="view-farmer-content">
@@ -253,6 +223,48 @@ const ViewFarmer = ({ farmerData, onBack, onSave }) => {
 				</div>
 			</div>
 			
+			{/* Middle Section with ID Card */}
+			<div className="farmer-middle-section">
+				<div className="middle-section-content">
+					<div className="middle-section-left">
+						{/* Empty space for future content if needed */}
+					</div>
+					<div className="middle-section-right">
+						<div className="farmer-id-card">
+							<div className="farmer-id-photo">
+								{farmerData?.photoFileName || farmerData?.photo ? (
+									<img 
+										src={farmerData.photoFileName || farmerData.photo} 
+										alt="Farmer" 
+										className="farmer-id-photo-img"
+									/>
+								) : (
+									<div className="farmer-id-photo-placeholder">
+										<i className="fas fa-user"></i>
+									</div>
+								)}
+							</div>
+							<div className="farmer-id-info">
+								<div className="farmer-id-number">
+									ID: {farmerData?.id || farmerData?.farmerId || 'N/A'}
+								</div>
+								<div className="farmer-id-name">
+									{formData.name || (formData.firstName ? 
+										`${formData.firstName || ''} ${formData.middleName || ''} ${formData.lastName || ''}`.trim() :
+										'Farmer Name')
+									}
+								</div>
+								<div className="farmer-id-status">
+									<span className={`farmer-status-badge ${farmerData?.kycStatus?.toLowerCase() || 'pending'}`}>
+										{safeRender(farmerData?.kycStatus) || 'PENDING'}
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
 			<div className="view-farmer-body">
 				<div className="farmer-details-container">
 					{(!farmerData || typeof farmerData !== 'object') && (

@@ -173,13 +173,20 @@ const FPOCreationForm = ({ onClose, onFPOCreated, onSubmit, fpoData }) => {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal fpo-creation-modal">
-        <div className="modal-header">
-          <h2>Create FPO</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
+    <div className="fpo-creation-form-page">
+      <div className="form-header">
+        <div className="header-content">
+          <div className="header-left">
+            <h1 className="form-title">Create FPO</h1>
+            <p className="form-subtitle">Register a new Farmer Producer Organization</p>
+          </div>
+          <div className="header-right">
+            <button className="close-btn" onClick={onClose}>×</button>
+          </div>
         </div>
-        
+      </div>
+
+      <div className="form-content">
         <form onSubmit={handleSubmit} className="fpo-form">
           {/* Basic */}
           <div className="form-section">

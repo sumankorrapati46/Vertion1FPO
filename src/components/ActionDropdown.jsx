@@ -4,8 +4,6 @@ const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-
-
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -25,6 +23,10 @@ const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView
       action.onClick(item);
     }
     setIsOpen(false);
+  };
+
+  const handleToggleClick = () => {
+    setIsOpen(true);
   };
 
   // Build actions array from all available sources
@@ -71,55 +73,77 @@ const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView
   }
 
   return (
-    <div className="action-dropdown" ref={dropdownRef} style={{ position: 'relative' }}>
-      <button
-        className="dropdown-toggle"
-        onClick={() => {
-          setIsOpen(!isOpen);
-        }}
-        aria-label="Actions"
-        style={{ 
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'none',
-          border: 'none',
-          borderRadius: '8px',
-          color: '#64748b',
-          cursor: 'pointer',
-          fontSize: '18px',
-          fontWeight: '600',
-          padding: '8px 12px',
-          minWidth: '40px',
-          minHeight: '40px'
-        }}
-      >
-        ⋯
-      </button>
+    <div className="action-dropdown-container" ref={dropdownRef}>
+      {/* Only render button when dropdown is closed */}
+      {!isOpen && (
+        <button
+          className="dropdown-toggle-btn"
+          onClick={handleToggleClick}
+          aria-label="Actions"
+          title="Actions"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="1"></circle>
+            <circle cx="19" cy="12" r="1"></circle>
+            <circle cx="5" cy="12" r="1"></circle>
+          </svg>
+        </button>
+      )}
       
+      {/* Only render dropdown when open */}
       {isOpen && allActions.length > 0 && (
-        <div className="dropdown-menu" style={{ position: 'absolute', top: '100%', right: 0, marginTop: 8, zIndex: 99999, minWidth: '200px' }}>
-          {allActions.map((action, index) => {
-            // Check if action should be shown based on condition
-            if (action.showCondition && item && !action.showCondition(item)) {
-              return null;
-            }
-            
-            return (
-              <button
-                key={index}
-                className={`dropdown-item ${action.className || ''}`}
-                onClick={() => handleActionClick(action)}
-              >
-                {action.icon && <span className="action-icon">{action.icon}</span>}
-                {action.label}
-              </button>
-            );
-          })}
-        </div>
+        <>
+          {/* Backdrop for better UX */}
+          <div 
+            className="dropdown-backdrop" 
+            onClick={() => {
+              setIsOpen(false);
+            }}
+          />
+          
+          <div 
+            className="dropdown-menu-enhanced"
+          >
+            {allActions.map((action, index) => {
+              // Check if action should be shown based on condition
+              if (action.showCondition && item && !action.showCondition(item)) {
+                return null;
+              }
+              
+              return (
+                <button
+                  key={index}
+                  className={`dropdown-item-enhanced ${action.className || ''}`}
+                  onClick={() => handleActionClick(action)}
+                  title={action.label}
+                >
+                  <span className="action-icon">{action.icon || getDefaultIcon(action.label)}</span>
+                  <span className="action-label">{action.label}</span>
+                  {action.className === 'danger' && <span className="action-badge">⚠️</span>}
+                </button>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );
+};
+
+// Helper function to get default icons for actions
+const getDefaultIcon = (label) => {
+  const iconMap = {
+    'View': '👁️',
+    'Edit': '✏️',
+    'Delete': '🗑️',
+    'Approve': '✅',
+    'Reject': '❌',
+    'Dashboard': '📊',
+    'Settings': '⚙️',
+    'Profile': '👤',
+    'Logout': '🚪'
+  };
+  return iconMap[label] || '🔧';
 };
 
 export default ActionDropdown; 

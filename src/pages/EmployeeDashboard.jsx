@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../api/apiService';
 import MyIdCard from '../components/MyIdCard';
 import { useAuth } from '../contexts/AuthContext';
@@ -45,6 +45,9 @@ const EmployeeDashboard = () => {
   const [idCardImageUrl, setIdCardImageUrl] = useState(null);
   const [showIdCardModal, setShowIdCardModal] = useState(false);
   const [loadingIdCard, setLoadingIdCard] = useState(false);
+  // Profile photo upload (persisted via localStorage)
+  const [userPhoto, setUserPhoto] = useState(null);
+  const fileInputRef = useRef(null);
   
   // FPO States
   const [fpos, setFpos] = useState([]);
@@ -85,6 +88,29 @@ const EmployeeDashboard = () => {
     };
     loadEmployeeProfileId();
   }, []);
+
+  // Load saved profile photo once
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('userProfilePhoto:EMPLOYEE');
+      if (saved) setUserPhoto(saved);
+    } catch {}
+  }, []);
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('Please upload an image'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const data = ev.target?.result;
+      if (typeof data === 'string') { setUserPhoto(data); try { localStorage.setItem('userProfilePhoto:EMPLOYEE', data); } catch {} }
+    };
+    reader.onerror = () => alert('Error reading the file');
+    reader.readAsDataURL(file);
+  };
+  const handlePhotoClick = () => { if (fileInputRef.current) fileInputRef.current.click(); };
+  const handleRemovePhoto = () => { setUserPhoto(null); try { localStorage.removeItem('userProfilePhoto:EMPLOYEE'); } catch {} };
 
   // Load employee ID Card number once we know the entity id
   useEffect(() => {
@@ -2137,9 +2163,13 @@ const EmployeeDashboard = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'rgba(255, 255, 255, 0.2)'
-              }}>
-                {(() => {
+                background: 'rgba(255, 255, 255, 0.2)',
+                position: 'relative',
+                cursor: 'pointer'
+              }} onClick={(e) => { e.stopPropagation(); handlePhotoClick(); }}>
+                {userPhoto ? (
+                  <img src={userPhoto} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (() => {
                   let resolvedPhoto = employeePhoto;
                   try {
                     if (!resolvedPhoto && typeof window !== 'undefined') {
@@ -2150,20 +2180,19 @@ const EmployeeDashboard = () => {
                     resolvedPhoto = employeePhoto || user?.photoFileName;
                   }
                   return resolvedPhoto ? (
-                  <img
-                    src={`http://localhost:8080/uploads/photos/${resolvedPhoto}`}
-                    alt="avatar"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  />
+                    <img
+                      src={`http://localhost:8080/uploads/photos/${resolvedPhoto}`}
+                      alt="avatar"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
                   ) : (
-                  <span style={{
-                    fontWeight: 700,
-                    fontSize: 18,
-                    color: 'white'
-                  }}>{user?.name?.charAt(0) || 'U'}</span>
+                    <span style={{ fontWeight: 700, fontSize: 18, color: 'white' }}>{user?.name?.charAt(0) || 'U'}</span>
                   );
                 })()}
+                <div className="avatar-upload-overlay" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.0)' }}>
+                  <i className="fas fa-camera" style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}></i>
+                </div>
               </div>
               <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
                 <span style={{fontSize: 16}}>{user?.name || 'User'}</span>
@@ -2208,19 +2237,12 @@ const EmployeeDashboard = () => {
                 padding: '16px',
                 borderBottom: '1px solid #e5e7eb'
               }}>
-                <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '50%',
-                  background: '#15803d',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '20px',
-                  fontWeight: 'bold',
-                  color: 'white'
-                }}>
-                  {user?.name?.charAt(0) || 'U'}
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', background: '#15803d', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={handlePhotoClick}>
+                  {userPhoto ? (
+                    <img src={userPhoto} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{ fontWeight: 'bold', fontSize: '20px', color: 'white' }}>{user?.name?.charAt(0) || 'U'}</span>
+                  )}
                 </div>
                 <div>
                   <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#1f2937' }}>
@@ -2232,6 +2254,44 @@ const EmployeeDashboard = () => {
                 </div>
               </div>
               <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <button 
+                  onClick={handlePhotoClick}
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '14px',
+                    color: '#374151'
+                  }}
+                >
+                  <i className="fas fa-camera" style={{ color: '#15803d' }}></i>
+                  {userPhoto ? 'Change Photo' : 'Upload Photo'}
+                </button>
+                {userPhoto && (
+                  <button 
+                    onClick={handleRemovePhoto}
+                    style={{
+                      background: '#fff7ed',
+                      border: '1px solid #fed7aa',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontSize: '14px',
+                      color: '#9a3412'
+                    }}
+                  >
+                    <i className="fas fa-trash"></i>
+                    Remove Photo
+                  </button>
+                )}
                 <button 
                   onClick={() => {
                     window.location.href = '/change-password-dashboard';
@@ -2276,6 +2336,8 @@ const EmployeeDashboard = () => {
               </div>
             </div>
           </div>
+          {/* Hidden file input for photo upload */}
+          <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" style={{ display: 'none' }} />
           
           {/* Original UserProfileDropdown - commented out for now */}
           {/* <UserProfileDropdown /> */}

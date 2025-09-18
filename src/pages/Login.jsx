@@ -123,7 +123,12 @@ const Login = () => {
 
         const resolvedFpoId = user.fpoId;
         if (isEmployeeUser) {
-          navigate('/employee/dashboard');
+          // Check if employee is assigned to an FPO
+          if (resolvedFpoId || user.assignedFpoId || user.fpo?.id) {
+            navigate('/fpo-employee/dashboard');
+          } else {
+            navigate('/employee/dashboard');
+          }
         } else if (isFpoAdmin && resolvedFpoId) {
           navigate(`/fpo-admin/dashboard/${resolvedFpoId}`);
         } else if (resolvedFpoId) {
@@ -200,8 +205,14 @@ const Login = () => {
           console.log('Login - Redirecting ADMIN to /admin/dashboard');
           navigate('/admin/dashboard');
         } else if (normalizedRole === 'EMPLOYEE') {
-          console.log('Login - Redirecting EMPLOYEE to /employee/dashboard');
-          navigate('/employee/dashboard');
+          // Check if employee is assigned to an FPO
+          if (user.fpoId || user.assignedFpoId || user.fpo?.id) {
+            console.log('Login - Redirecting FPO EMPLOYEE to /fpo-employee/dashboard');
+            navigate('/fpo-employee/dashboard');
+          } else {
+            console.log('Login - Redirecting DATE EMPLOYEE to /employee/dashboard');
+            navigate('/employee/dashboard');
+          }
         } else {
           console.log('Login - Redirecting FARMER to /dashboard');
           navigate('/dashboard');
@@ -262,8 +273,14 @@ const Login = () => {
             console.log('Login - Redirecting ADMIN to /admin/dashboard');
             navigate('/admin/dashboard');
           } else if (normalizedRole === 'EMPLOYEE') {
-            console.log('Login - Redirecting EMPLOYEE to /employee/dashboard');
-            navigate('/employee/dashboard');
+            // Check if employee is assigned to an FPO
+            if (user.fpoId || user.assignedFpoId || user.fpo?.id) {
+              console.log('Login - Redirecting FPO EMPLOYEE to /fpo-employee/dashboard');
+              navigate('/fpo-employee/dashboard');
+            } else {
+              console.log('Login - Redirecting DATE EMPLOYEE to /employee/dashboard');
+              navigate('/employee/dashboard');
+            }
           } else {
             console.log('Login - Redirecting FARMER to /dashboard');
             navigate('/dashboard');

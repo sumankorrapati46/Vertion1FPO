@@ -159,8 +159,8 @@ const FPOInputShopModal = ({ isOpen, onClose, fpoId, fpoName }) => {
                         <button className="dropdown-toggle" onClick={() => setActiveDropdown(activeDropdown === shop.id ? null : shop.id)}>⋯</button>
                         {activeDropdown === shop.id && (
                           <div className={`dropdown-menu ${index >= 2 ? 'dropdown-menu-bottom' : 'dropdown-menu-top'}`}>
-                            <button className="dropdown-item edit-item" onClick={() => { handleEdit(shop); setActiveDropdown(null); }}>Edit</button>
-                            <button className="dropdown-item delete-item" onClick={() => { handleDelete(shop.id); setActiveDropdown(null); }}>Delete</button>
+                            <button className="dropdown-item-enhanced edit-item" onClick={() => { handleEdit(shop); setActiveDropdown(null); }}>Edit</button>
+                            <button className="dropdown-item-enhanced delete-item" onClick={() => { handleDelete(shop.id); setActiveDropdown(null); }}>Delete</button>
                           </div>
                         )}
                       </div>

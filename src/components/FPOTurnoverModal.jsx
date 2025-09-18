@@ -272,7 +272,7 @@ const FPOTurnoverModal = ({ isOpen, onClose, fpoId, fpoName }) => {
                           {activeDropdown === turnover.id && (
                             <div className={`dropdown-menu ${index >= 2 ? 'dropdown-menu-bottom' : 'dropdown-menu-top'}`}>
                               <button 
-                                className="dropdown-item edit-item"
+                                className="dropdown-item-enhanced edit-item"
                                 onClick={() => {
                                   handleEditTurnover(turnover);
                                   setActiveDropdown(null);
@@ -281,7 +281,7 @@ const FPOTurnoverModal = ({ isOpen, onClose, fpoId, fpoName }) => {
                                 Edit
                               </button>
                               <button 
-                                className="dropdown-item delete-item"
+                                className="dropdown-item-enhanced delete-item"
                                 onClick={() => {
                                   handleDeleteTurnover(turnover.id);
                                   setActiveDropdown(null);

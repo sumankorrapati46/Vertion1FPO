@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Login from './pages/Login';
-import HomeScreen from './pages/HomeScreen';
 import AdminDashboard from './pages/AdminDashboard';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import EmployeeDashboard from './pages/EmployeeDashboard';
@@ -12,8 +11,6 @@ import FPOAdminDashboard from './pages/FPOAdminDashboard';
 import FPOAdminEmployees from './pages/FPOAdminEmployees';
 import FPOAdminFarmers from './pages/FPOAdminFarmers';
 import FPOEmployeeDashboard from './pages/FPOEmployeeDashboard';
-import AboutScreen from './pages/AboutScreen';
-import MenuScreen from './pages/MenuScreen';
 
 import FarmerRegistration from './pages/FarmerRegistration';
 import EmployeeRegistration from './pages/EmployeeRegistration';
@@ -42,12 +39,9 @@ function App() {
             <Route path="/change-password" element={<ChangePassword />} />
             <Route path="/change-userid" element={<ChangeUserId />} />
             
-            {/* Home Route */}
-            <Route path="/" element={<HomeScreen />} />
+            {/* Home Route - Redirect to Login */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
             
-            {/* About and Menu Routes */}
-            <Route path="/about" element={<AboutScreen />} />
-            <Route path="/menu" element={<MenuScreen />} />
             
             {/* Registration Routes */}
             <Route path="/farmer/registration" element={<FarmerRegistration />} />
@@ -60,7 +54,8 @@ function App() {
             <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
             <Route path="/superadmin/dashboard" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><SuperAdminDashboard /></ProtectedRoute>} />
             <Route path="/super-admin/dashboard" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><SuperAdminDashboard /></ProtectedRoute>} />
-            <Route path="/employee/dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><FPOEmployeeDashboard /></ProtectedRoute>} />
+            <Route path="/employee/dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><EmployeeDashboard /></ProtectedRoute>} />
+            <Route path="/fpo-employee/dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><FPOEmployeeDashboard /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['FARMER']}><FarmerDashboard /></ProtectedRoute>} />
             <Route path="/fpo/dashboard/:fpoId" element={<ProtectedRoute allowedRoles={['FPO']}><FPODashboard /></ProtectedRoute>} />
             <Route path="/fpo/dashboard" element={<ProtectedRoute allowedRoles={['FPO']}><FPODashboard /></ProtectedRoute>} />

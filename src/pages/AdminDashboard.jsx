@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { farmersAPI, employeesAPI, adminAPI, superAdminAPI, fpoAPI, idCardAPI } from '../api/apiService';
+import { farmersAPI, employeesAPI, adminAPI, fpoAPI, idCardAPI } from '../api/apiService';
 import IdCardViewer from '../components/IdCardViewer';
 import '../styles/Dashboard.css';
 import FarmerForm from '../components/FarmerForm';
@@ -26,7 +26,9 @@ import FPOCreationForm from '../components/FPOCreationForm';
 import FPOEditModal from '../components/FPOEditModal';
 import FPODetailModal from '../components/FPODetailModal';
 import FPOBoardMembersModal from '../components/FPOBoardMembersModal';
+import FPOBoardMembersView from '../components/FPOBoardMembersView';
 import FPOFarmServicesModal from '../components/FPOFarmServicesModal';
+import FPOFarmServicesView from '../components/FPOFarmServicesView';
 import FPOTurnoverModal from '../components/FPOTurnoverModal';
 import FPOInputShopModal from '../components/FPOInputShopModal';
 import FPOProductCategoriesModal from '../components/FPOProductCategoriesModal';
@@ -65,8 +67,10 @@ const AdminDashboard = () => {
   const [detailFPO, setDetailFPO] = useState(null);
   const [showBoardMembers, setShowBoardMembers] = useState(false);
   const [selectedFPOForBoardMembers, setSelectedFPOForBoardMembers] = useState(null);
+  const [showBoardMembersView, setShowBoardMembersView] = useState(false);
   const [showFarmServices, setShowFarmServices] = useState(false);
   const [selectedFPOForFarmServices, setSelectedFPOForFarmServices] = useState(null);
+  const [showFarmServicesView, setShowFarmServicesView] = useState(false);
   const [showTurnover, setShowTurnover] = useState(false);
   const [selectedFPOForTurnover, setSelectedFPOForTurnover] = useState(null);
   const [showCropEntries, setShowCropEntries] = useState(false);
@@ -114,9 +118,35 @@ const AdminDashboard = () => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showIdCardModal, setShowIdCardModal] = useState(false);
   const [currentCardId, setCurrentCardId] = useState(null);
+  // Photo upload state (persisted)
+  const [userPhoto, setUserPhoto] = useState(null);
+  const fileInputRef = useRef(null);
   
   // Add time filter state
   const [timeFilter, setTimeFilter] = useState('all'); // 'all', 'today', 'month', 'year'
+
+  // Load saved photo
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('userProfilePhoto:ADMIN');
+      if (saved) setUserPhoto(saved);
+    } catch {}
+  }, []);
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('Please upload an image'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const data = ev.target?.result;
+      if (typeof data === 'string') { setUserPhoto(data); try { localStorage.setItem('userProfilePhoto:ADMIN', data); } catch {} }
+    };
+    reader.onerror = () => alert('Error reading file');
+    reader.readAsDataURL(file);
+  };
+  const handlePhotoClick = () => { if (fileInputRef.current) fileInputRef.current.click(); };
+  const handleRemovePhoto = () => { setUserPhoto(null); try { localStorage.removeItem('userProfilePhoto:ADMIN'); } catch {} };
 
   // Greeting function based on time of day
   const getGreeting = () => {
@@ -450,8 +480,9 @@ const AdminDashboard = () => {
   };
 
   const handleFarmServices = (fpo) => {
+    // Open full-width Farm Services view
     setSelectedFPOForFarmServices(fpo);
-    setShowFarmServices(true);
+    setShowFarmServicesView(true);
   };
 
   const handleTurnover = (fpo) => {
@@ -485,14 +516,26 @@ const AdminDashboard = () => {
     setShowFPOEdit(true);
   };
 
-  const handleViewFPO = (fpo) => {
-    setDetailFPO(fpo);
-    setShowFPODetail(true);
+  const handleViewFPO = async (fpo) => {
+    try {
+      let numericId = fpo?.id;
+      if (!numericId && fpo?.fpoId) {
+        const full = await fpoAPI.getFPOByFpoId(fpo.fpoId);
+        numericId = full?.id;
+        if (full) fpo = full;
+      }
+      setViewingFPO({ ...(fpo || {}), id: numericId || fpo?.id });
+      setSelectedFPOTab('overview');
+    } catch {
+      setViewingFPO(fpo);
+      setSelectedFPOTab('overview');
+    }
   };
 
   const handleBoardMembers = (fpo) => {
+    // Open full-width board members view instead of modal
     setSelectedFPOForBoardMembers(fpo);
-    setShowBoardMembers(true);
+    setShowBoardMembersView(true);
   };
 
   const handleFpoUsers = (fpo) => {
@@ -2091,16 +2134,26 @@ const AdminDashboard = () => {
         <div className="header-right">
           <div className="user-profile-dropdown">
             <div className="user-profile-trigger" onClick={toggleUserDropdown}>
-              <div className="user-avatar">
-                {user?.name?.charAt(0) || 'A'}
+              <div className="user-avatar user-avatar-with-upload" onClick={(e) => { e.stopPropagation(); handlePhotoClick(); }}>
+                {userPhoto ? (
+                  <img src={userPhoto} alt="Profile" className="user-avatar-photo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                ) : (
+                  <div className="user-avatar-initials">{user?.name?.charAt(0) || 'A'}</div>
+                )}
+                <div className="avatar-upload-overlay"><i className="fas fa-camera"></i></div>
               </div>
               <span className="user-email">{user?.email || 'admin@example.com'}</span>
               <i className={`fas fa-chevron-down dropdown-arrow ${showUserDropdown ? 'rotated' : ''}`}></i>
             </div>
             <div className={`user-dropdown-menu ${showUserDropdown ? 'show' : ''}`}>
               <div className="dropdown-header">
-                <div className="user-avatar-large">
-                  {user?.name?.charAt(0) || 'A'}
+                <div className="user-avatar-large user-avatar-with-upload" onClick={handlePhotoClick}>
+                  {userPhoto ? (
+                    <img src={userPhoto} alt="Profile" className="user-avatar-photo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                  ) : (
+                    <div className="user-avatar-initials">{user?.name?.charAt(0) || 'A'}</div>
+                  )}
+                  <div className="avatar-upload-overlay"><i className="fas fa-camera"></i></div>
                 </div>
                 <div className="user-details">
                   <div className="user-name-large">{user?.name || 'Admin'}</div>
@@ -2108,6 +2161,16 @@ const AdminDashboard = () => {
                 </div>
               </div>
               <div className="dropdown-actions">
+                <button className="dropdown-action-btn" onClick={handlePhotoClick}>
+                  <i className="fas fa-camera"></i>
+                  {userPhoto ? 'Change Photo' : 'Upload Photo'}
+                </button>
+                {userPhoto && (
+                  <button className="dropdown-action-btn" onClick={handleRemovePhoto}>
+                    <i className="fas fa-trash"></i>
+                    Remove Photo
+                  </button>
+                )}
                 <button className="dropdown-action-btn" onClick={handleChangePassword}>
                   <i className="fas fa-key"></i>
                   Change Password
@@ -2411,9 +2474,19 @@ const AdminDashboard = () => {
                         />
                       </div>
                     </>
+                  ) : showBoardMembersView && selectedFPOForBoardMembers ? (
+                    <FPOBoardMembersView
+                      fpo={selectedFPOForBoardMembers}
+                      onClose={() => { setShowBoardMembersView(false); setSelectedFPOForBoardMembers(null); }}
+                    />
+                  ) : showFarmServicesView && selectedFPOForFarmServices ? (
+                    <FPOFarmServicesView
+                      fpo={selectedFPOForFarmServices}
+                      onClose={() => { setShowFarmServicesView(false); setSelectedFPOForFarmServices(null); }}
+                    />
                   ) : (
                     <FPODashboard 
-                      fpoId={viewingFPO?.id}
+                      fpoId={viewingFPO?.id || viewingFPO?.fpoId}
                       initialTab={selectedFPOTab}
                       onBack={() => setViewingFPO(null)}
                     />
@@ -2573,6 +2646,7 @@ const AdminDashboard = () => {
                    />
                  )}
 
+      {/* Legacy modal kept for fallback; primary path uses full-width view */}
       {showFarmServices && selectedFPOForFarmServices && (
         <FPOFarmServicesModal
           isOpen={showFarmServices}
@@ -2624,6 +2698,7 @@ const AdminDashboard = () => {
         />
       )}
 
+      {/* Legacy modal kept for fallback; primary path uses full-width view */}
       {showBoardMembers && selectedFPOForBoardMembers && (
         <FPOBoardMembersModal
           isOpen={showBoardMembers}
@@ -2639,6 +2714,8 @@ const AdminDashboard = () => {
           fpoId={selectedFPOForUsers.id}
         />
       )}
+      {/* Hidden file input for photo upload */}
+      <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" style={{ display: 'none' }} />
                </div>
              );
 };

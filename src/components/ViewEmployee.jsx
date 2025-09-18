@@ -71,7 +71,7 @@ const ViewEmployee = ({ employeeData, onBack, onSave }) => {
 				altNumberType: normalized.altNumberType || ''
 			});
 		}
-	}, [employeeData]);
+	}, [employeeData, normalized.firstName, normalized.lastName, normalized.middleName, normalized.email, normalized.contactNumber, normalized.dateOfBirth, normalized.gender, normalized.role, normalized.designation, normalized.status, normalized.state, normalized.district, normalized.zipcode, normalized.country, normalized.block, normalized.village, normalized.nationality, normalized.education, normalized.experience, normalized.relationType, normalized.relationName, normalized.altNumber, normalized.altNumberType]);
 
 	const safe = (value, fallback = 'Not provided') => {
 		if (value === null || value === undefined) return fallback;
@@ -150,43 +150,6 @@ const ViewEmployee = ({ employeeData, onBack, onSave }) => {
 		}
 	};
 
-	const renderField = (label, field, type = 'text', options = []) => {
-		if (isEditMode) {
-			if (type === 'select') {
-				return (
-					<select
-						value={formData[field] || ''}
-						onChange={(e) => handleInputChange(field, e.target.value)}
-						className="edit-input"
-					>
-						{options.map(option => (
-							<option key={option.value} value={option.value}>
-								{option.label}
-							</option>
-						))}
-					</select>
-				);
-			}
-			if (type === 'textarea') {
-				return (
-					<textarea
-						value={formData[field] || ''}
-						onChange={(e) => handleInputChange(field, e.target.value)}
-						className="edit-input"
-					/>
-				);
-			}
-			return (
-				<input
-					type={type}
-					value={formData[field] || ''}
-					onChange={(e) => handleInputChange(field, e.target.value)}
-					className="edit-input"
-				/>
-			);
-		}
-		return <span>{safe(normalized[field])}</span>;
-	};
 
 	return (
 		<div className="view-farmer-content">
@@ -202,6 +165,48 @@ const ViewEmployee = ({ employeeData, onBack, onSave }) => {
 							<button onClick={handleCancel} style={{ background: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontSize: '14px' }}>Cancel</button>
 						</>
 					)}
+				</div>
+			</div>
+
+			{/* Middle Section with ID Card */}
+			<div className="farmer-middle-section">
+				<div className="middle-section-content">
+					<div className="middle-section-left">
+						{/* Empty space for future content if needed */}
+					</div>
+					<div className="middle-section-right">
+						<div className="farmer-id-card">
+							<div className="farmer-id-photo">
+								{employeeData?.photoFileName || employeeData?.photo ? (
+									<img 
+										src={employeeData.photoFileName || employeeData.photo} 
+										alt="Employee" 
+										className="farmer-id-photo-img"
+									/>
+								) : (
+									<div className="farmer-id-photo-placeholder">
+										<i className="fas fa-user"></i>
+									</div>
+								)}
+							</div>
+							<div className="farmer-id-info">
+								<div className="farmer-id-number">
+									ID: {employeeData?.id || employeeData?.employeeId || 'N/A'}
+								</div>
+								<div className="farmer-id-name">
+									{normalized.firstName && normalized.lastName ? 
+										`${normalized.firstName} ${normalized.middleName || ''} ${normalized.lastName}`.trim() :
+										(normalized.firstName || normalized.lastName || 'Employee Name')
+									}
+								</div>
+								<div className="farmer-id-status">
+									<span className={`farmer-status-badge ${normalized.status?.toLowerCase() || 'active'}`}>
+										{safe(normalized.status) || 'ACTIVE'}
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 

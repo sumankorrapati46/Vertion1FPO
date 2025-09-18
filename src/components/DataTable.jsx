@@ -2,8 +2,6 @@ import React from 'react';
 import ActionDropdown from './ActionDropdown';
 
 const DataTable = ({ data, columns, onEdit, onDelete, onView, showDelete = false, customActions }) => {
-
-  
   // Ensure customActions is always an array
   const safeCustomActions = customActions && Array.isArray(customActions) ? customActions : [];
   
@@ -101,6 +99,7 @@ const DataTable = ({ data, columns, onEdit, onDelete, onView, showDelete = false
                     
                     // Handle status fields with special styling
                     if (column.key === 'kycStatus' || column.key === 'assignmentStatus' || column.key === 'status' || column.key === 'accessStatus') {
+                      
                       return (
                         <span className={getStatusClass(value)}>
                           {safeRender(value, column.key)}

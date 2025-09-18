@@ -4,9 +4,11 @@
   border-radius: 12px;
   border: 2px solid #000000;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
   margin: 20px 0;
   width: 100%;
+  position: relative;
+  max-height: calc(100vh - 220px);
+  overflow: auto;
 }
 
 .view-farmer-header {
@@ -88,18 +90,18 @@
 }
 
 .back-btn {
-  background: #f3f4f6;
+  background: #777c84;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   padding: 6px 10px;
   cursor: pointer;
-  color: #111827;
+  color: #ffffff;
   font-size: 14px;
   transition: all 0.2s;
 }
 
 .back-btn:hover {
-  background: #e5e7eb;
+  background: #666b74;
 }
 
 /* Farmer Details Container */
@@ -359,5 +361,202 @@
   .modal-body,
   .view-farmer-body {
     padding: 20px;
+  }
+}
+
+/* Farmer Middle Section Styles */
+.farmer-middle-section {
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 30px;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+}
+
+.middle-section-content {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 30px;
+  width: 100%;
+  align-items: center;
+}
+
+.middle-section-left {
+  /* Empty space for future content */
+}
+
+.middle-section-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.farmer-id-card {
+  background: #ffffff;
+  border: 2px solid #000000;
+  border-radius: 12px;
+  padding: 16px;
+  width: 280px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.farmer-id-photo {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  flex-shrink: 0;
+}
+
+.farmer-id-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.farmer-id-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e5e7eb;
+  color: #6b7280;
+  font-size: 24px;
+}
+
+.farmer-id-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.farmer-id-number {
+  font-family: 'Times New Roman', serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.farmer-id-name {
+  font-family: 'Times New Roman', serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.farmer-id-status {
+  margin-top: 8px;
+}
+
+.farmer-status-badge {
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+}
+
+.farmer-status-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fbbf24;
+}
+
+.farmer-status-badge.approved {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.farmer-status-badge.rejected {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+.farmer-status-badge.verified {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #3b82f6;
+}
+
+/* Responsive Design for Farmer Middle Section */
+@media (max-width: 1024px) {
+  .middle-section-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .middle-section-right {
+    justify-content: center;
+  }
+  
+  .farmer-id-card {
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .farmer-id-photo {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .farmer-id-photo-placeholder {
+    font-size: 32px;
+  }
+  
+  .farmer-id-number,
+  .farmer-id-name {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .farmer-middle-section {
+    padding: 16px 20px;
+    min-height: 100px;
+  }
+  
+  .farmer-id-card {
+    padding: 14px;
+    gap: 10px;
+  }
+  
+  .farmer-id-photo {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .farmer-id-photo-placeholder {
+    font-size: 24px;
+  }
+  
+  .farmer-id-number,
+  .farmer-id-name {
+    font-size: 14px;
+  }
+  
+  .farmer-status-badge {
+    font-size: 10px;
+    padding: 3px 6px;
   }
 } 

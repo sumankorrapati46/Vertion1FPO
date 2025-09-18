@@ -126,7 +126,7 @@ const FPOProductsModal = ({ isOpen, onClose, fpoId }) => {
                 {loading ? (<tr><td colSpan="6" className="loading-cell">Loading...</td></tr>) :
                  filtered.length === 0 ? (<tr><td colSpan="6" className="no-data-cell">No data</td></tr>) :
                  filtered.map((p, index)=> (
-                  <tr key={p.id || index}>
+                  <tr key={p.id || index + 1}>
                     <td>{p.id || index + 1}</td>
                     <td>{p.brand || p.supplier || '-'}</td>
                     <td>{p.categoryName || '-'}</td>
@@ -137,8 +137,8 @@ const FPOProductsModal = ({ isOpen, onClose, fpoId }) => {
                         <button className="dropdown-toggle" onClick={()=>setActiveDropdown(activeDropdown === p.id ? null : p.id)}>⋯</button>
                         {activeDropdown === p.id && (
                           <div className={`dropdown-menu ${index >= 2 ? 'dropdown-menu-bottom' : 'dropdown-menu-top'}`}>
-                            <button className="dropdown-item edit-item" onClick={()=>{ handleEdit(p); setActiveDropdown(null); }}>Edit</button>
-                            <button className="dropdown-item delete-item" onClick={()=>{ handleDelete(p.id); setActiveDropdown(null); }}>Delete</button>
+                            <button className="dropdown-item-enhanced edit-item" onClick={()=>{ handleEdit(p); setActiveDropdown(null); }}>Edit</button>
+                            <button className="dropdown-item-enhanced delete-item" onClick={()=>{ handleDelete(p.id); setActiveDropdown(null); }}>Delete</button>
                           </div>
                         )}
                       </div>

@@ -11,6 +11,10 @@ const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShow
   const [showSettings, setShowSettings] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const dropdownRef = useRef(null);
+  
+  // Photo upload state
+  const [userPhoto, setUserPhoto] = useState(null);
+  const fileInputRef = useRef(null);
  
   // Handle change password navigation
   const handleChangePassword = () => {
@@ -35,7 +39,74 @@ const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShow
   
   // Notification state for change password
   const [notification, setNotification] = useState(null);
- 
+
+  // Load saved photo on component mount per-role key
+  useEffect(() => {
+    const roleKey = (user?.role || '').toUpperCase() || 'GENERIC';
+    const savedPhoto = localStorage.getItem(`userProfilePhoto:${roleKey}`);
+    if (savedPhoto) setUserPhoto(savedPhoto);
+  }, [user?.role]);
+
+  // Photo upload handlers
+  const handlePhotoUpload = (event) => {
+    console.log('Photo upload triggered:', event);
+    const file = event.target.files[0];
+    console.log('Selected file:', file);
+    
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file.');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB.');
+        return;
+      }
+
+      console.log('File validation passed, reading file...');
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const photoData = e.target.result;
+        console.log('Photo data loaded:', photoData.substring(0, 50) + '...');
+        setUserPhoto(photoData);
+        try {
+          const roleKey = (user?.role || '').toUpperCase() || 'GENERIC';
+          localStorage.setItem(`userProfilePhoto:${roleKey}`, photoData);
+        } catch {}
+        console.log('Photo saved to localStorage and state');
+      };
+      reader.onerror = (error) => {
+        console.error('Error reading file:', error);
+        alert('Error reading the file. Please try again.');
+      };
+      reader.readAsDataURL(file);
+    } else {
+      console.log('No file selected');
+    }
+  };
+
+  const handlePhotoClick = () => {
+    console.log('Photo click triggered');
+    console.log('fileInputRef.current:', fileInputRef.current);
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+      console.log('File input clicked');
+    } else {
+      console.error('File input ref is null');
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setUserPhoto(null);
+    try {
+      const roleKey = (user?.role || '').toUpperCase() || 'GENERIC';
+      localStorage.removeItem(`userProfilePhoto:${roleKey}`);
+    } catch {}
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -102,6 +173,36 @@ const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShow
     const displayName = getDisplayName();
     return getInitials(displayName);
   };
+
+  // Render avatar with photo or initials
+  const renderAvatar = (className, size = 'large') => {
+    console.log('renderAvatar called with:', { className, size, userPhoto: !!userPhoto });
+    
+    if (userPhoto) {
+      return (
+        <div className={`${className} user-avatar-with-photo`} onClick={handlePhotoClick}>
+          <img 
+            src={userPhoto} 
+            alt="Profile" 
+            className="user-avatar-photo"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+          />
+          <div className="avatar-upload-overlay">
+            <i className="fas fa-camera"></i>
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className={`${className} user-avatar-with-upload`} onClick={handlePhotoClick}>
+          <div className="user-avatar-initials">{getAvatarInitials()}</div>
+          <div className="avatar-upload-overlay">
+            <i className="fas fa-camera"></i>
+          </div>
+        </div>
+      );
+    }
+  };
  
   // Get user status (online/offline)
   const getUserStatus = () => {
@@ -122,18 +223,14 @@ const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShow
           onClick={() => setIsOpen(!isOpen)}
           title="User Menu"
         >
-          <div className="user-profile-dropdown-avatar-compact">
-            {getAvatarInitials()}
-          </div>
+          {renderAvatar('user-profile-dropdown-avatar-compact')}
           <i className={`fas fa-chevron-down user-profile-dropdown-arrow ${isOpen ? 'rotated' : ''}`}></i>
         </div>
 
         {isOpen && (
           <div className="user-profile-dropdown-menu compact show">
             <div className="user-profile-dropdown-header">
-              <div className="user-profile-dropdown-avatar-large">
-                {getAvatarInitials()}
-              </div>
+              {renderAvatar('user-profile-dropdown-avatar-large')}
               <div className="user-profile-dropdown-details">
                 <span className="user-profile-dropdown-name-large">{getDisplayName()}</span>
                 <span className="user-profile-dropdown-role">{getDisplayRole()}</span>
@@ -180,9 +277,7 @@ const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShow
           <div className="user-profile-section">
             <div className="user-profile-info">
               <div className="user-avatar-container">
-                <div className="user-avatar-large">
-                  {getAvatarInitials()}
-                </div>
+                {renderAvatar('user-avatar-large')}
                 <div className={`user-status-indicator ${getUserStatus()}`}></div>
               </div>
               <div className="user-details">
@@ -229,9 +324,7 @@ const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShow
         {isOpen && (
           <div className="user-dropdown-menu enhanced show">
             <div className="dropdown-header">
-              <div className="user-avatar-large">
-                {getAvatarInitials()}
-              </div>
+              {renderAvatar('user-avatar-large')}
               <div className="user-details">
                 <span className="user-name-large">{getDisplayName()}</span>
                 <span className="user-role">{getDisplayRole()}</span>
@@ -298,9 +391,7 @@ const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShow
           setIsOpen(!isOpen);
         }}
       >
-        <div className="user-avatar">
-          {getAvatarInitials()}
-        </div>
+        {renderAvatar('user-avatar')}
         <div className="user-info">
           <span className="user-name">{getDisplayName()}</span>
           <span className="user-role">{getDisplayRole()}</span>
@@ -311,9 +402,7 @@ const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShow
       {isOpen && (
         <div className="user-dropdown-menu show">
           <div className="dropdown-header">
-            <div className="user-avatar-large">
-              {getAvatarInitials()}
-            </div>
+            {renderAvatar('user-avatar-large')}
             <div className="user-details">
               <span className="user-name-large">{getDisplayName()}</span>
               <span className="user-role">{getDisplayRole()}</span>
@@ -322,6 +411,27 @@ const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShow
           </div>
          
           <div className="dropdown-actions">
+            <button
+              className="dropdown-action-btn"
+              onClick={() => {
+                console.log('Upload photo button clicked');
+                handlePhotoClick();
+              }}
+            >
+              <i className="fas fa-camera"></i>
+              {userPhoto ? 'Change Photo' : 'Upload Photo'}
+            </button>
+           
+            {userPhoto && (
+              <button
+                className="dropdown-action-btn"
+                onClick={handleRemovePhoto}
+              >
+                <i className="fas fa-trash"></i>
+                Remove Photo
+              </button>
+            )}
+           
             <button
               className="dropdown-action-btn"
               onClick={handleChangePassword}
@@ -464,6 +574,15 @@ const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShow
           </button>
         </div>
       )}
+
+      {/* Hidden file input for photo upload */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handlePhotoUpload}
+        accept="image/*"
+        style={{ display: 'none' }}
+      />
     </div>
   );
 };
