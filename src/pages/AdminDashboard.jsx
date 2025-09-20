@@ -24,18 +24,27 @@ import BulkOperations from '../components/BulkOperations';
 import FPOList from '../components/FPOList';
 import FPOCreationForm from '../components/FPOCreationForm';
 import FPOEditModal from '../components/FPOEditModal';
+import FPOEditForm from '../components/FPOEditForm';
 import FPODetailModal from '../components/FPODetailModal';
 import FPOBoardMembersModal from '../components/FPOBoardMembersModal';
-import FPOBoardMembersView from '../components/FPOBoardMembersView';
 import FPOFarmServicesModal from '../components/FPOFarmServicesModal';
 import FPOFarmServicesView from '../components/FPOFarmServicesView';
 import FPOTurnoverModal from '../components/FPOTurnoverModal';
 import FPOInputShopModal from '../components/FPOInputShopModal';
+import FPOInputShopView from '../components/FPOInputShopView';
 import FPOProductCategoriesModal from '../components/FPOProductCategoriesModal';
+import FPOProductCategoriesView from '../components/FPOProductCategoriesView';
 import FPOProductsModal from '../components/FPOProductsModal';
+import FPOProductsView from '../components/FPOProductsView';
 import FPOCropEntriesModal from '../components/FPOCropEntriesModal';
+import FPOTurnoverView from '../components/FPOTurnoverView';
+import FPOCropEntriesView from '../components/FPOCropEntriesView';
 import FPOUsersModal from '../components/FPOUsersModal';
+import FPOUsersView from '../components/FPOUsersView';
 import FPODashboard from '../pages/FPODashboard';
+import FPODetailsView from '../components/FPODetailsView';
+import FPOBoardMembersView from '../components/FPOBoardMembersView';
+// duplicate import removed
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
@@ -480,12 +489,14 @@ const AdminDashboard = () => {
   };
 
   const handleFarmServices = (fpo) => {
-    // Open full-width Farm Services view
+    console.log('AdminDashboard: handleFarmServices called with:', fpo);
     setSelectedFPOForFarmServices(fpo);
-    setShowFarmServicesView(true);
+    setShowFarmServices(true);
   };
 
   const handleTurnover = (fpo) => {
+    console.log('AdminDashboard: handleTurnover called with:', fpo);
+    console.log('AdminDashboard: Setting showTurnover to true and selectedFPOForTurnover to:', fpo);
     setSelectedFPOForTurnover(fpo);
     setShowTurnover(true);
   };
@@ -533,9 +544,9 @@ const AdminDashboard = () => {
   };
 
   const handleBoardMembers = (fpo) => {
-    // Open full-width board members view instead of modal
+    console.log('AdminDashboard: handleBoardMembers called with:', fpo);
     setSelectedFPOForBoardMembers(fpo);
-    setShowBoardMembersView(true);
+    setShowBoardMembers(true);
   };
 
   const handleFpoUsers = (fpo) => {
@@ -1871,16 +1882,29 @@ const AdminDashboard = () => {
 
             <EmployeeRegistrationForm 
               isInDashboard={true}
-              onClose={() => setShowEmployeeRegistration(false)}
+              editData={editingEmployee}
+              onClose={() => {
+                setShowEmployeeForm(false);
+                setEditingEmployee(null);
+              }}
               onSubmit={async (employeeData) => {
                 try {
-                  const newEmployee = await employeesAPI.createEmployee(employeeData);
-                  setEmployees(prev => [...prev, newEmployee]);
-                  alert('Employee created successfully!');
-                  setShowEmployeeRegistration(false);
+                  if (editingEmployee) {
+                    const updatedEmployee = await employeesAPI.updateEmployee(editingEmployee.id, employeeData);
+                    setEmployees(prev => prev.map(employee => 
+                      employee.id === editingEmployee.id ? updatedEmployee : employee
+                    ));
+                    alert('Employee updated successfully!');
+                  } else {
+                    const newEmployee = await employeesAPI.createEmployee(employeeData);
+                    setEmployees(prev => [...prev, newEmployee]);
+                    alert('Employee created successfully!');
+                  }
+                  setShowEmployeeForm(false);
+                  setEditingEmployee(null);
                 } catch (error) {
-                  console.error('Error creating employee:', error);
-                  alert('Failed to create employee. Please try again.');
+                  console.error('Error saving employee:', error);
+                  alert('Failed to save employee. Please try again.');
                 }
               }}
             />
@@ -2284,7 +2308,74 @@ const AdminDashboard = () => {
             <div className="superadmin-overview-section">
               {!showFPOCreationForm ? (
                 <>
-                  {!viewingFPO ? (
+                  {/* FPO Action Views - These should show directly when clicked */}
+                  {showBoardMembers && selectedFPOForBoardMembers ? (
+                    <div className="section-card" style={{ padding: 0 }}>
+                      <FPOBoardMembersView
+                        fpo={selectedFPOForBoardMembers}
+                        onClose={() => { setShowBoardMembers(false); setSelectedFPOForBoardMembers(null); }}
+                      />
+                    </div>
+                  ) : showFarmServices && selectedFPOForFarmServices ? (
+                    <div className="section-card" style={{ padding: 0 }}>
+                      <FPOFarmServicesView
+                        fpo={selectedFPOForFarmServices}
+                        onClose={() => { setShowFarmServices(false); setSelectedFPOForFarmServices(null); }}
+                      />
+                    </div>
+                  ) : (() => {
+                    console.log('Checking Turnover state:', { showTurnover, selectedFPOForTurnover });
+                    return showTurnover && selectedFPOForTurnover;
+                  })() ? (
+                    <div className="section-card" style={{ padding: 0 }}>
+                      <FPOTurnoverView
+                        fpo={selectedFPOForTurnover}
+                        onClose={() => { setShowTurnover(false); setSelectedFPOForTurnover(null); }}
+                      />
+                    </div>
+                  ) : showCropEntries && selectedFPOForCropEntries ? (
+                    <div className="section-card" style={{ padding: 0 }}>
+                      <FPOCropEntriesView
+                        fpo={selectedFPOForCropEntries}
+                        onClose={() => { setShowCropEntries(false); setSelectedFPOForCropEntries(null); }}
+                      />
+                    </div>
+                  ) : showInputShop && selectedFPOForInputShop ? (
+                    <div className="section-card" style={{ padding: 0 }}>
+                      <FPOInputShopView
+                        fpo={selectedFPOForInputShop}
+                        onClose={() => { setShowInputShop(false); setSelectedFPOForInputShop(null); }}
+                      />
+                    </div>
+                  ) : showProductCategories && selectedFPOForProductCategories ? (
+                    <div className="section-card" style={{ padding: 0 }}>
+                      <FPOProductCategoriesView
+                        fpo={selectedFPOForProductCategories}
+                        onClose={() => { setShowProductCategories(false); setSelectedFPOForProductCategories(null); }}
+                      />
+                    </div>
+                  ) : showProducts && selectedFPOForProducts ? (
+                    <div className="section-card" style={{ padding: 0 }}>
+                      <FPOProductsView
+                        fpo={selectedFPOForProducts}
+                        onClose={() => { setShowProducts(false); setSelectedFPOForProducts(null); }}
+                      />
+                    </div>
+                  ) : showFpoUsers && selectedFPOForUsers ? (
+                    <div className="section-card" style={{ padding: 0 }}>
+                      <FPOUsersView
+                        fpo={selectedFPOForUsers}
+                        onClose={() => { setShowFpoUsers(false); setSelectedFPOForUsers(null); }}
+                      />
+                    </div>
+                  ) : viewingFPO ? (
+                    <div className="section-card" style={{ padding: 0 }}>
+                      <FPODetailsView
+                        fpo={viewingFPO}
+                        onClose={() => setViewingFPO(null)}
+                      />
+                    </div>
+                  ) : !viewingFPO ? (
                     <>
                       <div className="superadmin-overview-header">
                         <div className="header-left">
@@ -2459,38 +2550,22 @@ const AdminDashboard = () => {
                             }
                           ]}
                           customActions={[
-                            { label: 'Dashboard', className: 'info', onClick: (fpo) => { setDetailFPO(fpo); setShowFPODetail(true); } },
-                            { label: 'Edit FPO', className: 'warning', onClick: (fpo) => { setEditingFPO(fpo); setShowFPOEdit(true); } },
-                            { label: 'FPO Board Members', onClick: handleBoardMembers },
-                            { label: 'FPO Farm Services', onClick: handleFarmServices },
-                            { label: 'FPO Turnover', onClick: handleTurnover },
-                            { label: 'FPO Crop Entries', onClick: handleCropEntries },
-                            { label: 'FPO Input Shop', onClick: handleInputShop },
-                            { label: 'FPO Product Categories', onClick: handleProductCategories },
-                            { label: 'FPO Products', onClick: handleProducts },
-                            { label: 'FPO Users', onClick: handleFpoUsers }
+                            { label: 'Dashboard', className: 'info', onClick: (fpo) => { console.log('Dashboard clicked for:', fpo); setViewingFPO(fpo); setSelectedFPOTab('overview'); } },
+                            { label: 'Edit FPO', className: 'warning', onClick: (fpo) => { console.log('Edit FPO clicked for:', fpo); setEditingFPO(fpo); setShowFPOCreationForm(true); } },
+                            { label: 'FPO Board Members', onClick: (fpo) => { console.log('FPO Board Members clicked for:', fpo); handleBoardMembers(fpo); } },
+                            { label: 'FPO Farm Services', onClick: (fpo) => { console.log('FPO Farm Services clicked for:', fpo); handleFarmServices(fpo); } },
+                            { label: 'FPO Turnover', onClick: (fpo) => { console.log('FPO Turnover clicked for:', fpo); handleTurnover(fpo); } },
+                            { label: 'FPO Crop Entries', onClick: (fpo) => { console.log('FPO Crop Entries clicked for:', fpo); handleCropEntries(fpo); } },
+                            { label: 'FPO Input Shop', onClick: (fpo) => { console.log('FPO Input Shop clicked for:', fpo); handleInputShop(fpo); } },
+                            { label: 'FPO Product Categories', onClick: (fpo) => { console.log('FPO Product Categories clicked for:', fpo); handleProductCategories(fpo); } },
+                            { label: 'FPO Products', onClick: (fpo) => { console.log('FPO Products clicked for:', fpo); handleProducts(fpo); } },
+                            { label: 'FPO Users', onClick: (fpo) => { console.log('FPO Users clicked for:', fpo); handleFpoUsers(fpo); } }
                             // Note: No Delete action for Admin
                           ]}
                         />
                       </div>
                     </>
-                  ) : showBoardMembersView && selectedFPOForBoardMembers ? (
-                    <FPOBoardMembersView
-                      fpo={selectedFPOForBoardMembers}
-                      onClose={() => { setShowBoardMembersView(false); setSelectedFPOForBoardMembers(null); }}
-                    />
-                  ) : showFarmServicesView && selectedFPOForFarmServices ? (
-                    <FPOFarmServicesView
-                      fpo={selectedFPOForFarmServices}
-                      onClose={() => { setShowFarmServicesView(false); setSelectedFPOForFarmServices(null); }}
-                    />
-                  ) : (
-                    <FPODashboard 
-                      fpoId={viewingFPO?.id || viewingFPO?.fpoId}
-                      initialTab={selectedFPOTab}
-                      onBack={() => setViewingFPO(null)}
-                    />
-                  )}
+                  ) : null}
                 </>
               ) : (
                 <div className="fpo-creation-section">
@@ -2515,6 +2590,17 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   
+                  {editingFPO ? (
+                    <FPOEditForm
+                      fpo={editingFPO}
+                      onCancel={() => { setEditingFPO(null); setShowFPOCreationForm(false); }}
+                      onSave={(updatedFPO) => {
+                        setFpos(prev => prev.map(fpo => fpo.id === updatedFPO.id ? updatedFPO : fpo));
+                        setEditingFPO(null);
+                        setShowFPOCreationForm(false);
+                      }}
+                    />
+                  ) : (
                   <FPOCreationForm
                     isOpen={showFPOCreationForm}
                     onClose={() => {
@@ -2523,6 +2609,7 @@ const AdminDashboard = () => {
                     }}
                     onSubmit={handleFPOCreated}
                   />
+                  )}
                 </div>
               )}
             </div>
@@ -2646,74 +2733,6 @@ const AdminDashboard = () => {
                    />
                  )}
 
-      {/* Legacy modal kept for fallback; primary path uses full-width view */}
-      {showFarmServices && selectedFPOForFarmServices && (
-        <FPOFarmServicesModal
-          isOpen={showFarmServices}
-          onClose={() => { setShowFarmServices(false); setSelectedFPOForFarmServices(null); }}
-          fpoId={selectedFPOForFarmServices.id}
-        />
-      )}
-
-      {showTurnover && selectedFPOForTurnover && (
-        <FPOTurnoverModal
-          isOpen={showTurnover}
-          onClose={() => { setShowTurnover(false); setSelectedFPOForTurnover(null); }}
-          fpoId={selectedFPOForTurnover.id}
-          fpoName={selectedFPOForTurnover.fpoName}
-        />
-      )}
-
-      {showCropEntries && selectedFPOForCropEntries && (
-        <FPOCropEntriesModal
-          isOpen={showCropEntries}
-          onClose={() => { setShowCropEntries(false); setSelectedFPOForCropEntries(null); }}
-          fpoId={selectedFPOForCropEntries.id}
-          fpoName={selectedFPOForCropEntries.fpoName}
-        />
-      )}
-
-      {showInputShop && selectedFPOForInputShop && (
-        <FPOInputShopModal
-          isOpen={showInputShop}
-          onClose={() => { setShowInputShop(false); setSelectedFPOForInputShop(null); }}
-          fpoId={selectedFPOForInputShop.id}
-          fpoName={selectedFPOForInputShop.fpoName}
-        />
-      )}
-
-      {showProductCategories && selectedFPOForProductCategories && (
-        <FPOProductCategoriesModal
-          isOpen={showProductCategories}
-          onClose={() => { setShowProductCategories(false); setSelectedFPOForProductCategories(null); }}
-          fpoId={selectedFPOForProductCategories.id}
-        />
-      )}
-
-      {showProducts && selectedFPOForProducts && (
-        <FPOProductsModal
-          isOpen={showProducts}
-          onClose={() => { setShowProducts(false); setSelectedFPOForProducts(null); }}
-          fpoId={selectedFPOForProducts.id}
-        />
-      )}
-
-      {/* Legacy modal kept for fallback; primary path uses full-width view */}
-      {showBoardMembers && selectedFPOForBoardMembers && (
-        <FPOBoardMembersModal
-          isOpen={showBoardMembers}
-          onClose={() => { setShowBoardMembers(false); setSelectedFPOForBoardMembers(null); }}
-          fpoId={selectedFPOForBoardMembers.id}
-        />
-      )}
-
-      {showFpoUsers && selectedFPOForUsers && (
-        <FPOUsersModal
-          isOpen={showFpoUsers}
-          onClose={() => { setShowFpoUsers(false); setSelectedFPOForUsers(null); }}
-          fpoId={selectedFPOForUsers.id}
-        />
-      )}
       {/* Hidden file input for photo upload */}
       <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" style={{ display: 'none' }} />
                </div>

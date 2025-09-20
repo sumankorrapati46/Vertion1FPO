@@ -1,0 +1,76 @@
+/* Simple Board Members Dropdown - Portal Based */
+.board-members-dropdown {
+  position: fixed;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 99999;
+  min-width: 120px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.board-members-dropdown button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.dropdown-edit-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.dropdown-edit-btn:hover {
+  background: #2563eb;
+}
+
+.dropdown-delete-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.dropdown-delete-btn:hover {
+  background: #dc2626;
+}
+
+/* Board Members Action Button - Simple Styling */
+.board-members-table .action-dropdown .dropdown-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 6px 10px;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+  margin-left: 8px;
+  text-align: center;
+}
+
+.board-members-table .action-dropdown .dropdown-toggle:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+/* Ensure action column has proper spacing */
+.board-members-table td:last-child {
+  width: 80px;
+  text-align: center;
+  padding: 8px;
+}
+

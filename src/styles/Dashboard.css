@@ -2766,7 +2766,8 @@
 
   position: relative;
 
-  max-height: 600px;
+  max-height: 900px;
+ 
 
 }
 
@@ -2794,7 +2795,8 @@
 
   position: relative;
 
-  max-height: 600px;
+  max-height: 900px;
+  
 
 }
 
@@ -4002,111 +4004,42 @@ table td:last-child {
   gap: 8px;
 }
 
-/* 3-Dots Dropdown for Board Members */
-.action-dropdown {
+/* Board Members Action Dropdown - Simple Styling */
+.board-members-table .action-dropdown {
   position: relative;
   display: inline-block;
-  z-index: 1000;
 }
 
-/* Ensure table cells allow dropdown overflow */
-.board-members-table td:last-child {
-  overflow: visible !important;
-  position: relative;
-  z-index: 1;
-}
-
-.board-members-table {
-  overflow: visible !important;
-}
-
-.board-members-table tbody {
-  overflow: visible !important;
-}
-
-.board-members-table tbody tr {
-  overflow: visible !important;
-}
-
-.dropdown-toggle {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  padding: 4px 8px;
-  cursor: pointer;
-  font-size: 16px;
-  color: #6c757d;
-  transition: all 0.2s ease;
-  min-width: 32px;
-  height: 32px;
+.board-members-table .action-dropdown .dropdown-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.dropdown-toggle:hover {
-  background: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.dropdown-menu {
-  position: absolute;
-  bottom: 100%;
-  right: 0;
-  background: white;
-  border: 1px solid #dee2e6;
+  background: #f8fafc;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 10000;
-  min-width: 120px;
-  overflow: visible;
-  margin-bottom: 8px;
-}
-
-.dropdown-menu-top {
-  bottom: 100%;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
-  margin-bottom: 8px;
-}
-
-.dropdown-menu-bottom {
-  top: 100%;
-  bottom: auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  margin-top: 8px;
-  margin-bottom: 0;
-}
-
-.dropdown-item {
-  display: block;
-  width: 100%;
-  padding: 8px 16px;
-  border: none;
-  background: none;
-  text-align: left;
+  color: #6b7280;
   cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s ease;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 6px 10px;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+  margin-left: 8px;
+  text-align: center;
 }
 
-.dropdown-item:hover {
-  background: #f8f9fa;
+.board-members-table .action-dropdown .dropdown-toggle:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+  color: #374151;
 }
 
-.dropdown-item.edit-item {
-  color: #0d6efd;
-}
-
-.dropdown-item.edit-item:hover {
-  background: #e7f1ff;
-}
-
-.dropdown-item.delete-item {
-  color: #dc3545;
-}
-
-.dropdown-item.delete-item:hover {
-  background: #f8d7da;
+/* Ensure action column has proper spacing */
+.board-members-table td:last-child {
+  width: 80px;
+  text-align: center;
+  padding: 8px;
 }
 
 .edit-btn,
@@ -4385,84 +4318,137 @@ table td:last-child {
 
 
 
-/* Enhanced Action Dropdown Styles */
+/* Enhanced Action Dropdown Styles - REMOVED */
 
-.action-dropdown-container {
-  position: relative;
-  display: inline-block;
+/* Table overflow fixes - simplified */
+.data-table td {
+  overflow: visible !important;
 }
 
-.dropdown-toggle-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  position: relative;
-  overflow: hidden;
+.data-table {
+  overflow: visible !important;
 }
 
-.dropdown-toggle-btn:hover {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  border-color: #3b82f6;
-  color: #1e40af;
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
-  transform: translateY(-2px) scale(1.05);
+tr {
+  overflow: visible !important;
 }
 
-.dropdown-toggle-btn:active {
-  transform: translateY(0) scale(1);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+td {
+  overflow: visible !important;
 }
 
-.dropdown-toggle-btn.hidden {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
-
-/* Simple button hiding when dropdown is open */
-.action-dropdown-container .dropdown-toggle-btn {
-  transition: none;
-}
-
-.dropdown-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 99998;
-  background: transparent;
-}
-
+/* Force dropdown to render outside table */
 .dropdown-menu-enhanced {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 999999;
-  min-width: 280px;
-  background: #ffffff;
-  border: 2px solid #e5e7eb;
-  border-radius: 16px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 10px 20px -5px rgba(0, 0, 0, 0.1);
-  padding: 12px;
-  animation: none;
-  transform-origin: top right;
+  position: fixed !important;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+  overflow-y: auto !important;
+  overflow-x: visible !important;
+  max-height: 400px !important;
 }
 
-/* Action Dropdown Container */
-.action-dropdown-container {
-  position: relative;
-  display: inline-block;
-  z-index: 1000;
+/* Ensure dropdown items are properly spaced */
+.dropdown-item-enhanced {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  border-radius: 12px !important;
+  transition: all 0.2s ease !important;
+  margin-bottom: 4px !important;
+  min-height: 44px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  /* Do NOT set background or color here so variant classes can override */
+}
+
+/* Specific color classes for dropdown buttons - More specific selectors */
+.dropdown-menu-enhanced .dropdown-item-enhanced.primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #3b82f6 !important;
+  background-image: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+}
+
+.dropdown-menu-enhanced .dropdown-item-enhanced.info {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #06b6d4 !important;
+  background-image: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
+}
+
+.dropdown-menu-enhanced .dropdown-item-enhanced.warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #f59e0b !important;
+  background-image: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+}
+
+.dropdown-menu-enhanced .dropdown-item-enhanced.danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #ef4444 !important;
+  background-image: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+}
+
+.dropdown-menu-enhanced .dropdown-item-enhanced.success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #10b981 !important;
+  background-image: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+}
+
+/* Default style for buttons without specific class */
+.dropdown-menu-enhanced .dropdown-item-enhanced:not(.primary):not(.info):not(.warning):not(.danger):not(.success) {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  color: #374151 !important;
+  border: 1px solid #e5e7eb !important;
+  background-image: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+}
+
+.dropdown-item-enhanced:hover {
+  transform: translateX(4px) scale(1.02) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  filter: brightness(1.1) !important;
+}
+
+/* Specific hover effects for different button types */
+.dropdown-item-enhanced.primary:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+  color: #ffffff !important;
+}
+
+.dropdown-item-enhanced.info:hover {
+  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%) !important;
+  color: #ffffff !important;
+}
+
+.dropdown-item-enhanced.warning:hover {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+  color: #ffffff !important;
+}
+
+.dropdown-item-enhanced.danger:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+  color: #ffffff !important;
+}
+
+.dropdown-item-enhanced.success:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  color: #ffffff !important;
+}
+
+/* Default hover for buttons without specific class */
+.dropdown-item-enhanced:not(.primary):not(.info):not(.warning):not(.danger):not(.success):hover {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%) !important;
+  color: #1f2937 !important;
+}
+
+.dropdown-item-enhanced:last-child {
+  margin-bottom: 0 !important;
 }
 
 /* Dropdown Toggle Button */
@@ -10747,4 +10733,80 @@ table td:last-child {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Simple Board Members Dropdown - Portal Based */
+.board-members-dropdown {
+  position: fixed;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 99999;
+  min-width: 120px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.board-members-dropdown button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.dropdown-edit-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.dropdown-edit-btn:hover {
+  background: #2563eb;
+}
+
+.dropdown-delete-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.dropdown-delete-btn:hover {
+  background: #dc2626;
+}
+
+/* Board Members Action Button - Simple Styling */
+.board-members-table .action-dropdown .dropdown-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 6px 10px;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+  margin-left: 8px;
+  text-align: center;
+}
+
+.board-members-table .action-dropdown .dropdown-toggle:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+/* Ensure action column has proper spacing */
+.board-members-table td:last-child {
+  width: 80px;
+  text-align: center;
+  padding: 8px;
 }

@@ -1,8 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const dropdownRef = useRef(null);
+  const buttonRef = useRef(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -19,13 +22,39 @@ const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView
   }, []);
 
   const handleActionClick = (action) => {
+    console.log('ActionDropdown: Action clicked:', action.label, 'with item:', item);
+    console.log('ActionDropdown: Action onClick function:', action.onClick);
     if (action.onClick && item) {
+      console.log('ActionDropdown: Calling onClick function');
       action.onClick(item);
+    } else {
+      console.log('ActionDropdown: No onClick function or item');
     }
     setIsOpen(false);
   };
 
+  // Calculate dropdown position when opening
+  const calculatePosition = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+      
+      // Position dropdown to the right side of the screen
+      const viewportHeight = window.innerHeight;
+      const dropdownWidth = 320; // maxWidth from styling
+      const dropdownHeight = Math.min(allActions.length * 50 + 24, 400); // max 400px height
+      
+      // Center vertically, align to right
+      const top = (viewportHeight - dropdownHeight) / 2 + scrollTop;
+      const right = 20 - scrollLeft; // 20px from right edge
+      
+      setDropdownPosition({ top, right });
+    }
+  };
+
   const handleToggleClick = () => {
+    calculatePosition();
     setIsOpen(true);
   };
 
@@ -34,6 +63,7 @@ const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView
   
   // Add custom actions if provided
   if (customActions && Array.isArray(customActions)) {
+    console.log('ActionDropdown: Adding customActions:', customActions);
     allActions.push(...customActions);
   }
   
@@ -42,29 +72,7 @@ const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView
     allActions.push(...actions);
   }
   
-  // Add built-in actions if provided
-  // If the caller didn't pass custom actions or actions array, provide a rich default list
-  if ((!customActions || customActions.length === 0) && (!actions || actions.length === 0)) {
-    allActions.push(
-      { label: 'Dashboard', icon: '📊', className: 'primary', onClick: () => onView && onView(item, 'overview') },
-      { label: 'Edit FPO', icon: '✏️', className: 'primary', onClick: () => onEdit && onEdit(item) },
-      { label: 'FPO Board Members', icon: '👥', onClick: () => onView && onView(item, 'board-members') },
-      { label: 'FPO Farm Services', icon: '🚜', onClick: () => onView && onView(item, 'services') },
-      { label: 'FPO Turnover', icon: '📈', onClick: () => onView && onView(item, 'turnover') },
-      { label: 'FPO Crop Entries', icon: '🌾', onClick: () => onView && onView(item, 'crops') },
-      { label: 'FPO Input Shop', icon: '🏬', onClick: () => onView && onView(item, 'input-shop') },
-      { label: 'FPO Product Categories', icon: '🏷️', onClick: () => onView && onView(item, 'product-categories') },
-      { label: 'FPO Products', icon: '📦', onClick: () => onView && onView(item, 'products') },
-      { label: 'FPO Users', icon: '👤', onClick: () => onView && onView(item, 'users') }
-    );
-
-    // Add status actions if handlers exist via actions array
-    if (onDelete) {
-      allActions.push({ label: 'Delete', icon: '🗑️', className: 'danger', onClick: () => onDelete(item) });
-    }
-  }
-  
-  // Only add fallback actions if no actions array was provided and no custom actions
+  // Only add fallback actions if no custom actions or actions array were provided
   if ((!customActions || customActions.length === 0) && (!actions || actions.length === 0)) {
     // Fallback to simple View/Edit/Delete when explicit handlers are provided
     if (onView) allActions.push({ label: 'View', icon: '👁️', className: 'info', onClick: () => onView(item) });
@@ -73,25 +81,28 @@ const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView
   }
 
   return (
-    <div className="action-dropdown-container" ref={dropdownRef}>
-      {/* Only render button when dropdown is closed */}
-      {!isOpen && (
-        <button
-          className="dropdown-toggle-btn"
-          onClick={handleToggleClick}
-          aria-label="Actions"
-          title="Actions"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="1"></circle>
-            <circle cx="19" cy="12" r="1"></circle>
-            <circle cx="5" cy="12" r="1"></circle>
-          </svg>
-        </button>
-      )}
+    <>
+      <div className="action-dropdown-container">
+        {/* Only render button when dropdown is closed */}
+        {!isOpen && (
+          <button
+            ref={buttonRef}
+            className="dropdown-toggle-btn"
+            onClick={handleToggleClick}
+            aria-label="Actions"
+            title="Actions"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="1"></circle>
+              <circle cx="19" cy="12" r="1"></circle>
+              <circle cx="5" cy="12" r="1"></circle>
+            </svg>
+          </button>
+        )}
+      </div>
       
-      {/* Only render dropdown when open */}
-      {isOpen && allActions.length > 0 && (
+      {/* Render dropdown using portal to ensure it's outside table structure */}
+      {isOpen && allActions.length > 0 && createPortal(
         <>
           {/* Backdrop for better UX */}
           <div 
@@ -99,10 +110,37 @@ const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView
             onClick={() => {
               setIsOpen(false);
             }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 999998,
+              background: 'transparent'
+            }}
           />
           
           <div 
+            ref={dropdownRef}
             className="dropdown-menu-enhanced"
+            style={{
+              position: 'fixed',
+              top: `${dropdownPosition.top}px`,
+              right: `${dropdownPosition.right}px`,
+              zIndex: 999999,
+              minWidth: '280px',
+              maxWidth: '320px',
+              maxHeight: '400px',
+              background: '#ffffff',
+              border: '2px solid #e5e7eb',
+              borderRadius: '16px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 10px 20px -5px rgba(0, 0, 0, 0.1)',
+              padding: '12px',
+              pointerEvents: 'auto',
+              overflowY: 'auto',
+              overflowX: 'visible'
+            }}
           >
             {allActions.map((action, index) => {
               // Check if action should be shown based on condition
@@ -112,21 +150,50 @@ const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView
               
               return (
                 <button
-                  key={index}
+                  key={`${action.label}-${index}`}
                   className={`dropdown-item-enhanced ${action.className || ''}`}
-                  onClick={() => handleActionClick(action)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Button clicked for action:', action.label, 'at index:', index);
+                    handleActionClick(action);
+                  }}
                   title={action.label}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: `1px solid ${getButtonBorderColor(action.className)}`,
+                    background: getButtonBackground(action.className),
+                    color: getButtonTextColor(action.className),
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    borderRadius: '12px',
+                    transition: 'all 0.2s ease',
+                    marginBottom: '4px',
+                    minHeight: '44px',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    // Force override any CSS
+                    backgroundImage: 'none',
+                    backgroundColor: 'transparent'
+                  }}
                 >
-                  <span className="action-icon">{action.icon || getDefaultIcon(action.label)}</span>
+                  <span className="action-icon" style={{ marginRight: '12px', fontSize: '16px', width: '20px', textAlign: 'center', flexShrink: 0 }}>
+                    {action.icon || getDefaultIcon(action.label)}
+                  </span>
                   <span className="action-label">{action.label}</span>
                   {action.className === 'danger' && <span className="action-badge">⚠️</span>}
                 </button>
               );
             })}
           </div>
-        </>
+        </>,
+        document.body
       )}
-    </div>
+    </>
   );
 };
 
@@ -144,6 +211,56 @@ const getDefaultIcon = (label) => {
     'Logout': '🚪'
   };
   return iconMap[label] || '🔧';
+};
+
+// Helper function to get button background color
+const getButtonBackground = (className) => {
+  switch (className) {
+    case 'primary':
+      return 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)';
+    case 'info':
+      return 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)';
+    case 'warning':
+      return 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+    case 'danger':
+      return 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+    case 'success':
+      return 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+    default:
+      return 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)';
+  }
+};
+
+// Helper function to get button text color
+const getButtonTextColor = (className) => {
+  switch (className) {
+    case 'primary':
+    case 'info':
+    case 'warning':
+    case 'danger':
+    case 'success':
+      return '#ffffff';
+    default:
+      return '#374151';
+  }
+};
+
+// Helper function to get button border color
+const getButtonBorderColor = (className) => {
+  switch (className) {
+    case 'primary':
+      return '#3b82f6';
+    case 'info':
+      return '#06b6d4';
+    case 'warning':
+      return '#f59e0b';
+    case 'danger':
+      return '#ef4444';
+    case 'success':
+      return '#10b981';
+    default:
+      return '#e5e7eb';
+  }
 };
 
 export default ActionDropdown; 

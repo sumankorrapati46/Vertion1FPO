@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { fpoAPI } from '../api/apiService';
 
 const FPOBoardMembersModal = ({ isOpen, onClose, fpoId, fpoName }) => {
@@ -9,6 +10,8 @@ const FPOBoardMembersModal = ({ isOpen, onClose, fpoId, fpoName }) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const dropdownRefs = useRef({});
 
   // Form state for creating/editing board members
   const [formData, setFormData] = useState({
@@ -26,6 +29,43 @@ const FPOBoardMembersModal = ({ isOpen, onClose, fpoId, fpoName }) => {
       loadBoardMembers();
     }
   }, [isOpen, fpoId]);
+
+  // Calculate dropdown position with viewport awareness
+  const calculateDropdownPosition = (buttonElement) => {
+    if (!buttonElement) return { top: 0, left: 0 };
+
+    const rect = buttonElement.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // Expected dropdown size
+    const MENU_WIDTH = 120;
+    const MENU_HEIGHT = 80;
+    const GAP = 8;
+
+    // Default: place below and right-aligned to the button
+    let top = rect.bottom + GAP + window.scrollY;
+    let left = rect.right - MENU_WIDTH + window.scrollX;
+
+    // If dropdown would overflow bottom, place it above the button
+    if (top + MENU_HEIGHT > window.scrollY + viewportHeight) {
+      top = rect.top - MENU_HEIGHT - GAP + window.scrollY;
+    }
+
+    // Clamp horizontally within the viewport
+    const padding = 8;
+    const maxLeft = window.scrollX + viewportWidth - MENU_WIDTH - padding;
+    const minLeft = window.scrollX + padding;
+    if (left > maxLeft) left = maxLeft;
+    if (left < minLeft) left = minLeft;
+
+    // Clamp top
+    if (top < window.scrollY + padding) {
+      top = window.scrollY + padding;
+    }
+
+    return { top, left };
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -368,33 +408,19 @@ const FPOBoardMembersModal = ({ isOpen, onClose, fpoId, fpoName }) => {
                       <td>
                         <div className="action-dropdown">
                           <button 
+                            ref={(el) => { dropdownRefs.current[member.id] = el; }}
                             className="dropdown-toggle"
-                            onClick={() => setActiveDropdown(activeDropdown === member.id ? null : member.id)}
+                            onClick={(e) => {
+                              const newActiveDropdown = activeDropdown === member.id ? null : member.id;
+                              setActiveDropdown(newActiveDropdown);
+                              if (newActiveDropdown) {
+                                const position = calculateDropdownPosition(e.currentTarget);
+                                setDropdownPosition(position);
+                              }
+                            }}
                           >
                             ⋯
                           </button>
-                          {activeDropdown === member.id && (
-                            <div className={`dropdown-menu ${index >= 2 ? 'dropdown-menu-bottom' : 'dropdown-menu-top'}`}>
-                              <button 
-                                className="dropdown-item edit-item"
-                                onClick={() => {
-                                  handleEditMember(member);
-                                  setActiveDropdown(null);
-                                }}
-                              >
-                                Edit
-                              </button>
-                              <button 
-                                className="dropdown-item delete-item"
-                                onClick={() => {
-                                  handleDeleteMember(member.id);
-                                  setActiveDropdown(null);
-                                }}
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          )}
                         </div>
                       </td>
                     </tr>
@@ -495,6 +521,40 @@ const FPOBoardMembersModal = ({ isOpen, onClose, fpoId, fpoName }) => {
               </form>
             </div>
           </div>
+        )}
+
+        {/* Portal-based Dropdown Menu */}
+        {activeDropdown && createPortal(
+          <div 
+            className="board-members-dropdown"
+            style={{
+              position: 'fixed',
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+              zIndex: 99999
+            }}
+          >
+            <button 
+              className="dropdown-edit-btn"
+              onClick={() => {
+                const member = boardMembers.find(m => m.id === activeDropdown);
+                if (member) handleEditMember(member);
+                setActiveDropdown(null);
+              }}
+            >
+              Edit
+            </button>
+            <button 
+              className="dropdown-delete-btn"
+              onClick={() => {
+                handleDeleteMember(activeDropdown);
+                setActiveDropdown(null);
+              }}
+            >
+              Delete
+            </button>
+          </div>,
+          document.body
         )}
       </div>
     </div>
