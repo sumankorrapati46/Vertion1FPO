@@ -106,24 +106,51 @@ const FPOBoardMembersModal = ({ isOpen, onClose, fpoId, fpoName }) => {
   const handleCreateMember = async (e) => {
     e.preventDefault();
     try {
+      // Validate required fields
+      if (!formData.name || !formData.phoneNumber) {
+        alert('Name and phone number are required fields');
+        return;
+      }
+
+      // Clean phone number - remove any non-digits and ensure it's exactly 10 digits
+      const cleanPhoneNumber = formData.phoneNumber.replace(/\D/g, '');
+      if (cleanPhoneNumber.length !== 10) {
+        alert('Phone number must be exactly 10 digits');
+        return;
+      }
+
+      // Validate email format if provided
+      if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        alert('Please provide a valid email address');
+        return;
+      }
+
       // Map frontend form data to backend DTO format
       const boardMemberData = {
-        name: formData.name,
-        phoneNumber: formData.phoneNumber,
-        email: formData.email || null,
-        role: formData.role,
-        address: formData.location || null,
-        qualification: formData.designation || null,
+        name: formData.name.trim(),
+        phoneNumber: cleanPhoneNumber,
+        email: formData.email?.trim() || null,
+        role: formData.role, // This should be one of: CHAIRMAN, VICE_CHAIRMAN, SECRETARY, TREASURER, MEMBER, CEO
+        address: formData.location?.trim() || null,
+        qualification: formData.designation?.trim() || null,
         experience: null,
         photoFileName: null,
         documentFileName: null,
-        remarks: formData.linkedinProfileUrl ? `LinkedIn: ${formData.linkedinProfileUrl}` : null
+        remarks: formData.linkedinProfileUrl?.trim() ? `LinkedIn: ${formData.linkedinProfileUrl.trim()}` : null,
+        status: 'ACTIVE' // Set default status
       };
       
       console.log('Creating board member with data:', boardMemberData);
       console.log('FPO ID:', fpoId);
-      console.log('Location value from form:', formData.location);
-      console.log('Address field in DTO:', boardMemberData.address);
+      console.log('Phone number validation:', {
+        original: formData.phoneNumber,
+        cleaned: cleanPhoneNumber,
+        length: cleanPhoneNumber.length
+      });
+      console.log('Role validation:', {
+        role: formData.role,
+        type: typeof formData.role
+      });
       
       const response = await fpoAPI.addBoardMember(fpoId, boardMemberData);
       console.log('Board member created successfully:', response);
@@ -147,7 +174,25 @@ const FPOBoardMembersModal = ({ isOpen, onClose, fpoId, fpoName }) => {
       alert('Board member created successfully!');
     } catch (error) {
       console.error('Error creating board member:', error);
-      alert('Error creating board member: ' + (error.response?.data?.message || error.message));
+      console.error('Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
+      
+      let errorMessage = 'Error creating board member: ';
+      if (error.response?.data?.message) {
+        errorMessage += error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage += error.response.data.error;
+      } else if (error.response?.status === 400) {
+        errorMessage += 'Invalid data provided. Please check all fields and try again.';
+      } else {
+        errorMessage += error.message;
+      }
+      
+      alert(errorMessage);
     }
   };
 
@@ -175,19 +220,42 @@ const FPOBoardMembersModal = ({ isOpen, onClose, fpoId, fpoName }) => {
   const handleUpdateMember = async (e) => {
     e.preventDefault();
     try {
+      // Validate required fields
+      if (!formData.name || !formData.phoneNumber) {
+        alert('Name and phone number are required fields');
+        return;
+      }
+
+      // Clean phone number - remove any non-digits and ensure it's exactly 10 digits
+      const cleanPhoneNumber = formData.phoneNumber.replace(/\D/g, '');
+      if (cleanPhoneNumber.length !== 10) {
+        alert('Phone number must be exactly 10 digits');
+        return;
+      }
+
+      // Validate email format if provided
+      if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        alert('Please provide a valid email address');
+        return;
+      }
+
       // Map frontend form data to backend DTO format
       const boardMemberData = {
-        name: formData.name,
-        phoneNumber: formData.phoneNumber,
-        email: formData.email || null,
-        role: formData.role,
-        address: formData.location || null,
-        qualification: formData.designation || null,
+        name: formData.name.trim(),
+        phoneNumber: cleanPhoneNumber,
+        email: formData.email?.trim() || null,
+        role: formData.role, // This should be one of: CHAIRMAN, VICE_CHAIRMAN, SECRETARY, TREASURER, MEMBER, CEO
+        address: formData.location?.trim() || null,
+        qualification: formData.designation?.trim() || null,
         experience: null,
         photoFileName: null,
         documentFileName: null,
-        remarks: formData.linkedinProfileUrl ? `LinkedIn: ${formData.linkedinProfileUrl}` : null
+        remarks: formData.linkedinProfileUrl?.trim() ? `LinkedIn: ${formData.linkedinProfileUrl.trim()}` : null,
+        status: 'ACTIVE' // Set default status
       };
+      
+      console.log('Updating board member with data:', boardMemberData);
+      console.log('Board member ID:', editingMember.id);
       
       await fpoAPI.updateBoardMember(fpoId, editingMember.id, boardMemberData);
       setShowCreateForm(false);
@@ -210,7 +278,25 @@ const FPOBoardMembersModal = ({ isOpen, onClose, fpoId, fpoName }) => {
       alert('Board member updated successfully!');
     } catch (error) {
       console.error('Error updating board member:', error);
-      alert('Error updating board member: ' + (error.response?.data?.message || error.message));
+      console.error('Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
+      
+      let errorMessage = 'Error updating board member: ';
+      if (error.response?.data?.message) {
+        errorMessage += error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage += error.response.data.error;
+      } else if (error.response?.status === 400) {
+        errorMessage += 'Invalid data provided. Please check all fields and try again.';
+      } else {
+        errorMessage += error.message;
+      }
+      
+      alert(errorMessage);
     }
   };
 

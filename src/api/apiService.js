@@ -1482,6 +1482,38 @@ export const fpoAPI = {
   deleteNotification: async (fpoId, notificationId) => {
     const response = await api.delete(`/fpo/${fpoId}/notifications/${notificationId}`);
     return response.data;
+  },
+
+  // FPO KYC Management
+  approveKyc: async (farmerId) => {
+    const response = await api.put(`/fpo/kyc/approve/${farmerId}`);
+    return response.data;
+  },
+
+  rejectKyc: async (farmerId, rejectionData) => {
+    const response = await api.put(`/fpo/kyc/reject/${farmerId}`, {
+      reason: rejectionData.reason || 'KYC rejected by FPO'
+    });
+    return response.data;
+  },
+
+  referBackKyc: async (farmerId, referBackData) => {
+    const response = await api.put(`/fpo/kyc/refer-back/${farmerId}`, {
+      reason: referBackData.reason || 'KYC referred back by FPO'
+    });
+    return response.data;
+  },
+
+  // FPO-specific Farmer Management
+  createFPOFarmer: async (fpoId, farmerData) => {
+    const response = await api.post(`/fpo/${fpoId}/farmers`, farmerData);
+    return response.data;
+  },
+
+  // FPO-specific Employee Management  
+  createFPOEmployee: async (fpoId, employeeData) => {
+    const response = await api.post(`/fpo/${fpoId}/employees`, employeeData);
+    return response.data;
   }
 };
 

@@ -375,13 +375,18 @@ const FPOUsersView = ({ fpo, onClose }) => {
               </div>
               <div className="form-group">
                 <label className="form-label">User Type <span className="required">*</span></label>
-                <input
-                  type="text"
+                <select
                   value={formData.role}
                   onChange={(e) => updateField('role', e.target.value)}
-                  className={`form-input ${formErrors.role ? 'error' : ''}`}
-                  placeholder="Select User Type"
-                />
+                  className={`form-select ${formErrors.role ? 'error' : ''}`}
+                >
+                  <option value="">Select User Type</option>
+                  {USER_TYPES.map(type => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
                 {formErrors.role && <span className="error-message">{formErrors.role}</span>}
               </div>
               {!editingUser && (

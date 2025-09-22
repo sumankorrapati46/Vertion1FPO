@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { fpoAPI } from '../api/apiService';
+import { fpoAPI, fpoUsersAPI, farmersAPI } from '../api/apiService';
 import '../styles/Dashboard.css';
 import '../styles/FPOManagement.css';
 import UserProfileDropdown from '../components/UserProfileDropdown';
@@ -18,11 +18,20 @@ import FPOProductCategoriesModal from '../components/FPOProductCategoriesModal';
 import FPOProductsModal from '../components/FPOProductsModal';
 import FPOUsersModal from '../components/FPOUsersModal';
 import FarmerRegistrationForm from '../components/FarmerRegistrationForm';
+import EmployeeRegistrationForm from '../components/EmployeeRegistrationForm';
 
 const FPOAdminDashboard = () => {
-  const { fpoId } = useParams();
+  const { fpoId: urlFpoId } = useParams();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  
+  // Use URL FPO ID if available, otherwise fall back to user's FPO ID for consistency
+  const fpoId = urlFpoId || user?.fpoId || user?.assignedFpoId || user?.fpo?.id || user?.fpo?.fpoId;
+  
+  // Debug logging to ensure FPO ID consistency
+  console.log('FPOAdminDashboard - URL FPO ID:', urlFpoId);
+  console.log('FPOAdminDashboard - User FPO ID:', user?.fpoId);
+  console.log('FPOAdminDashboard - Resolved FPO ID:', fpoId);
   const [fpo, setFpo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -37,6 +46,7 @@ const FPOAdminDashboard = () => {
   const [fpos, setFpos] = useState([]);
   const [showFPOCreationForm, setShowFPOCreationForm] = useState(false);
   const [showInlineFarmerCreate, setShowInlineFarmerCreate] = useState(false);
+  const [showInlineEmployeeCreate, setShowInlineEmployeeCreate] = useState(false);
   const [viewingFPO, setViewingFPO] = useState(false);
   const [selectedFPO, setSelectedFPO] = useState(null);
   const [fpoFilters, setFpoFilters] = useState({
@@ -55,38 +65,6 @@ const FPOAdminDashboard = () => {
   const [showFPOProductCategoriesModal, setShowFPOProductCategoriesModal] = useState(false);
   const [showFPOProductsModal, setShowFPOProductsModal] = useState(false);
   const [showFPOUsersModal, setShowFPOUsersModal] = useState(false);
-  // Photo upload state (persisted in localStorage)
-  const [userPhoto, setUserPhoto] = useState(null);
-  const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    try {
-      const savedPhoto = localStorage.getItem('userProfilePhoto:FPO_ADMIN');
-      if (savedPhoto) setUserPhoto(savedPhoto);
-    } catch {}
-  }, []);
-
-  const handlePhotoUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      alert('Please upload a valid image file.');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const data = ev.target?.result;
-      if (typeof data === 'string') { setUserPhoto(data); try { localStorage.setItem('userProfilePhoto:FPO_ADMIN', data); } catch {} }
-    };
-    reader.onerror = () => alert('Error reading the file. Please try again.');
-    reader.readAsDataURL(file);
-  };
-
-  const handlePhotoClick = () => {
-    if (fileInputRef.current) fileInputRef.current.click();
-  };
-
-  const handleRemovePhoto = () => { setUserPhoto(null); try { localStorage.removeItem('userProfilePhoto:FPO_ADMIN'); } catch {} };
 
   // Greeting function based on time of day
   const getGreeting = () => {
@@ -197,38 +175,104 @@ const FPOAdminDashboard = () => {
     if (fpoId) load();
   }, [fpoId]);
 
+  // Reusable loaders
+  const loadFarmers = async () => {
+    try {
+      // Load FPO members and enrich with farmer details (same logic as FPOEmployeeDashboard)
+      const members = await fpoAPI.getFPOMembers(fpoId);
+      const base = (members || []).map((m, idx) => ({
+        id: m.id || idx + 1,
+        memberId: m.id,
+        farmerId: m.farmerId,
+        name: m.farmerName || m.name || `${m.firstName || ''} ${m.lastName || ''}`.trim(),
+        phoneNumber: '-',
+        email: '-',
+        status: (m.status || 'PENDING').toUpperCase(),
+        raw: m
+      }));
+      const enriched = await Promise.all(base.map(async (row) => {
+        if (!row.farmerId) return row;
+        try {
+          const dto = await farmersAPI.getFarmerById(row.farmerId);
+          return {
+            ...row,
+            name: dto?.firstName ? `${dto.firstName} ${dto.lastName || ''}`.trim() : (row.name || '-'),
+            phoneNumber: dto?.contactNumber || row.phoneNumber,
+            email: dto?.email || row.email,
+            status: (dto?.status || row.status || 'PENDING').toUpperCase(),
+          };
+        } catch {
+          return row;
+        }
+      }));
+      setFarmers(enriched);
+    } catch (e) {
+      console.error(e);
+      setFarmers([]);
+    }
+  };
+
+  const loadEmployees = async () => {
+    try {
+      const all = await fpoUsersAPI.list(fpoId);
+      const emps = (all || []).filter(u => (u.role || '').toUpperCase() === 'EMPLOYEE');
+      setEmployees(emps);
+    } catch (e) {
+      console.error(e);
+      setEmployees([]);
+    }
+  };
+
   // Lazy-load section data when switching views
   useEffect(() => {
-    const loadFarmers = async () => {
-      try {
-        const members = await fpoAPI.getFPOMembers(fpoId);
-        const mapped = (members || []).map((m, idx) => ({
-          id: m.id || idx + 1,
-          name: m.name || `${m.firstName || ''} ${m.lastName || ''}`.trim(),
-          phoneNumber: m.phoneNumber || m.contactNumber,
-          email: m.email || '-',
-          status: m.status || 'ACTIVE'
-        }));
-        setFarmers(mapped);
-      } catch (e) {
-        console.error(e);
-        setFarmers([]);
-      }
-    };
-    const loadEmployees = async () => {
-      try {
-        const all = await (await import('../api/apiService')).fpoUsersAPI.list(fpoId);
-        const emps = (all || []).filter(u => (u.role || '').toUpperCase() === 'EMPLOYEE');
-        setEmployees(emps);
-      } catch (e) {
-        console.error(e);
-        setEmployees([]);
-      }
-    };
     if (view === 'farmers') loadFarmers();
     if (view === 'employees') loadEmployees();
     if (view === 'fpo') loadFPOs();
   }, [view, fpoId]);
+
+  // Auto-refresh farmers data every 30 seconds to keep in sync
+  useEffect(() => {
+    if (view === 'farmers' && fpoId) {
+      const interval = setInterval(() => {
+        loadFarmers();
+      }, 30000); // 30 seconds
+      return () => clearInterval(interval);
+    }
+  }, [view, fpoId]);
+
+  // Handlers for inline submissions
+  const handleFarmerCreatedInline = async (formData) => {
+    try {
+      // Use FPO-specific farmer creation API to ensure farmer is linked to this FPO
+      await fpoAPI.createFPOFarmer(fpoId, formData);
+      setShowInlineFarmerCreate(false);
+      setView('farmers');
+      await loadFarmers();
+      alert('FPO farmer created successfully');
+    } catch (e) {
+      console.error('Failed to create FPO farmer:', e);
+      alert(e.response?.data?.message || e.response?.data?.error || 'Failed to create FPO farmer');
+    }
+  };
+
+  const handleEmployeeCreatedInline = async (formData) => {
+    try {
+      // Use FPO-specific employee creation API to ensure employee is linked to this FPO
+      await fpoAPI.createFPOEmployee(fpoId, {
+        firstName: formData?.firstName || formData?.name || '',
+        lastName: formData?.lastName || '',
+        email: formData?.email,
+        phoneNumber: formData?.phoneNumber || formData?.mobileNumber
+      });
+      setShowInlineEmployeeCreate(false);
+      setView('employees');
+      await loadEmployees();
+      alert('FPO employee created successfully');
+    } catch (e) {
+      console.error('Failed to create FPO employee:', e);
+      alert(e.response?.data?.message || e.response?.data?.error || 'Failed to create FPO employee');
+    }
+  };
 
   if (loading) {
     return (
@@ -259,30 +303,16 @@ const FPOAdminDashboard = () => {
         <div className="header-right">
           <div className="user-profile-dropdown">
             <div className="user-profile-trigger" onClick={toggleUserDropdown}>
-              <div className="user-avatar user-avatar-with-upload" onClick={(e) => { e.stopPropagation(); handlePhotoClick(); }}>
-                {userPhoto ? (
-                  <img src={userPhoto} alt="Profile" className="user-avatar-photo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-                ) : (
-                  <div className="user-avatar-initials">{user?.name?.charAt(0) || 'A'}</div>
-                )}
-                <div className="avatar-upload-overlay">
-                  <i className="fas fa-camera"></i>
-                </div>
+              <div className="user-avatar">
+                {user?.name?.charAt(0) || 'A'}
               </div>
               <span className="user-email">{user?.email || 'admin@fpo.com'}</span>
               <i className={`fas fa-chevron-down dropdown-arrow ${showUserDropdown ? 'rotated' : ''}`}></i>
             </div>
             <div className={`user-dropdown-menu ${showUserDropdown ? 'show' : ''}`}>
               <div className="dropdown-header">
-                <div className="user-avatar-large user-avatar-with-upload" onClick={handlePhotoClick}>
-                  {userPhoto ? (
-                    <img src={userPhoto} alt="Profile" className="user-avatar-photo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-                  ) : (
-                    <div className="user-avatar-initials">{user?.name?.charAt(0) || 'A'}</div>
-                  )}
-                  <div className="avatar-upload-overlay">
-                    <i className="fas fa-camera"></i>
-                  </div>
+                <div className="user-avatar-large">
+                  {user?.name?.charAt(0) || 'A'}
                 </div>
                 <div className="user-details">
                   <div className="user-name-large">{user?.name || 'FPO Admin'}</div>
@@ -290,16 +320,6 @@ const FPOAdminDashboard = () => {
                 </div>
               </div>
               <div className="dropdown-actions">
-                <button className="dropdown-action-btn" onClick={handlePhotoClick}>
-                  <i className="fas fa-camera"></i>
-                  {userPhoto ? 'Change Photo' : 'Upload Photo'}
-                </button>
-                {userPhoto && (
-                  <button className="dropdown-action-btn" onClick={handleRemovePhoto}>
-                    <i className="fas fa-trash"></i>
-                    Remove Photo
-                  </button>
-                )}
                 <button className="dropdown-action-btn" onClick={handleChangePassword}>
                   <i className="fas fa-key"></i>
                   Change Password
@@ -439,7 +459,7 @@ const FPOAdminDashboard = () => {
               </div>
             </div>
             <div className="card-actions">
-              <button className="btn btn-primary" onClick={() => navigate(`/register-employee`, { state: { role: 'EMPLOYEE', fpoId } })}>
+              <button className="btn btn-primary" onClick={() => setShowInlineEmployeeCreate(true)}>
                 <i className="fas fa-plus"></i>
                 Add Employee
               </button>
@@ -453,130 +473,330 @@ const FPOAdminDashboard = () => {
         )}
 
         {view === 'farmers' && (
-          <section className="panel" style={{ marginTop: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ marginTop: 0 }}>Farmers</h2>
-              <div style={{ display: 'flex', gap: 8 }}>
+          <section className="panel" style={{ marginTop: 12, width: '100%', maxWidth: 'none', padding: '24px' }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: '24px',
+              flexWrap: 'wrap',
+              gap: '16px'
+            }}>
+              <h2 style={{ marginTop: 0, fontSize: '28px', fontWeight: '700', color: '#1e293b' }}>Farmers</h2>
+              <div style={{ 
+                display: 'flex', 
+                gap: '12px',
+                flexWrap: 'wrap',
+                alignItems: 'center'
+              }}>
                 <input
                   value={farmerSearch}
                   onChange={(e) => setFarmerSearch(e.target.value)}
                   placeholder="Search name, phone or email"
                   className="input"
-                  style={{ padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 8 }}
+                  style={{ 
+                    padding: '12px 16px', 
+                    border: '2px solid #e5e7eb', 
+                    borderRadius: '12px',
+                    fontSize: '15px',
+                    minWidth: '280px',
+                    background: 'white',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#22c55e'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                 />
-                <button className="btn" onClick={() => setView('overview') || setTimeout(() => setView('farmers'), 0)}>Refresh</button>
-                <button className="btn primary" onClick={() => navigate(`/register-farmer`, { state: { role: 'FARMER', fpoId } })}>Add Farmer</button>
+                <button 
+                  className="btn" 
+                  onClick={() => setView('overview') || setTimeout(() => setView('farmers'), 0)}
+                  style={{
+                    padding: '12px 20px',
+                    borderRadius: '12px',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    background: 'white',
+                    border: '2px solid #e5e7eb',
+                    color: '#374151',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Refresh
+                </button>
+                <button 
+                  className="btn primary" 
+                  onClick={() => setShowInlineFarmerCreate(true)}
+                  style={{
+                    padding: '12px 20px',
+                    borderRadius: '12px',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
+                    border: 'none',
+                    color: 'white',
+                    boxShadow: '0 4px 12px rgba(21, 128, 61, 0.3)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Add Farmer
+                </button>
               </div>
             </div>
-            <table className="fpo-table">
-              <thead>
-                <tr>
-                  <th>Id</th>
-                  <th>Name</th>
-                  <th>Phone</th>
-                  <th>Email</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {farmers.filter(f => {
-                  const q = farmerSearch.trim().toLowerCase();
-                  if (!q) return true;
-                  return (
-                    (f.name || '').toLowerCase().includes(q) ||
-                    (f.phoneNumber || '').toLowerCase().includes(q) ||
-                    (f.email || '').toLowerCase().includes(q)
-                  );
-                }).map(f => (
-                  <tr key={f.id}>
-                    <td>{f.id}</td>
-                    <td>{f.name}</td>
-                    <td>{f.phoneNumber}</td>
-                    <td>{f.email}</td>
-                    <td>{f.status}</td>
+            <div style={{ 
+              background: 'white', 
+              borderRadius: '16px', 
+              overflow: 'hidden',
+              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.08)',
+              border: '1px solid #e2e8f0'
+            }}>
+              <table className="fpo-table" style={{ width: '100%', margin: 0 }}>
+                <thead>
+                  <tr>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Status</th>
                   </tr>
-                ))}
-                {farmers.length === 0 && (
-                  <tr><td colSpan={5} style={{ textAlign: 'center', color: '#64748b' }}>No farmers yet</td></tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {farmers.filter(f => {
+                    const q = farmerSearch.trim().toLowerCase();
+                    if (!q) return true;
+                    return (
+                      (f.name || '').toLowerCase().includes(q) ||
+                      (f.phoneNumber || '').toLowerCase().includes(q) ||
+                      (f.email || '').toLowerCase().includes(q)
+                    );
+                  }).map(f => (
+                    <tr key={f.id}>
+                      <td style={{ fontWeight: '600', color: '#15803d' }}>{f.id}</td>
+                      <td style={{ fontWeight: '600', color: '#1e293b' }}>{f.name}</td>
+                      <td style={{ color: '#64748b' }}>{f.phoneNumber}</td>
+                      <td style={{ color: '#64748b' }}>{f.email}</td>
+                      <td>
+                        <span style={{
+                          padding: '6px 12px',
+                          borderRadius: '20px',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          background: f.status === 'ACTIVE' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                          color: f.status === 'ACTIVE' ? '#15803d' : '#dc2626'
+                        }}>
+                          {f.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                  {farmers.length === 0 && (
+                    <tr>
+                      <td colSpan={5} style={{ 
+                        textAlign: 'center', 
+                        color: '#64748b', 
+                        padding: '60px 20px',
+                        fontSize: '16px',
+                        fontWeight: '500'
+                      }}>
+                        No farmers found. Click "Add Farmer" to get started.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </section>
         )}
 
         {view === 'employees' && (
-          <section className="panel" style={{ marginTop: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ marginTop: 0 }}>Employees</h2>
-              <div style={{ display: 'flex', gap: 8 }}>
+          <section className="panel" style={{ marginTop: 12, width: '100%', maxWidth: 'none', padding: '24px' }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: '24px',
+              flexWrap: 'wrap',
+              gap: '16px'
+            }}>
+              <h2 style={{ marginTop: 0, fontSize: '28px', fontWeight: '700', color: '#1e293b' }}>Employees</h2>
+              <div style={{ 
+                display: 'flex', 
+                gap: '12px',
+                flexWrap: 'wrap',
+                alignItems: 'center'
+              }}>
                 <input
                   value={employeeSearch}
                   onChange={(e) => setEmployeeSearch(e.target.value)}
                   placeholder="Search name, phone or email"
                   className="input"
-                  style={{ padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 8 }}
+                  style={{ 
+                    padding: '12px 16px', 
+                    border: '2px solid #e5e7eb', 
+                    borderRadius: '12px',
+                    fontSize: '15px',
+                    minWidth: '280px',
+                    background: 'white',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#22c55e'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                 />
-                <button className="btn" onClick={() => setView('overview') || setTimeout(() => setView('employees'), 0)}>Refresh</button>
-                <button className="btn primary" onClick={() => navigate(`/register-employee`, { state: { role: 'EMPLOYEE', fpoId } })}>Add Employee</button>
+                <button 
+                  className="btn" 
+                  onClick={() => setView('overview') || setTimeout(() => setView('employees'), 0)}
+                  style={{
+                    padding: '12px 20px',
+                    borderRadius: '12px',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    background: 'white',
+                    border: '2px solid #e5e7eb',
+                    color: '#374151',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Refresh
+                </button>
+                <button 
+                  className="btn primary" 
+                  onClick={() => navigate(`/register-employee`, { state: { role: 'EMPLOYEE', fpoId } })}
+                  style={{
+                    padding: '12px 20px',
+                    borderRadius: '12px',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
+                    border: 'none',
+                    color: 'white',
+                    boxShadow: '0 4px 12px rgba(21, 128, 61, 0.3)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Add Employee
+                </button>
               </div>
             </div>
-            <table className="fpo-table">
-              <thead>
-                <tr>
-                  <th>Id</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {employees.filter(u => {
-                  const q = employeeSearch.trim().toLowerCase();
-                  if (!q) return true;
-                  const name = `${u.firstName || ''} ${u.lastName || ''}`.trim();
-                  return (
-                    name.toLowerCase().includes(q) ||
-                    (u.email || '').toLowerCase().includes(q) ||
-                    (u.phoneNumber || '').toLowerCase().includes(q)
-                  );
-                }).map(u => (
-                  <tr key={u.id}>
-                    <td>{u.id}</td>
-                    <td>{u.firstName} {u.lastName}</td>
-                    <td>{u.email}</td>
-                    <td>{u.phoneNumber}</td>
-                    <td>{u.status}</td>
-                    <td style={{ display: 'flex', gap: 8 }}>
-                      <button className="btn" onClick={async () => {
-                        try {
-                          const { fpoUsersAPI } = await import('../api/apiService');
-                          await fpoUsersAPI.toggleActive(fpoId, u.id, !(u.status === 'APPROVED'));
-                          // refresh
-                          setView('overview');
-                          setTimeout(() => setView('employees'), 0);
-                        } catch (e) {
-                          alert('Failed to update status');
-                        }
-                      }}>{u.status === 'APPROVED' ? 'Deactivate' : 'Activate'}</button>
-                      <button className="btn" onClick={async () => {
-                        const pwd = prompt('Enter new password for employee');
-                        if (!pwd) return;
-                        try {
-                          const { fpoUsersAPI } = await import('../api/apiService');
-                          await fpoUsersAPI.updatePassword(fpoId, u.id, pwd);
-                          alert('Password updated');
-                        } catch (e) { alert('Failed to update password'); }
-                      }}>Edit Password</button>
-                    </td>
+            <div style={{ 
+              background: 'white', 
+              borderRadius: '16px', 
+              overflow: 'hidden',
+              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.08)',
+              border: '1px solid #e2e8f0'
+            }}>
+              <table className="fpo-table" style={{ width: '100%', margin: 0 }}>
+                <thead>
+                  <tr>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-                {employees.length === 0 && (
-                  <tr><td colSpan={6} style={{ textAlign: 'center', color: '#64748b' }}>No employees yet</td></tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {employees.filter(u => {
+                    const q = employeeSearch.trim().toLowerCase();
+                    if (!q) return true;
+                    const name = `${u.firstName || ''} ${u.lastName || ''}`.trim();
+                    return (
+                      name.toLowerCase().includes(q) ||
+                      (u.email || '').toLowerCase().includes(q) ||
+                      (u.phoneNumber || '').toLowerCase().includes(q)
+                    );
+                  }).map(u => (
+                    <tr key={u.id}>
+                      <td style={{ fontWeight: '600', color: '#15803d' }}>{u.id}</td>
+                      <td style={{ fontWeight: '600', color: '#1e293b' }}>{u.firstName} {u.lastName}</td>
+                      <td style={{ color: '#64748b' }}>{u.email}</td>
+                      <td style={{ color: '#64748b' }}>{u.phoneNumber}</td>
+                      <td>
+                        <span style={{
+                          padding: '6px 12px',
+                          borderRadius: '20px',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          background: u.status === 'APPROVED' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                          color: u.status === 'APPROVED' ? '#15803d' : '#dc2626'
+                        }}>
+                          {u.status}
+                        </span>
+                      </td>
+                      <td style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button 
+                          className="btn" 
+                          onClick={async () => {
+                            try {
+                              const { fpoUsersAPI } = await import('../api/apiService');
+                              await fpoUsersAPI.toggleActive(fpoId, u.id, !(u.status === 'APPROVED'));
+                              // refresh
+                              setView('overview');
+                              setTimeout(() => setView('employees'), 0);
+                            } catch (e) {
+                              alert('Failed to update status');
+                            }
+                          }}
+                          style={{
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            background: u.status === 'APPROVED' ? '#ef4444' : '#22c55e',
+                            border: 'none',
+                            color: 'white',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          {u.status === 'APPROVED' ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button 
+                          className="btn" 
+                          onClick={async () => {
+                            const pwd = prompt('Enter new password for employee');
+                            if (!pwd) return;
+                            try {
+                              const { fpoUsersAPI } = await import('../api/apiService');
+                              await fpoUsersAPI.updatePassword(fpoId, u.id, pwd);
+                              alert('Password updated');
+                            } catch (e) { alert('Failed to update password'); }
+                          }}
+                          style={{
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            background: '#3b82f6',
+                            border: 'none',
+                            color: 'white',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          Edit Password
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {employees.length === 0 && (
+                    <tr>
+                      <td colSpan={6} style={{ 
+                        textAlign: 'center', 
+                        color: '#64748b', 
+                        padding: '60px 20px',
+                        fontSize: '16px',
+                        fontWeight: '500'
+                      }}>
+                        No employees found. Click "Add Employee" to get started.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </section>
         )}
 
@@ -744,7 +964,24 @@ const FPOAdminDashboard = () => {
               <FarmerRegistrationForm
                 isInDashboard
                 onClose={() => setShowInlineFarmerCreate(false)}
-                onSubmit={() => setShowInlineFarmerCreate(false)}
+                onSubmit={handleFarmerCreatedInline}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showInlineEmployeeCreate && (
+        <div className="form-modal-overlay">
+          <div className="form-modal-content" style={{ width: '90%', maxWidth: 900 }}>
+            <div className="form-modal-header">
+              <h3>Create Employee</h3>
+              <button className="close-btn" onClick={() => setShowInlineEmployeeCreate(false)}>×</button>
+            </div>
+            <div className="form-modal-body">
+              <EmployeeRegistrationForm
+                isInDashboard
+                onSubmit={handleEmployeeCreatedInline}
               />
             </div>
           </div>
@@ -850,8 +1087,6 @@ const FPOAdminDashboard = () => {
           }}
         />
       )}
-      {/* Hidden file input for photo upload */}
-      <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" style={{ display: 'none' }} />
     </div>
   );
 };

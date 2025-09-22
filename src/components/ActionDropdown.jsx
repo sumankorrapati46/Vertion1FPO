@@ -1,13 +1,49 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 
 const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
 
-  // Close dropdown when clicking outside
+  // Build actions array from all available sources using useMemo
+  const allActions = useMemo(() => {
+    const actionsArray = [];
+    
+    // Add custom actions if provided
+    if (customActions && Array.isArray(customActions)) {
+      console.log('ActionDropdown: Adding customActions:', customActions);
+      actionsArray.push(...customActions);
+    }
+    
+    // Add actions if provided
+    if (actions && Array.isArray(actions)) {
+      actionsArray.push(...actions);
+    }
+    
+    // Only add fallback actions if no custom actions or actions array were provided
+    if ((!customActions || customActions.length === 0) && (!actions || actions.length === 0)) {
+      // Fallback to simple View/Edit/Delete when explicit handlers are provided
+      if (onView) actionsArray.push({ label: 'View', icon: '👁️', className: 'info', onClick: () => onView(item) });
+      if (onEdit) actionsArray.push({ label: 'Edit', icon: '✏️', className: 'primary', onClick: () => onEdit(item) });
+      if (onDelete) actionsArray.push({ label: 'Delete', icon: '🗑️', className: 'danger', onClick: () => onDelete(item) });
+    }
+    
+    // If still no actions, add a default action for debugging
+    if (actionsArray.length === 0) {
+      actionsArray.push({ 
+        label: 'No Actions Available', 
+        icon: '⚠️', 
+        className: 'warning', 
+        onClick: () => console.log('No actions available for item:', item) 
+      });
+    }
+    
+    return actionsArray;
+  }, [customActions, actions, onView, onEdit, onDelete, item]);
+
+  // Close dropdown when clicking outside and update position on scroll
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -15,11 +51,21 @@ const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView
       }
     };
 
+    const handleScroll = () => {
+      // Simply close the dropdown when scrolling to keep it completely fixed
+      if (isOpen) {
+        setIsOpen(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [isOpen, allActions.length]);
 
   const handleActionClick = (action) => {
     console.log('ActionDropdown: Action clicked:', action.label, 'with item:', item);
@@ -37,72 +83,85 @@ const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView
   const calculatePosition = () => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-      
-      // Position dropdown to the right side of the screen
+      const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      const dropdownWidth = 320; // maxWidth from styling
+      const dropdownWidth = 280; // minWidth from styling
       const dropdownHeight = Math.min(allActions.length * 50 + 24, 400); // max 400px height
       
-      // Center vertically, align to right
-      const top = (viewportHeight - dropdownHeight) / 2 + scrollTop;
-      const right = 20 - scrollLeft; // 20px from right edge
+      // Use viewport coordinates (getBoundingClientRect gives viewport-relative coordinates)
+      let top = rect.bottom + 8; // Position below the button with 8px gap
+      let left = rect.left;
       
-      setDropdownPosition({ top, right });
+      // Check if dropdown would go below viewport
+      if (top + dropdownHeight > viewportHeight) {
+        // Position above the button instead
+        top = rect.top - dropdownHeight - 8;
+      }
+      
+      // Check if dropdown would go right of viewport
+      if (left + dropdownWidth > viewportWidth) {
+        // Align to the right edge of the button
+        left = rect.right - dropdownWidth;
+      }
+      
+      // Ensure dropdown doesn't go above viewport
+      if (top < 0) {
+        top = 8;
+      }
+      
+      // Ensure dropdown doesn't go left of viewport
+      if (left < 0) {
+        left = 8;
+      }
+      
+      setDropdownPosition({ top, left });
     }
   };
 
-  const handleToggleClick = () => {
+  const handleToggleClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('ActionDropdown: Toggle button clicked');
+    console.log('ActionDropdown: allActions:', allActions);
+    console.log('ActionDropdown: allActions.length:', allActions.length);
+    console.log('ActionDropdown: Setting isOpen to true');
     calculatePosition();
     setIsOpen(true);
   };
 
-  // Build actions array from all available sources
-  const allActions = [];
-  
-  // Add custom actions if provided
-  if (customActions && Array.isArray(customActions)) {
-    console.log('ActionDropdown: Adding customActions:', customActions);
-    allActions.push(...customActions);
-  }
-  
-  // Add actions if provided
-  if (actions && Array.isArray(actions)) {
-    allActions.push(...actions);
-  }
-  
-  // Only add fallback actions if no custom actions or actions array were provided
-  if ((!customActions || customActions.length === 0) && (!actions || actions.length === 0)) {
-    // Fallback to simple View/Edit/Delete when explicit handlers are provided
-    if (onView) allActions.push({ label: 'View', icon: '👁️', className: 'info', onClick: () => onView(item) });
-    if (onEdit) allActions.push({ label: 'Edit', icon: '✏️', className: 'primary', onClick: () => onEdit(item) });
-    if (onDelete) allActions.push({ label: 'Delete', icon: '🗑️', className: 'danger', onClick: () => onDelete(item) });
-  }
+  console.log('ActionDropdown: Rendering with isOpen:', isOpen, 'allActions.length:', allActions.length);
 
   return (
     <>
       <div className="action-dropdown-container">
-        {/* Only render button when dropdown is closed */}
-        {!isOpen && (
-          <button
-            ref={buttonRef}
-            className="dropdown-toggle-btn"
-            onClick={handleToggleClick}
-            aria-label="Actions"
-            title="Actions"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="1"></circle>
-              <circle cx="19" cy="12" r="1"></circle>
-              <circle cx="5" cy="12" r="1"></circle>
-            </svg>
-          </button>
-        )}
+        <button
+          ref={buttonRef}
+          className="dropdown-toggle-btn"
+          onClick={handleToggleClick}
+          aria-label="Actions"
+          title="Actions"
+          style={{
+            background: isOpen ? '#e5e7eb' : 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '4px',
+            color: isOpen ? '#374151' : '#6b7280'
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="1"></circle>
+            <circle cx="19" cy="12" r="1"></circle>
+            <circle cx="5" cy="12" r="1"></circle>
+          </svg>
+        </button>
       </div>
       
       {/* Render dropdown using portal to ensure it's outside table structure */}
-      {isOpen && allActions.length > 0 && createPortal(
+      {isOpen && createPortal(
         <>
           {/* Backdrop for better UX */}
           <div 
@@ -127,7 +186,7 @@ const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView
             style={{
               position: 'fixed',
               top: `${dropdownPosition.top}px`,
-              right: `${dropdownPosition.right}px`,
+              left: `${dropdownPosition.left}px`,
               zIndex: 999999,
               minWidth: '280px',
               maxWidth: '320px',

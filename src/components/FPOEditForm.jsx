@@ -65,6 +65,10 @@ const FPOEditForm = ({ fpo, onClose, onUpdated }) => {
     
     setSaving(true);
     try {
+      console.log('🔄 Starting FPO update process...');
+      console.log('FPO ID:', fpo.id);
+      console.log('Form data:', form);
+      
       // Derive address parts minimally; keep unknowns from original
       const next = {
         ...fpo,
@@ -80,12 +84,30 @@ const FPOEditForm = ({ fpo, onClose, onUpdated }) => {
         next.village = form.address; // keep simple single-line address
       }
 
+      console.log('Data to be sent to API:', next);
       const updated = await fpoAPI.updateFPO(fpo.id, next);
-      onUpdated && onUpdated(updated);
-      onClose && onClose();
+      console.log('✅ FPO updated successfully:', updated);
+      
+      if (onUpdated) {
+        console.log('🔄 Calling onUpdated callback...');
+        onUpdated(updated);
+      } else {
+        console.log('⚠️ No onUpdated callback provided');
+      }
+      
+      if (onClose) {
+        console.log('🔄 Calling onClose callback...');
+        onClose();
+      }
     } catch (err) {
-      console.error('Failed to update FPO', err);
-      alert('Failed to update FPO');
+      console.error('❌ Failed to update FPO:', err);
+      console.error('Error details:', {
+        message: err.message,
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data
+      });
+      alert(`Failed to update FPO: ${err.response?.data?.message || err.message}`);
     } finally {
       setSaving(false);
     }

@@ -8,8 +8,6 @@ import EmployeeDashboard from './pages/EmployeeDashboard';
 import FarmerDashboard from './pages/FarmerDashboard';
 import FPODashboard from './pages/FPODashboard';
 import FPOAdminDashboard from './pages/FPOAdminDashboard';
-import FPOAdminEmployees from './pages/FPOAdminEmployees';
-import FPOAdminFarmers from './pages/FPOAdminFarmers';
 import FPOEmployeeDashboard from './pages/FPOEmployeeDashboard';
 
 import FarmerRegistration from './pages/FarmerRegistration';
@@ -60,8 +58,6 @@ function App() {
             <Route path="/fpo/dashboard/:fpoId" element={<ProtectedRoute allowedRoles={['FPO']}><FPODashboard /></ProtectedRoute>} />
             <Route path="/fpo/dashboard" element={<ProtectedRoute allowedRoles={['FPO']}><FPODashboard /></ProtectedRoute>} />
             <Route path="/fpo-admin/dashboard/:fpoId" element={<ProtectedRoute allowedRoles={['FPO']}><FPOAdminDashboard /></ProtectedRoute>} />
-            <Route path="/fpo-admin/:fpoId/employees" element={<ProtectedRoute allowedRoles={['FPO']}><FPOAdminEmployees /></ProtectedRoute>} />
-            <Route path="/fpo-admin/:fpoId/farmers" element={<ProtectedRoute allowedRoles={['FPO']}><FPOAdminFarmers /></ProtectedRoute>} />
             <Route path="/analytics" element={<AnalyticsDashboard />} />
             
             {/* ID Card Route */}

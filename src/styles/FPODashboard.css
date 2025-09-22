@@ -229,19 +229,160 @@
   gap: 5px;
 }
 
-/* Top-right profile pill contrast fix inside green header bars */
-/* Make sure the user pill is readable on this page regardless of inherited styles */
-.fpo-dashboard-container .user-profile-trigger,
-.fpo-dashboard-container .header-right .user-profile-trigger {
-  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+/* ===== FPO DASHBOARD USER PROFILE FORCE OVERRIDE ===== */
+/* Force user profile visibility in FPO dashboard with maximum specificity */
+
+/* Main user profile dropdown container */
+.dashboard .header-right .user-profile-dropdown {
+  /* Use CSS custom properties set by inline styles */
+  --user-profile-bg: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+  --user-profile-text: #ffffff;
+  --user-profile-border: 1px solid rgba(255, 255, 255, 0.25);
+  --user-avatar-bg: #ffffff;
+  --user-avatar-text: #15803d;
+  --user-avatar-border: 2px solid rgba(255, 255, 255, 0.9);
 }
 
-.fpo-dashboard-container .user-profile-trigger .user-email,
-.fpo-dashboard-container .user-profile-trigger .dropdown-arrow,
-.fpo-dashboard-container .user-profile-trigger .user-avatar {
+/* User profile trigger - match exact dashboard header color - FPO DASHBOARD ONLY */
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger {
+  background: #55833d !important;
+  color: #000000 !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  border-radius: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+}
+
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger:hover {
+  background: #4a6b35 !important;
   color: #ffffff !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* User info section - FPO DASHBOARD ONLY */
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger .user-info {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 2px !important;
+  color: #000000 !important;
+}
+
+/* User name - force black text - FPO DASHBOARD ONLY */
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger .user-name {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #000000 !important;
+  line-height: 1.2 !important;
+  background: transparent !important;
+}
+
+/* User role - force black text - FPO DASHBOARD ONLY */
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger .user-role {
+  font-size: 12px !important;
+  color: #000000 !important;
+  line-height: 1.2 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  background: transparent !important;
+}
+
+/* Dropdown arrow - force black color - FPO DASHBOARD ONLY */
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger .dropdown-arrow {
+  color: #000000 !important;
+  font-size: 12px !important;
+  transition: transform 0.3s ease !important;
+  background: transparent !important;
+}
+
+/* User avatar - completely transparent to match header - FPO DASHBOARD ONLY */
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger .user-avatar,
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger .user-avatar-with-upload {
+  background: transparent !important;
+  color: #ffffff !important;
+  border: none !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+}
+
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger .user-avatar:hover,
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger .user-avatar-with-upload:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* User avatar initials - FPO DASHBOARD ONLY */
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger .user-avatar-initials {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* User avatar photo - FPO DASHBOARD ONLY */
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger .user-avatar-photo {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* User avatar with photo container - FPO DASHBOARD ONLY */
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger .user-avatar-with-photo {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  position: relative !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger .user-avatar-with-photo:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Avatar upload overlay - remove white backgrounds - FPO DASHBOARD ONLY */
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger .avatar-upload-overlay {
+  background: rgba(0, 0, 0, 0.3) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.fpo-dashboard-container .dashboard .header-right .user-profile-trigger .avatar-upload-overlay:hover {
+  background: rgba(0, 0, 0, 0.5) !important;
 }
 
 /* Input placeholders on green banner sections */

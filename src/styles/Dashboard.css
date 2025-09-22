@@ -8180,6 +8180,77 @@ td {
 
 
 
+/* ===== FPO TABLE STYLES ===== */
+
+.fpo-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-top: 16px;
+}
+
+.fpo-table th {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  color: #374151;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 20px 16px;
+  text-align: left;
+  border-bottom: 2px solid #e2e8f0;
+  font-size: 14px;
+}
+
+.fpo-table td {
+  padding: 20px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #374151;
+  font-size: 15px;
+  vertical-align: middle;
+}
+
+.fpo-table tr:hover {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.fpo-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Column width optimization for full screen usage */
+.fpo-table th:nth-child(1),
+.fpo-table td:nth-child(1) {
+  width: 8%;
+  min-width: 60px;
+}
+
+.fpo-table th:nth-child(2),
+.fpo-table td:nth-child(2) {
+  width: 25%;
+  min-width: 150px;
+}
+
+.fpo-table th:nth-child(3),
+.fpo-table td:nth-child(3) {
+  width: 20%;
+  min-width: 120px;
+}
+
+.fpo-table th:nth-child(4),
+.fpo-table td:nth-child(4) {
+  width: 30%;
+  min-width: 180px;
+}
+
+.fpo-table th:nth-child(5),
+.fpo-table td:nth-child(5) {
+  width: 17%;
+  min-width: 100px;
+}
+
 /* ===== ADMIN: LIGHTER EMPLOYEE KYC PROGRESS CARDS ===== */
 
 /* Smaller, modern cards with light backgrounds */
@@ -10725,6 +10796,194 @@ td {
 .user-avatar-photo {
   border-radius: 50%;
   object-fit: cover;
+}
+
+/* ===== USER PROFILE DROPDOWN STYLES ===== */
+
+/* Main user profile dropdown container */
+.user-profile-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* User profile trigger button */
+.user-profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.user-profile-trigger:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* User avatar styles */
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #15803d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-avatar-large {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #15803d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* User info section */
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.user-role {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Dropdown arrow */
+.dropdown-arrow {
+  color: #ffffff;
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.dropdown-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+/* User dropdown menu */
+.user-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 280px;
+  margin-top: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+.user-dropdown-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Dropdown header */
+.dropdown-header {
+  padding: 20px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-name-large {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.user-email {
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* Dropdown actions */
+.dropdown-actions {
+  padding: 8px;
+}
+
+.dropdown-action-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.dropdown-action-btn:hover {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+.dropdown-action-btn.logout {
+  color: #dc2626;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 8px;
+  padding-top: 16px;
+}
+
+.dropdown-action-btn.logout:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.dropdown-action-btn i {
+  width: 16px;
+  text-align: center;
 }
 
 .user-avatar-initials {

@@ -10,6 +10,7 @@ import FPOList from '../components/FPOList';
 import FPOCreationForm from '../components/FPOCreationForm';
 import FPOBoardMembers from '../components/FPOBoardMembers';
 import FPOFarmServicesModal from '../components/FPOFarmServicesModal';
+import FPOServices from '../components/FPOServices';
 import FPOCrops from '../components/FPOCrops';
 import FPOTurnover from '../components/FPOTurnover';
 import FPOProducts from '../components/FPOProducts';
@@ -155,12 +156,7 @@ const FPODashboard = ({ initialTab = 'overview', fpoId: propFpoId }) => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 24 }}>
                 <div>
                   <h3>Farm Services</h3>
-                  <button 
-                    className="btn btn-primary"
-                    onClick={() => setShowFarmServicesModal(true)}
-                  >
-                    + Create Farm Service
-                  </button>
+                  <FPOServices fpoId={selectedFPO.id} />
                 </div>
                 <div>
                   <h3>Turnovers</h3>
@@ -227,9 +223,7 @@ const FPODashboard = ({ initialTab = 'overview', fpoId: propFpoId }) => {
                 + Create Farm Service
               </button>
             </div>
-            <div className="services-info">
-              <p>Manage farm services for this FPO. Click the button above to create, edit, or manage services.</p>
-            </div>
+            <FPOServices fpoId={selectedFPO.id} showDebugButton={true} />
           </div>
         ) : (
           <div className="no-selection">
@@ -279,7 +273,7 @@ const FPODashboard = ({ initialTab = 'overview', fpoId: propFpoId }) => {
   };
 
   return (
-    <div className="dashboard">
+    <div className="dashboard fpo-dashboard-container">
       <header className="dashboard-header">
         <div className="header-left">
           <h1>FPO Management Dashboard</h1>

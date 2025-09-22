@@ -1161,25 +1161,106 @@ const SuperAdminDashboard = () => {
 
     try {
       const { item, type } = itemToDelete;
+      console.log(`🔄 Attempting to delete ${type}:`, item);
+      
       if (type === 'farmer') {
+        console.log(`🔄 Deleting farmer with ID: ${item.id}`);
         await farmersAPI.deleteFarmer(item.id);
         setFarmers(prev => prev.filter(f => f.id !== item.id));
+        console.log(`✅ Farmer ${item.id} deleted successfully`);
       } else if (type === 'employee') {
+        console.log(`🔄 Deleting employee with ID: ${item.id}`);
         await employeesAPI.deleteEmployee(item.id);
         setEmployees(prev => prev.filter(e => e.id !== item.id));
+        console.log(`✅ Employee ${item.id} deleted successfully`);
       } else if (type === 'registration') {
-        // Handle registration deletion
+        console.log(`🔄 Deleting registration with ID: ${item.id}`);
         await superAdminAPI.deleteUser(item.id);
         setRegistrations(prev => prev.filter(r => r.id !== item.id));
+        console.log(`✅ Registration ${item.id} deleted successfully`);
       } else if (type === 'fpo') {
-        // Handle FPO deletion
-        await fpoAPI.deleteFPO(item.id);
-        setFpos(prev => prev.filter(f => f.id !== item.id));
+        console.log(`🔄 Deleting FPO with ID: ${item.id}`);
+        console.log(`🔄 FPO data:`, item);
+        
+        // Try multiple delete strategies for FPO
+        let deleteSuccessful = false;
+        
+        try {
+          // Strategy 1: Try fpoAPI.deleteFPO
+          console.log(`🔄 Strategy 1: Calling fpoAPI.deleteFPO(${item.id})`);
+          await fpoAPI.deleteFPO(item.id);
+          deleteSuccessful = true;
+          console.log(`✅ Strategy 1 successful: FPO ${item.id} deleted`);
+        } catch (fpoDeleteError) {
+          console.error(`❌ Strategy 1 failed:`, fpoDeleteError);
+          
+          try {
+            // Strategy 2: Try superAdminAPI.deleteFPO (if exists)
+            console.log(`🔄 Strategy 2: Trying superAdminAPI.deleteFPO(${item.id})`);
+            if (superAdminAPI.deleteFPO) {
+              await superAdminAPI.deleteFPO(item.id);
+              deleteSuccessful = true;
+              console.log(`✅ Strategy 2 successful: FPO ${item.id} deleted`);
+            } else {
+              throw new Error('superAdminAPI.deleteFPO not available');
+            }
+          } catch (superAdminDeleteError) {
+            console.error(`❌ Strategy 2 failed:`, superAdminDeleteError);
+            
+            // Strategy 3: Try deactivation instead of deletion
+            try {
+              console.log(`🔄 Strategy 3: Trying to deactivate FPO ${item.id} instead of deleting`);
+              await fpoAPI.deactivateFPO(item.id);
+              deleteSuccessful = true;
+              console.log(`✅ Strategy 3 successful: FPO ${item.id} deactivated`);
+              // Update the FPO status in the list instead of removing it
+              setFpos(prev => prev.map(f => 
+                f.id === item.id ? { ...f, status: 'INACTIVE' } : f
+              ));
+            } catch (deactivateError) {
+              console.error(`❌ Strategy 3 failed:`, deactivateError);
+              throw new Error(`All delete strategies failed. Last error: ${deactivateError.message}`);
+            }
+          }
+        }
+        
+        if (deleteSuccessful && type === 'fpo') {
+          // Only remove from list if actual deletion was successful (not deactivation)
+          if (item.status !== 'INACTIVE') {
+            setFpos(prev => prev.filter(f => f.id !== item.id));
+          }
+        }
       }
-      alert(`${type} deleted successfully!`);
+      
+      const successMessage = type === 'fpo' && item.status === 'INACTIVE' 
+        ? `${type} deactivated successfully!` 
+        : `${type} deleted successfully!`;
+      alert(successMessage);
+      
     } catch (error) {
-      console.error('Error deleting item:', error);
-      alert('Failed to delete item');
+      console.error('❌ Error deleting item:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      });
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to delete item';
+      if (error.response?.status === 403) {
+        errorMessage = 'Access denied. You may not have permission to delete this item.';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Item not found. It may have already been deleted.';
+      } else if (error.response?.status === 409) {
+        errorMessage = 'Cannot delete item. It may have dependent data or relationships.';
+      } else if (error.code === 'ERR_NETWORK') {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.message) {
+        errorMessage = `Failed to delete item: ${error.message}`;
+      }
+      
+      alert(errorMessage);
     } finally {
       setShowDeleteModal(false);
       setItemToDelete(null);

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Dashboard.css';
+import '../styles/UserProfile.css';
  
 const UserProfileDropdown = ({ variant = 'default', onShowChangePassword, onShowChangeUserId }) => {
   const { user, logout } = useAuth();

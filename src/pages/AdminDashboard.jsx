@@ -2594,11 +2594,15 @@ const AdminDashboard = () => {
                     <FPOEditForm
                       fpo={editingFPO}
                       onCancel={() => { setEditingFPO(null); setShowFPOCreationForm(false); }}
-                      onSave={(updatedFPO) => {
+                      onUpdated={(updatedFPO) => {
+                        console.log('FPO updated successfully:', updatedFPO);
                         setFpos(prev => prev.map(fpo => fpo.id === updatedFPO.id ? updatedFPO : fpo));
                         setEditingFPO(null);
                         setShowFPOCreationForm(false);
+                        setToast({ type: 'success', message: 'FPO updated successfully!' });
+                        setTimeout(() => setToast(null), 3000);
                       }}
+                      onClose={() => { setEditingFPO(null); setShowFPOCreationForm(false); }}
                     />
                   ) : (
                   <FPOCreationForm
