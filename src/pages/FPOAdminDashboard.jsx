@@ -255,24 +255,6 @@ const FPOAdminDashboard = () => {
     }
   };
 
-  const handleEmployeeCreatedInline = async (formData) => {
-    try {
-      // Use FPO-specific employee creation API to ensure employee is linked to this FPO
-      await fpoAPI.createFPOEmployee(fpoId, {
-        firstName: formData?.firstName || formData?.name || '',
-        lastName: formData?.lastName || '',
-        email: formData?.email,
-        phoneNumber: formData?.phoneNumber || formData?.mobileNumber
-      });
-      setShowInlineEmployeeCreate(false);
-      setView('employees');
-      await loadEmployees();
-      alert('FPO employee created successfully');
-    } catch (e) {
-      console.error('Failed to create FPO employee:', e);
-      alert(e.response?.data?.message || e.response?.data?.error || 'Failed to create FPO employee');
-    }
-  };
 
   if (loading) {
     return (
@@ -378,19 +360,21 @@ const FPOAdminDashboard = () => {
 
       {/* Main Content */}
       <div className="dashboard-main">
-        <div className="welcome-section">
-          <h1 className="welcome-title">
-            {getGreeting()}, {user?.name || 'FPO Admin'}! 👋
-          </h1>
-          <p className="welcome-subtitle">
-            Welcome to your FPO Admin Dashboard. Manage farmers and employees for <strong>{fpoName}</strong> (ID: {fpoCode}).
-          </p>
-        </div>
+        {view === 'overview' && (
+          <div className="welcome-section">
+            <h1 className="welcome-title">
+              {getGreeting()}, {user?.name || 'FPO Admin'}! 👋
+            </h1>
+            <p className="welcome-subtitle">
+              Welcome to your FPO Admin Dashboard. Manage farmers and employees for <strong>{fpoName}</strong> (ID: {fpoCode}).
+            </p>
+          </div>
+        )}
 
         {view === 'overview' && (
         <div className="stats-grid">
           <div className="stats-card">
-            <div className="stats-icon">
+            <div className="stats-icon farmers">
               <i className="fas fa-users"></i>
             </div>
             <div className="stats-content">
@@ -401,7 +385,7 @@ const FPOAdminDashboard = () => {
           </div>
           
           <div className="stats-card">
-            <div className="stats-icon">
+            <div className="stats-icon employees">
               <i className="fas fa-user-tie"></i>
             </div>
             <div className="stats-content">
@@ -412,7 +396,7 @@ const FPOAdminDashboard = () => {
           </div>
           
           <div className="stats-card">
-            <div className="stats-icon">
+            <div className="stats-icon fpo">
               <i className="fas fa-building"></i>
             </div>
             <div className="stats-content">
@@ -426,9 +410,9 @@ const FPOAdminDashboard = () => {
 
         {view === 'overview' && (
         <div className="content-grid">
-          <div className="content-card">
+          <div className="content-card farmers-card">
             <div className="card-header">
-              <div className="card-icon">
+              <div className="card-icon farmers-icon">
                 <i className="fas fa-users"></i>
               </div>
               <div className="card-title">
@@ -448,9 +432,9 @@ const FPOAdminDashboard = () => {
             </div>
           </div>
 
-          <div className="content-card">
+          <div className="content-card employees-card">
             <div className="card-header">
-              <div className="card-icon">
+              <div className="card-icon employees-icon">
                 <i className="fas fa-user-tie"></i>
               </div>
               <div className="card-title">
@@ -472,7 +456,7 @@ const FPOAdminDashboard = () => {
         </div>
         )}
 
-        {view === 'farmers' && (
+        {view === 'farmers' && !showInlineFarmerCreate && (
           <section className="panel" style={{ marginTop: 12, width: '100%', maxWidth: 'none', padding: '24px' }}>
             <div style={{ 
               display: 'flex', 
@@ -609,7 +593,91 @@ const FPOAdminDashboard = () => {
           </section>
         )}
 
-        {view === 'employees' && (
+        {view === 'farmers' && showInlineFarmerCreate && (
+          <section className="panel" style={{ marginTop: 12, width: '100%', maxWidth: 'none', padding: '24px' }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: '24px',
+              flexWrap: 'wrap',
+              gap: '16px'
+            }}>
+              <h2 style={{ marginTop: 0, fontSize: '28px', fontWeight: '700', color: '#1e293b' }}>Create Farmer</h2>
+              <div style={{ 
+                display: 'flex', 
+                gap: '12px',
+                flexWrap: 'wrap',
+                alignItems: 'center'
+              }}>
+                <button 
+                  className="btn" 
+                  onClick={() => setShowInlineFarmerCreate(false)}
+                  style={{
+                    padding: '12px 20px',
+                    borderRadius: '12px',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    background: 'white',
+                    border: '2px solid #e5e7eb',
+                    color: '#374151',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  ← Back to Farmers
+                </button>
+                <button 
+                  className="close-btn" 
+                  onClick={() => setShowInlineFarmerCreate(false)}
+                  style={{
+                    background: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = '#dc2626';
+                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#ef4444';
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.3)';
+                  }}
+                  title="Close"
+                >
+                  <i className="fas fa-times" style={{ fontSize: '14px' }}></i>
+                </button>
+              </div>
+            </div>
+            <div style={{ 
+              background: 'white', 
+              borderRadius: '16px', 
+              overflow: 'hidden',
+              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.08)',
+              border: '1px solid #e2e8f0'
+            }}>
+              <FarmerRegistrationForm
+                isInDashboard
+                onClose={() => setShowInlineFarmerCreate(false)}
+                onSubmit={handleFarmerCreatedInline}
+              />
+            </div>
+          </section>
+        )}
+
+        {view === 'employees' && !showInlineEmployeeCreate && (
           <section className="panel" style={{ marginTop: 12, width: '100%', maxWidth: 'none', padding: '24px' }}>
             <div style={{ 
               display: 'flex', 
@@ -662,7 +730,7 @@ const FPOAdminDashboard = () => {
                 </button>
                 <button 
                   className="btn primary" 
-                  onClick={() => navigate(`/register-employee`, { state: { role: 'EMPLOYEE', fpoId } })}
+                  onClick={() => setShowInlineEmployeeCreate(true)}
                   style={{
                     padding: '12px 20px',
                     borderRadius: '12px',
@@ -796,6 +864,103 @@ const FPOAdminDashboard = () => {
                   )}
                 </tbody>
               </table>
+            </div>
+          </section>
+        )}
+
+        {view === 'employees' && showInlineEmployeeCreate && (
+          <section className="panel" style={{ marginTop: 12, width: '100%', maxWidth: 'none', padding: '24px' }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: '24px',
+              flexWrap: 'wrap',
+              gap: '16px'
+            }}>
+              <h2 style={{ marginTop: 0, fontSize: '28px', fontWeight: '700', color: '#1e293b' }}>Create Employee</h2>
+              <div style={{ 
+                display: 'flex', 
+                gap: '12px',
+                flexWrap: 'wrap',
+                alignItems: 'center'
+              }}>
+                <button 
+                  className="btn" 
+                  onClick={() => setShowInlineEmployeeCreate(false)}
+                  style={{
+                    padding: '12px 20px',
+                    borderRadius: '12px',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    background: 'white',
+                    border: '2px solid #e5e7eb',
+                    color: '#374151',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  ← Back to Employees
+                </button>
+                <button 
+                  className="close-btn" 
+                  onClick={() => setShowInlineEmployeeCreate(false)}
+                  style={{
+                    background: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = '#dc2626';
+                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#ef4444';
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.3)';
+                  }}
+                  title="Close"
+                >
+                  <i className="fas fa-times" style={{ fontSize: '14px' }}></i>
+                </button>
+              </div>
+            </div>
+            <div style={{ 
+              background: 'white', 
+              borderRadius: '16px', 
+              overflow: 'hidden',
+              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.08)',
+              border: '1px solid #e2e8f0'
+            }}>
+              <EmployeeRegistrationForm
+                isInDashboard
+                fpoId={fpoId}
+                onClose={() => setShowInlineEmployeeCreate(false)}
+                onSubmit={async (formData) => {
+                  try {
+                    // Use FPO-specific employee creation API
+                    await fpoUsersAPI.createFPOEmployee(fpoId, formData);
+                    setShowInlineEmployeeCreate(false);
+                    setView('employees');
+                    await loadEmployees();
+                    alert('FPO employee created successfully');
+                  } catch (e) {
+                    console.error('Failed to create FPO employee:', e);
+                    alert(e.response?.data?.message || e.response?.data?.error || 'Failed to create FPO employee');
+                  }
+                }}
+              />
             </div>
           </section>
         )}
@@ -953,40 +1118,7 @@ const FPOAdminDashboard = () => {
 
       {/* FPO Modals */}
 
-      {showInlineFarmerCreate && (
-        <div className="form-modal-overlay">
-          <div className="form-modal-content" style={{ width: '90%', maxWidth: 1100 }}>
-            <div className="form-modal-header">
-              <h3>Create Farmer</h3>
-              <button className="close-btn" onClick={() => setShowInlineFarmerCreate(false)}>×</button>
-            </div>
-            <div className="form-modal-body">
-              <FarmerRegistrationForm
-                isInDashboard
-                onClose={() => setShowInlineFarmerCreate(false)}
-                onSubmit={handleFarmerCreatedInline}
-              />
-            </div>
-          </div>
-        </div>
-      )}
 
-      {showInlineEmployeeCreate && (
-        <div className="form-modal-overlay">
-          <div className="form-modal-content" style={{ width: '90%', maxWidth: 900 }}>
-            <div className="form-modal-header">
-              <h3>Create Employee</h3>
-              <button className="close-btn" onClick={() => setShowInlineEmployeeCreate(false)}>×</button>
-            </div>
-            <div className="form-modal-body">
-              <EmployeeRegistrationForm
-                isInDashboard
-                onSubmit={handleEmployeeCreatedInline}
-              />
-            </div>
-          </div>
-        </div>
-      )}
       {showFPOEditModal && selectedFPO && (
         <FPOEditModal
           fpo={selectedFPO}

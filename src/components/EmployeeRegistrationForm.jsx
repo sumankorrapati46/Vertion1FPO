@@ -12,38 +12,6 @@ const EmployeeRegistrationForm = ({ isInDashboard = false, editData = null, onCl
 
   const totalSteps = 8;
 
-  // Mock data for dropdowns
-  const states = [
-    { id: 1, name: 'Andhra Pradesh' },
-    { id: 2, name: 'Telangana' },
-    { id: 3, name: 'Karnataka' },
-    { id: 4, name: 'Tamil Nadu' },
-    { id: 5, name: 'Kerala' }
-  ];
-
-  const districts = [
-    { id: 1, name: 'Hyderabad' },
-    { id: 2, name: 'Rangareddy' },
-    { id: 3, name: 'Medak' },
-    { id: 4, name: 'Nizamabad' },
-    { id: 5, name: 'Adilabad' }
-  ];
-
-  const blocks = [
-    { id: 1, name: 'Madhapur' },
-    { id: 2, name: 'Gachibowli' },
-    { id: 3, name: 'Kondapur' },
-    { id: 4, name: 'Hitech City' },
-    { id: 5, name: 'Jubilee Hills' }
-  ];
-
-  const villages = [
-    { id: 1, name: 'Village 1' },
-    { id: 2, name: 'Village 2' },
-    { id: 3, name: 'Village 3' },
-    { id: 4, name: 'Village 4' },
-    { id: 5, name: 'Village 5' }
-  ];
 
   const methods = useForm({
     defaultValues: {
@@ -143,6 +111,58 @@ const EmployeeRegistrationForm = ({ isInDashboard = false, editData = null, onCl
   return (
     <div className={isInDashboard ? "employee-wrapper dashboard-mode" : "employee-wrapper"}>
       <div className="form-full">
+        {/* Form Header with Close Button */}
+        <div className="form-header" style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '20px',
+          padding: '0 20px'
+        }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600', color: '#1a202c' }}>
+              {editData ? 'Edit Employee' : 'Add New Employee'}
+            </h2>
+            <p style={{ margin: '5px 0 0 0', color: '#64748b', fontSize: '0.95rem' }}>
+              {editData ? 'Update employee information' : 'Register a new employee in the system'}
+            </p>
+          </div>
+          {isInDashboard && onClose && (
+            <button 
+              className="close-btn"
+              onClick={onClose}
+              style={{
+                background: '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                width: '36px',
+                height: '36px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: '600',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = '#dc2626';
+                e.target.style.transform = 'translateY(-1px)';
+                e.target.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = '#ef4444';
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.3)';
+              }}
+              title="Close Form"
+            >
+              <i className="fas fa-times" style={{ fontSize: '14px' }}></i>
+            </button>
+          )}
+        </div>
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)} className="employee-form">
             {currentStep === 0 && (
@@ -217,107 +237,113 @@ const EmployeeRegistrationForm = ({ isInDashboard = false, editData = null, onCl
                   </div>
                 </div>
 
-                {/* 5. Last Name */}
-                <div>
-                  <label className="label">
-                    Last Name<span className="required">*</span>
-                  </label>
-                  <input
-                    className="input"
-                    placeholder="Last Name"
-                    {...register("lastName", { required: "Last Name is required" })}
-                  />
-                  {!isInDashboard && errors.lastName && <p className="error">{errors.lastName.message}</p>}
+                {/* Left Column - Name Fields */}
+                <div className="form-column-left">
+                  {/* 1. Salutation */}
+                  <div>
+                    <label className="label">
+                      Salutation<span className="required">*</span>
+                    </label>
+                    <select
+                      className="input"
+                      {...register("salutation", { required: "Salutation is required" })}
+                    >
+                      <option value="">Select</option>
+                      <option value="Mr">Mr</option>
+                      <option value="Mrs.">Mrs.</option>
+                      <option value="Ms.">Ms.</option>
+                      <option value="Miss.">Miss.</option>
+                      <option value="Dr.">Dr.</option>
+                    </select>
+                    {!isInDashboard && errors.salutation && <p className="error">{errors.salutation.message}</p>}
+                  </div>
+
+                  {/* 2. First Name */}
+                  <div>
+                    <label className="label">
+                      First Name<span className="required">*</span>
+                    </label>
+                    <input
+                      className="input"
+                      placeholder="First Name"
+                      {...register("firstName", { required: "First Name is required" })}
+                    />
+                    {!isInDashboard && errors.firstName && <p className="error">{errors.firstName.message}</p>}
+                  </div>
+
+                  {/* 3. Middle Name */}
+                  <div>
+                    <label className="label">
+                      Middle Name<span className="required">*</span>
+                    </label>
+                    <input
+                      className="input"
+                      placeholder="Middle Name"
+                      {...register("middleName", { required: "Middle Name is required" })}
+                    />
+                    {!isInDashboard && errors.middleName && <p className="error">{errors.middleName.message}</p>}
+                  </div>
+
+                  {/* 4. Last Name */}
+                  <div>
+                    <label className="label">
+                      Last Name<span className="required">*</span>
+                    </label>
+                    <input
+                      className="input"
+                      placeholder="Last Name"
+                      {...register("lastName", { required: "Last Name is required" })}
+                    />
+                    {!isInDashboard && errors.lastName && <p className="error">{errors.lastName.message}</p>}
+                  </div>
                 </div>
 
-                {/* 2. Salutation */}
-                <div>
-                  <label className="label">
-                    Salutation<span className="required">*</span>
-                  </label>
-                  <select
-                    className="input"
-                    {...register("salutation", { required: "Salutation is required" })}
-                  >
-                    <option value="">Select</option>
-                    <option value="Mr">Mr</option>
-                    <option value="Mrs.">Mrs.</option>
-                    <option value="Ms.">Ms.</option>
-                    <option value="Miss.">Miss.</option>
-                    <option value="Dr.">Dr.</option>
-                  </select>
-                  {!isInDashboard && errors.salutation && <p className="error">{errors.salutation.message}</p>}
-                </div>
+                {/* Right Column - Other Fields */}
+                <div className="form-column-right">
+                  {/* 5. Gender */}
+                  <div>
+                    <label className="label">
+                      Gender<span className="required">*</span>
+                    </label>
+                    <select
+                      className="input"
+                      {...register("gender", { required: "Gender is required" })}
+                    >
+                      <option value="">Select</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Transgender">Transgender</option>
+                    </select>
+                    {!isInDashboard && errors.gender && <p className="error">{errors.gender.message}</p>}
+                  </div>
 
-                {/* 6. Gender */}
-                <div>
-                  <label className="label">
-                    Gender<span className="required">*</span>
-                  </label>
-                  <select
-                    className="input"
-                    {...register("gender", { required: "Gender is required" })}
-                  >
-                    <option value="">Select</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Transgender">Transgender</option>
-                  </select>
-                  {!isInDashboard && errors.gender && <p className="error">{errors.gender.message}</p>}
-                </div>
+                  {/* 6. DOB */}
+                  <div>
+                    <label className="label">
+                      DOB<span className="required">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      className="input"
+                      {...register("dob", { required: "Date of Birth is required" })}
+                    />
+                    {!isInDashboard && errors.dob && <p className="error">{errors.dob.message}</p>}
+                  </div>
 
-                {/* 3. First Name */}
-                <div>
-                  <label className="label">
-                    First Name<span className="required">*</span>
-                  </label>
-                  <input
-                    className="input"
-                    placeholder="First Name"
-                    {...register("firstName", { required: "First Name is required" })}
-                  />
-                  {!isInDashboard && errors.firstName && <p className="error">{errors.firstName.message}</p>}
-                </div>
-
-                {/* 8. DOB */}
-                <div>
-                  <label className="label">
-                    DOB<span className="required">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    className="input"
-                    {...register("dob", { required: "Date of Birth is required" })}
-                  />
-                  {!isInDashboard && errors.dob && <p className="error">{errors.dob.message}</p>}
-                </div>
-
-                {/* 4. Middle Name */}
-                <div>
-                  <label className="label">
-                    Middle Name<span className="required">*</span>
-                  </label>
-                  <input
-                    className="input"
-                    placeholder="Middle Name"
-                    {...register("middleName", { required: "Middle Name is required" })}
-                  />
-                  {!isInDashboard && errors.middleName && <p className="error">{errors.middleName.message}</p>}
-                </div>
-
-                {/* 7. Nationality */}
-                <div>
-                  <label className="label">
-                    Nationality<span className="required">*</span>
-                  </label>
-                  <select
-                    className="input"
-                    {...register("nationality", { required: "Nationality is required" })}
-                  >
-                    <option value="">Select</option>
-                    <option value="Indian">Indian</option>
-                  </select>
-                  {!isInDashboard && errors.nationality && <p className="error">{errors.nationality.message}</p>}
+                  {/* 7. Nationality */}
+                  <div>
+                    <label className="label">
+                      Nationality<span className="required">*</span>
+                    </label>
+                    <select
+                      className="input"
+                      {...register("nationality", { required: "Nationality is required" })}
+                    >
+                      <option value="">Select</option>
+                      <option value="Indian">Indian</option>
+                    </select>
+                    {!isInDashboard && errors.nationality && <p className="error">{errors.nationality.message}</p>}
+                  </div>
                 </div>
               </div>
             )}
@@ -443,16 +469,12 @@ const EmployeeRegistrationForm = ({ isInDashboard = false, editData = null, onCl
                   <label className="label">
                     Country <span className="required">*</span>
                   </label>
-                  <select
+                  <input
+                    type="text"
                     className="input"
+                    placeholder="Enter Country"
                     {...register("country", { required: "Country is required" })}
-                  >
-                    <option value="">Select Country</option>
-                    <option value="India">India</option>
-                    <option value="USA">USA</option>
-                    <option value="UK">UK</option>
-                    <option value="Canada">Canada</option>
-                  </select>
+                  />
                   {!isInDashboard && errors.country && (
                     <p className="error">{errors.country?.message}</p>
                   )}
@@ -460,54 +482,46 @@ const EmployeeRegistrationForm = ({ isInDashboard = false, editData = null, onCl
 
                 <div>
                   <label className="label">State <span className="required">*</span></label>
-                  <select {...register("state")} className="input">
-                    <option value="">Select State</option>
-                    {states.map((state) => (
-                      <option key={state.id} value={state.name}>
-                        {state.name}
-                      </option>
-                    ))}
-                  </select>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Enter State"
+                    {...register("state", { required: "State is required" })}
+                  />
                   {!isInDashboard && <p className="error">{errors.state?.message}</p>}
                 </div>
 
                 <div>
                   <label className="label">District <span className="required">*</span></label>
-                  <select {...register("district")} className="input">
-                    <option value="">Select District</option>
-                    {districts.map((district) => (
-                      <option key={district.id} value={district.name}>
-                        {district.name}
-                      </option>
-                    ))}
-                  </select>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Enter District"
+                    {...register("district", { required: "District is required" })}
+                  />
                   {!isInDashboard && <p className="error">{errors.district?.message}</p>}
                 </div>
 
                 <div>
                   <label className="label">Block (mandal) <span className="required">*</span></label>
-                  <select {...register("block")} className="input">
-                    <option value="">Select Block</option>
-                    {blocks.map((block) => (
-                      <option key={block.id} value={block.name}>
-                        {block.name}
-                      </option>
-                    ))}
-                  </select>
-                                     {!isInDashboard && <p className="error">{errors.block?.message}</p>}
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Enter Block"
+                    {...register("block", { required: "Block is required" })}
+                  />
+                  {!isInDashboard && <p className="error">{errors.block?.message}</p>}
                 </div>
 
                 <div>
                   <label className="label">Village <span className="required">*</span></label>
-                  <select {...register("village")} className="input">
-                    <option value="">Select Village</option>
-                    {villages.map((village) => (
-                      <option key={village.id} value={village.name}>
-                        {village.name}
-                      </option>
-                    ))}
-                  </select>
-                                     {!isInDashboard && <p className="error">{errors.village?.message}</p>}
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Enter Village"
+                    {...register("village", { required: "Village is required" })}
+                  />
+                  {!isInDashboard && <p className="error">{errors.village?.message}</p>}
                 </div>
 
                 <div>
@@ -516,9 +530,9 @@ const EmployeeRegistrationForm = ({ isInDashboard = false, editData = null, onCl
                     type="text"
                     placeholder="56xxxx"
                     className="input"
-                    {...register("zipcode")}
+                    {...register("zipcode", { required: "Zipcode is required" })}
                   />
-                                     {!isInDashboard && <p className="error">{errors.zipcode?.message}</p>}
+                  {!isInDashboard && <p className="error">{errors.zipcode?.message}</p>}
                 </div>
               </div>
             )}
@@ -733,7 +747,6 @@ const EmployeeRegistrationForm = ({ isInDashboard = false, editData = null, onCl
                   </label>
                   <select className="input" {...register("role", { required: true })}>
                     <option value="">Select</option>
-                    <option value="manager">Manager</option>
                     <option value="employee">Employee</option>
                   </select>
                                      {!isInDashboard && errors.role && (

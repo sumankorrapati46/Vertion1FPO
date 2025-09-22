@@ -57,6 +57,9 @@ const EmployeeDashboard = () => {
   const [userPhoto, setUserPhoto] = useState(null);
   const fileInputRef = useRef(null);
   
+  // User dropdown state
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  
   // FPO States
   const [fpos, setFpos] = useState([]);
   const [showFPOCreationForm, setShowFPOCreationForm] = useState(false);
@@ -120,6 +123,29 @@ const EmployeeDashboard = () => {
   };
   const handlePhotoClick = () => { if (fileInputRef.current) fileInputRef.current.click(); };
   const handleRemovePhoto = () => { setUserPhoto(null); try { localStorage.removeItem('userProfilePhoto:EMPLOYEE'); } catch {} };
+  
+  // User dropdown functions
+  const toggleUserDropdown = () => setShowUserDropdown(!showUserDropdown);
+  const handleChangePassword = () => {
+    setShowUserDropdown(false);
+    window.location.href = '/change-password';
+  };
+  const handleLogout = () => {
+    setShowUserDropdown(false);
+    logout();
+    window.location.href = '/login';
+  };
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showUserDropdown && !event.target.closest('.user-profile-dropdown')) {
+        setShowUserDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showUserDropdown]);
 
   // Load employee ID Card number once we know the entity id
   useEffect(() => {
@@ -484,9 +510,6 @@ const EmployeeDashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-  };
 
   const API_BASE = process.env.REACT_APP_API_URL || api.defaults.baseURL || 'http://localhost:8080/api';
 
@@ -2142,42 +2165,11 @@ const EmployeeDashboard = () => {
           </div>
         </div>
         <div className="header-right">
-          {/* Simple working user profile dropdown */}
-          <div style={{ position: 'relative', display: 'inline-block' }}>
-            <button 
-              style={{
-                background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
-                color: 'white',
-                padding: '12px 18px',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '14px',
-                fontWeight: '700',
-                fontSize: '15px'
-              }}
-              onClick={() => {
-                const dropdown = document.getElementById('simple-dropdown');
-                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-              }}
-            >
-              <div style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '50%',
-                overflow: 'hidden',
-                border: '2px solid rgba(255, 255, 255, 0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'rgba(255, 255, 255, 0.2)',
-                position: 'relative',
-                cursor: 'pointer'
-              }} onClick={(e) => { e.stopPropagation(); handlePhotoClick(); }}>
+          <div className="user-profile-dropdown">
+            <div className="user-profile-trigger" onClick={toggleUserDropdown}>
+              <div className="user-avatar user-avatar-with-upload" onClick={(e) => { e.stopPropagation(); handlePhotoClick(); }}>
                 {userPhoto ? (
-                  <img src={userPhoto} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={userPhoto} alt="Profile" className="user-avatar-photo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                 ) : (() => {
                   let resolvedPhoto = employeePhoto;
                   try {
@@ -2192,153 +2184,81 @@ const EmployeeDashboard = () => {
                     <img
                       src={`http://localhost:8080/uploads/photos/${resolvedPhoto}`}
                       alt="avatar"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
                       onError={(e) => { e.currentTarget.style.display = 'none'; }}
                     />
                   ) : (
-                    <span style={{ fontWeight: 700, fontSize: 18, color: 'white' }}>{user?.name?.charAt(0) || 'U'}</span>
+                    <div className="user-avatar-initials">{user?.name?.charAt(0) || 'U'}</div>
                   );
                 })()}
-                <div className="avatar-upload-overlay" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.0)' }}>
-                  <i className="fas fa-camera" style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}></i>
-                </div>
+                <div className="avatar-upload-overlay"><i className="fas fa-camera"></i></div>
               </div>
-              <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
-                <span style={{fontSize: 16}}>{user?.name || 'User'}</span>
-                {(() => {
-                  try {
-                    const cache = localStorage.getItem('employeeUniqueIds');
-                    const cachedId = cache ? JSON.parse(cache)[String(employeeId)] : null;
-                    const idToShow = cachedId || employeeCardId;
-                    return idToShow ? (
-                      <span style={{fontSize: '13px', fontWeight: 600, opacity: 0.95}}>ID: {idToShow}</span>
-                    ) : null;
-                  } catch (_) {
-                    return employeeCardId ? (
-                      <span style={{fontSize: '13px', fontWeight: 600, opacity: 0.95}}>ID: {employeeCardId}</span>
-                    ) : null;
-                  }
-                })()}
-              </div>
-              <i className="fas fa-chevron-down"></i>
-            </button>
-            
-            <div 
-              id="simple-dropdown"
-              style={{
-                position: 'absolute',
-                top: '100%',
-                right: '0',
-                width: '280px',
-                background: 'white',
-                border: '2px solid #15803d',
-                borderRadius: '12px',
-                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-                zIndex: '9999',
-                marginTop: '8px',
-                display: 'none'
-              }}
-            >
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '16px',
-                borderBottom: '1px solid #e5e7eb'
-              }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', background: '#15803d', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={handlePhotoClick}>
+              <span className="user-email">{user?.email || 'employee@example.com'}</span>
+              <i className={`fas fa-chevron-down dropdown-arrow ${showUserDropdown ? 'rotated' : ''}`}></i>
+            </div>
+            <div className={`user-dropdown-menu ${showUserDropdown ? 'show' : ''}`}>
+              <div className="dropdown-header">
+                <div className="user-avatar-large user-avatar-with-upload" onClick={handlePhotoClick}>
                   {userPhoto ? (
-                    <img src={userPhoto} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <span style={{ fontWeight: 'bold', fontSize: '20px', color: 'white' }}>{user?.name?.charAt(0) || 'U'}</span>
-                  )}
+                    <img src={userPhoto} alt="Profile" className="user-avatar-photo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                  ) : (() => {
+                    let resolvedPhoto = employeePhoto;
+                    try {
+                      if (!resolvedPhoto && typeof window !== 'undefined') {
+                        const cached = JSON.parse(localStorage.getItem('employeeProfile') || '{}');
+                        resolvedPhoto = cached.photoFileName || localStorage.getItem('employeePhotoFileName') || user?.photoFileName;
+                      }
+                    } catch (_) {
+                      resolvedPhoto = employeePhoto || user?.photoFileName;
+                    }
+                    return resolvedPhoto ? (
+                      <img
+                        src={`http://localhost:8080/uploads/photos/${resolvedPhoto}`}
+                        alt="avatar"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="user-avatar-initials">{user?.name?.charAt(0) || 'U'}</div>
+                    );
+                  })()}
+                  <div className="avatar-upload-overlay"><i className="fas fa-camera"></i></div>
                 </div>
-                <div>
-                  <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#1f2937' }}>
-                    {user?.name || 'User'}
-                  </div>
-                  <div style={{ fontSize: '14px', color: '#6b7280' }}>
-                    {user?.email || 'user@example.com'}
-                  </div>
+                <div className="user-details">
+                  <div className="user-name-large">{user?.name || 'Employee'}</div>
+                  <div className="user-email">{user?.email || 'employee@example.com'}</div>
+                  {(() => {
+                    try {
+                      const cache = localStorage.getItem('employeeUniqueIds');
+                      const cachedId = cache ? JSON.parse(cache)[String(employeeId)] : null;
+                      const idToShow = cachedId || employeeCardId;
+                      return idToShow ? (
+                        <div className="user-email" style={{ fontWeight: 700 }}>ID: {idToShow}</div>
+                      ) : null;
+                    } catch (_) {
+                      return employeeCardId ? (
+                        <div className="user-email" style={{ fontWeight: 700 }}>ID: {employeeCardId}</div>
+                      ) : null;
+                    }
+                  })()}
                 </div>
               </div>
-              <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <button 
-                  onClick={handlePhotoClick}
-                  style={{
-                    background: '#f8fafc',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontSize: '14px',
-                    color: '#374151'
-                  }}
-                >
-                  <i className="fas fa-camera" style={{ color: '#15803d' }}></i>
+              <div className="dropdown-actions">
+                <button className="dropdown-action-btn" onClick={handlePhotoClick}>
+                  <i className="fas fa-camera"></i>
                   {userPhoto ? 'Change Photo' : 'Upload Photo'}
                 </button>
                 {userPhoto && (
-                  <button 
-                    onClick={handleRemovePhoto}
-                    style={{
-                      background: '#fff7ed',
-                      border: '1px solid #fed7aa',
-                      borderRadius: '8px',
-                      padding: '12px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontSize: '14px',
-                      color: '#9a3412'
-                    }}
-                  >
+                  <button className="dropdown-action-btn" onClick={handleRemovePhoto}>
                     <i className="fas fa-trash"></i>
                     Remove Photo
                   </button>
                 )}
-                <button 
-                  onClick={() => {
-                    window.location.href = '/change-password-dashboard';
-                  }}
-                  style={{
-                    background: '#f8fafc',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontSize: '14px',
-                    color: '#374151'
-                  }}
-                >
-                  <i className="fas fa-key" style={{ color: '#15803d' }}></i>
+                <button className="dropdown-action-btn" onClick={handleChangePassword}>
+                  <i className="fas fa-key"></i>
                   Change Password
                 </button>
-                <button 
-                  onClick={() => {
-                    logout();
-                    window.location.href = '/login';
-                  }}
-                  style={{
-                    background: '#fef2f2',
-                    border: '1px solid #fecaca',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontSize: '14px',
-                    color: '#dc2626'
-                  }}
-                >
+                <button className="dropdown-action-btn logout" onClick={handleLogout}>
                   <i className="fas fa-sign-out-alt"></i>
                   Logout
                 </button>

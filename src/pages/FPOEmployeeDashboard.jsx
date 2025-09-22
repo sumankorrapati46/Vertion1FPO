@@ -16,7 +16,6 @@ const FPOEmployeeDashboard = () => {
   const [error, setError] = useState('');
   const [fpo, setFpo] = useState(null);
   const [farmers, setFarmers] = useState([]);
-  const [view, setView] = useState('farmers'); // only farmers in FPO employee dashboard
   const [showCreateFarmer, setShowCreateFarmer] = useState(false);
   const [showKycModal, setShowKycModal] = useState(false);
   const [selectedFarmer, setSelectedFarmer] = useState(null);
@@ -187,10 +186,6 @@ const FPOEmployeeDashboard = () => {
           <div className="sidebar-role">FPO Employee</div>
         </div>
         <div className="sidebar-nav">
-          <div className={`nav-item ${view === 'farmers' ? 'active' : ''}`} onClick={() => setView('farmers')}>
-            <i className="fas fa-users" />
-            <span>Farmers</span>
-          </div>
           <div className={`nav-item ${tab === 'pending' ? 'active' : ''}`} onClick={() => setTab('pending')}>
             <i className="fas fa-user-clock" />
             <span>Pending KYC</span>
@@ -207,12 +202,14 @@ const FPOEmployeeDashboard = () => {
       </div>
 
       <div className="dashboard-main">
-        <div className="welcome-section">
-          <h1 className="welcome-title">{fpo?.fpoName || 'FPO'} — Employee</h1>
-          <p className="welcome-subtitle">Manage KYC for farmers under this FPO.</p>
-        </div>
+        {!showCreateFarmer && (
+          <>
+            <div className="welcome-section">
+              <h1 className="welcome-title">{fpo?.fpoName || 'FPO'} — Employee</h1>
+              <p className="welcome-subtitle">Manage KYC for farmers under this FPO.</p>
+            </div>
 
-        <div className="stats-grid">
+            <div className="stats-grid">
           <div className="stats-card">
             <div className="stats-icon"><i className="fas fa-users" /></div>
             <div className="stats-content">
@@ -234,9 +231,11 @@ const FPOEmployeeDashboard = () => {
               <div className="stats-label">Pending KYC</div>
             </div>
           </div>
-        </div>
+            </div>
+          </>
+        )}
 
-        {view === 'farmers' && (
+        {!showCreateFarmer && (
         <section className="panel" style={{ marginTop: 12 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ marginTop: 0 }}>Farmers</h2>
@@ -313,71 +312,137 @@ const FPOEmployeeDashboard = () => {
         )}
 
         {showCreateFarmer && (
-          <div className="form-modal-overlay">
-            <div className="form-modal-content" style={{ width: '90%', maxWidth: 1100 }}>
-              <div className="form-modal-header">
-                <h3>Create Farmer</h3>
-                <button className="close-btn" onClick={() => setShowCreateFarmer(false)}>×</button>
-              </div>
-              <div className="form-modal-body">
-                <FarmerRegistrationForm 
-                  isInDashboard
-                  onClose={() => setShowCreateFarmer(false)}
-                  onSubmit={async (formData) => {
-                    setShowCreateFarmer(false);
-                    // reload farmers after slight delay
-                    setTimeout(async () => {
-                      try {
-                        // Use FPO-specific farmer creation API to ensure farmer is linked to this FPO
-                        const created = await fpoAPI.createFPOFarmer(employeeFpoId, formData);
-                        // Assign farmer to this employee so KYC approve endpoint authorizes
-                        try {
-                          const me = user?.email;
-                          // Use admin endpoint to assign by ids if available
-                          const employeeId = user?.id || user?.employeeId;
-                          if (employeeId && (created?.id || created?.farmerId)) {
-                            // Fallback assignment via admin endpoint
-                            await (await import('../api/apiService')).adminAPI?.assignFarmerToEmployee?.(created.id || created.farmerId, employeeId);
-                          }
-                        } catch (assignErr) { console.warn('Assignment skipped', assignErr); }
-                        // Link farmer as FPO member so it appears in this dashboard
-                        try {
-                          await fpoAPI.addMemberToFPO(employeeFpoId, { memberType: 'FARMER', farmerId: created?.id || created?.farmerId || created?.farmer?.id });
-                        } catch (linkErr) {
-                          console.warn('Failed to link farmer as FPO member', linkErr);
-                        }
-                        const members = await fpoAPI.getFPOMembers(employeeFpoId);
-                        const base = (members || []).map((m, idx) => ({
-                          id: m.id || idx + 1,
-                          memberId: m.id,
-                          farmerId: m.farmerId,
-                          name: m.farmerName || m.name || `${m.firstName || ''} ${m.lastName || ''}`.trim(),
-                          phone: '-',
-                          email: '-',
-                          kycStatus: (m.status || 'PENDING').toUpperCase(),
-                          raw: m
-                        }));
-                        const enriched = await Promise.all(base.map(async (row) => {
-                          if (!row.farmerId) return row;
-                          try {
-                            const dto = await farmersAPI.getFarmerById(row.farmerId);
-                            return {
-                              ...row,
-                              name: dto?.firstName ? `${dto.firstName} ${dto.lastName || ''}`.trim() : (row.name || '-'),
-                              phone: dto?.contactNumber || row.phone,
-                              email: dto?.email || row.email,
-                              kycStatus: (dto?.status || row.kycStatus || 'PENDING').toUpperCase(),
-                            };
-                          } catch { return row; }
-                        }));
-                        setFarmers(enriched);
-                      } catch {}
-                    }, 500);
+          <section className="panel" style={{ marginTop: 12 }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: '24px',
+              flexWrap: 'wrap',
+              gap: '16px'
+            }}>
+              <h2 style={{ marginTop: 0, fontSize: '28px', fontWeight: '700', color: '#1e293b' }}>Create Farmer</h2>
+              <div style={{ 
+                display: 'flex', 
+                gap: '12px',
+                flexWrap: 'wrap',
+                alignItems: 'center'
+              }}>
+                <button 
+                  className="btn" 
+                  onClick={() => setShowCreateFarmer(false)}
+                  style={{
+                    padding: '12px 20px',
+                    borderRadius: '12px',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    background: 'white',
+                    border: '2px solid #e5e7eb',
+                    color: '#374151',
+                    transition: 'all 0.2s ease'
                   }}
-                />
+                >
+                  ← Back to Farmers
+                </button>
+                <button 
+                  className="close-btn" 
+                  onClick={() => setShowCreateFarmer(false)}
+                  style={{
+                    background: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = '#dc2626';
+                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#ef4444';
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.3)';
+                  }}
+                  title="Close"
+                >
+                  <i className="fas fa-times" style={{ fontSize: '14px' }}></i>
+                </button>
               </div>
             </div>
-          </div>
+            <div style={{ 
+              background: 'white', 
+              borderRadius: '16px', 
+              overflow: 'hidden',
+              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.08)',
+              border: '1px solid #e2e8f0'
+            }}>
+              <FarmerRegistrationForm 
+                isInDashboard
+                onClose={() => setShowCreateFarmer(false)}
+                onSubmit={async (formData) => {
+                  setShowCreateFarmer(false);
+                  // reload farmers after slight delay
+                  setTimeout(async () => {
+                    try {
+                      // Use FPO-specific farmer creation API to ensure farmer is linked to this FPO
+                      const created = await fpoAPI.createFPOFarmer(employeeFpoId, formData);
+                      // Assign farmer to this employee so KYC approve endpoint authorizes
+                      try {
+                        const me = user?.email;
+                        // Use admin endpoint to assign by ids if available
+                        const employeeId = user?.id || user?.employeeId;
+                        if (employeeId && (created?.id || created?.farmerId)) {
+                          // Fallback assignment via admin endpoint
+                          await (await import('../api/apiService')).adminAPI?.assignFarmerToEmployee?.(created.id || created.farmerId, employeeId);
+                        }
+                      } catch (assignErr) { console.warn('Assignment skipped', assignErr); }
+                      // Link farmer as FPO member so it appears in this dashboard
+                      try {
+                        await fpoAPI.addMemberToFPO(employeeFpoId, { memberType: 'FARMER', farmerId: created?.id || created?.farmerId || created?.farmer?.id });
+                      } catch (linkErr) {
+                        console.warn('Failed to link farmer as FPO member', linkErr);
+                      }
+                      const members = await fpoAPI.getFPOMembers(employeeFpoId);
+                      const base = (members || []).map((m, idx) => ({
+                        id: m.id || idx + 1,
+                        memberId: m.id,
+                        farmerId: m.farmerId,
+                        name: m.farmerName || m.name || `${m.firstName || ''} ${m.lastName || ''}`.trim(),
+                        phone: '-',
+                        email: '-',
+                        kycStatus: (m.status || 'PENDING').toUpperCase(),
+                        raw: m
+                      }));
+                      const enriched = await Promise.all(base.map(async (row) => {
+                        if (!row.farmerId) return row;
+                        try {
+                          const dto = await farmersAPI.getFarmerById(row.farmerId);
+                          return {
+                            ...row,
+                            name: dto?.firstName ? `${dto.firstName} ${dto.lastName || ''}`.trim() : (row.name || '-'),
+                            phone: dto?.contactNumber || row.phone,
+                            email: dto?.email || row.email,
+                            kycStatus: (dto?.status || row.kycStatus || 'PENDING').toUpperCase(),
+                          };
+                        } catch { return row; }
+                      }));
+                      setFarmers(enriched);
+                    } catch {}
+                  }, 500);
+                }}
+              />
+            </div>
+          </section>
         )}
 
         {showKycModal && selectedFarmer && (

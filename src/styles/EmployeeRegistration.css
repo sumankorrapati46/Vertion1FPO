@@ -94,6 +94,14 @@
   gap: 20px;
 }
 
+/* Form Column Layouts */
+.form-column-left,
+.form-column-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 /* Photo Upload Section */
 .frame-photo {
   grid-column: 1 / -1;
@@ -252,6 +260,11 @@ select:focus {
   .emp-form-six,
   .emp-form-seven {
     grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .form-column-left,
+  .form-column-right {
     gap: 15px;
   }
 

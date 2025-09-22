@@ -9,7 +9,7 @@
 
 /* User profile trigger button */
 .user-profile-trigger {
-  background: rgba(255, 255, 255, 0.1);
+  background: #55833d;
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 8px 16px;
@@ -21,14 +21,15 @@
   transition: all 0.3s ease;
   font-size: 14px;
   font-weight: 500;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
 }
 
 .user-profile-trigger:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #55833d;
   border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgb(223 241 7);
 }
 
 /* User info section */
@@ -38,6 +39,7 @@
   align-items: flex-start;
   gap: 2px;
   color: #ffffff;
+  background-color: #55833d;
 }
 
 /* User name */
@@ -189,13 +191,13 @@
 
 .user-dropdown-menu .user-name-large {
   font-size: 16px;
-  font-weight: 600;
-  color: #1e293b;
+  font-weight: 800;
+  color: #82f5bf;
 }
 
 .user-dropdown-menu .user-email {
   font-size: 14px;
-  color: #64748b;
+  color: whitesmoke;
 }
 
 /* Dropdown actions */
