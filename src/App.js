@@ -47,6 +47,7 @@ function App() {
             <Route path="/register-employee" element={<RegistrationForm />} />
             <Route path="/register-farmer" element={<RegistrationForm />} />
             <Route path="/register-fpo" element={<RegistrationForm />} />
+            <Route path="/register-admin" element={<RegistrationForm />} />
             
             {/* Protected Dashboard Routes */}
             <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />

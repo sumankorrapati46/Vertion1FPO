@@ -88,6 +88,23 @@ const Login = () => {
       return;
     }
     try {
+      // Helper to validate tab vs role
+      const isRoleAllowedForTab = (normalizedRole, currentTab) => {
+        const role = (normalizedRole || '').toUpperCase();
+        switch (currentTab) {
+          case 'official':
+            return role === 'SUPER_ADMIN' || role === 'ADMIN';
+          case 'employee':
+            return role === 'EMPLOYEE';
+          case 'farmer':
+            return role === 'FARMER';
+          case 'fpo':
+            // Allow FPO Admin/Users and FPO Employees to use this tab
+            return role === 'FPO' || role === 'EMPLOYEE';
+          default:
+            return true;
+        }
+      };
       if (loginType === 'fpo') {
         // FPO user login flow
         const res = await authAPI.fpoLogin(userName, password); // userName is email per UI text
@@ -113,6 +130,8 @@ const Login = () => {
         console.log('Storing token:', res.token);
         login(user, res.token);
         
+        // FPO tab accepts both FPO users and FPO employees; skip extra guard here
+
         // If this FPO user is an Admin (from backend or username hint), go to FPO Admin Dashboard
         const adminIndicators = ['ADMIN', 'FPO_ADMIN', 'FPO-ADMIN', 'FPOADMIN', 'ADMINISTRATOR'];
         const possibleAdminFields = [res.userType, res.role, res.userRole, res.type, user.fpoUserType];
@@ -197,6 +216,13 @@ const Login = () => {
         console.log('Login - Normalized role === ADMIN:', normalizedRole === 'ADMIN');
         console.log('Login - Normalized role === SUPER_ADMIN:', normalizedRole === 'SUPER_ADMIN');
         console.log('Login - Normalized role === EMPLOYEE:', normalizedRole === 'EMPLOYEE');
+
+        // For FPO tab, allow EMPLOYEE and FPO; for other tabs enforce strict guard
+        const bypassForFpo = loginType === 'fpo' && (normalizedRole === 'FPO' || normalizedRole === 'EMPLOYEE');
+        if (!bypassForFpo && !isRoleAllowedForTab(normalizedRole, loginType)) {
+          setError('Please login using the correct tab for your role.');
+          return;
+        }
         
         if (normalizedRole === 'SUPER_ADMIN') {
           console.log('Login - Redirecting SUPER_ADMIN to /super-admin/dashboard');
@@ -265,6 +291,12 @@ const Login = () => {
           console.log('Login - Normalized role === ADMIN:', normalizedRole === 'ADMIN');
           console.log('Login - Normalized role === SUPER_ADMIN:', normalizedRole === 'SUPER_ADMIN');
           console.log('Login - Normalized role === EMPLOYEE:', normalizedRole === 'EMPLOYEE');
+
+          const bypassForFpo2 = loginType === 'fpo' && (normalizedRole === 'FPO' || normalizedRole === 'EMPLOYEE');
+          if (!bypassForFpo2 && !isRoleAllowedForTab(normalizedRole, loginType)) {
+            setError('Please login using the correct tab for your role.');
+            return;
+          }
           
           if (normalizedRole === 'SUPER_ADMIN') {
             console.log('Login - Redirecting SUPER_ADMIN to /super-admin/dashboard');
@@ -391,6 +423,12 @@ const Login = () => {
           
           const normalizedRole = role?.toUpperCase?.()?.trim?.() || '';
           console.log('Login - Fallback: Normalized role:', normalizedRole);
+
+          const bypassForFpo3 = loginType === 'fpo' && (normalizedRole === 'FPO' || normalizedRole === 'EMPLOYEE');
+          if (!bypassForFpo3 && !isRoleAllowedForTab(normalizedRole, loginType)) {
+            setError('Please login using the correct tab for your role.');
+            return;
+          }
           
           if (normalizedRole === 'SUPER_ADMIN') {
             console.log('Login - Fallback: Redirecting SUPER_ADMIN to /super-admin/dashboard');
@@ -424,6 +462,9 @@ const Login = () => {
       navigate('/register-farmer', { state: { role: 'FARMER' } });
     } else if (loginType === 'fpo') {
       navigate('/register-fpo', { state: { role: 'FPO' } });
+    } else if (loginType === 'official') {
+      // Admin registration under Official tab
+      navigate('/register-admin', { state: { role: 'ADMIN' } });
     }
   };
 
@@ -583,7 +624,7 @@ const Login = () => {
                 <button type="submit" className="auth-submit" disabled={loading}>
                   {loading ? 'Logging in...' : 'Log In'}
                 </button>
-                {(loginType === 'employee' || loginType === 'farmer' || loginType === 'fpo') && (
+                {(loginType === 'employee' || loginType === 'farmer' || loginType === 'fpo' || loginType === 'official') && (
                   <button
                     type="button"
                     className="auth-secondary"

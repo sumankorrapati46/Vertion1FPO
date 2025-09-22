@@ -10,7 +10,10 @@ import logo from '../assets/rightlogo.png';
 
 // Update Yup schema for password validation
 const schema = yup.object().shape({
-  name: yup.string().required('Name is required'),
+  name: yup
+    .string()
+    .required('Name is required')
+    .matches(/^[A-Za-z][A-Za-z .'-]*$/, 'Name must contain only letters and spaces'),
   dateOfBirth: yup
     .string()
     .required('Date of Birth is required')
@@ -50,6 +53,7 @@ const RegistrationForm = () => {
     register,
     handleSubmit,
     reset,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
@@ -61,6 +65,7 @@ const RegistrationForm = () => {
   const [otp, setOtp] = useState('');
   const [emailVerified, setEmailVerified] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
+  const [formError, setFormError] = useState('');
 
   useEffect(() => {
     if (!resendTimer) return;
@@ -162,11 +167,24 @@ const RegistrationForm = () => {
       setOtpSent(false);
       setEmailValue('');
       setOtp('');
+      setFormError('');
       
       // Don't navigate to login - user needs to wait for approval
     } catch (error) {
       console.error('Registration error:', error);
-      alert('Registration failed. Please try again.');
+      const message = error?.response?.data?.message || error?.message || 'Registration failed';
+      // Try to map server errors to specific fields
+      const lower = (message || '').toLowerCase();
+      let handled = false;
+      if (lower.includes('email')) {
+        setError('email', { type: 'server', message });
+        handled = true;
+      }
+      if (lower.includes('phone') || lower.includes('mobile')) {
+        setError('phoneNumber', { type: 'server', message });
+        handled = true;
+      }
+      if (!handled) setFormError(message);
     }
   };
 
@@ -202,6 +220,9 @@ const RegistrationForm = () => {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
+            {formError && (
+              <div className="error" style={{ marginBottom: 12 }}>{formError}</div>
+            )}
             <div className="form-grid-2">
               <div className="auth-field">
                 <label>Name <span className="required">*</span></label>
