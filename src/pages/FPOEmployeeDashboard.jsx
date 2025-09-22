@@ -54,13 +54,14 @@ const FPOEmployeeDashboard = () => {
         const enriched = await Promise.all(base.map(async (row) => {
           if (!row.farmerId) return row;
           try {
-            const dto = await farmersAPI.getFarmerById(row.farmerId);
+            // Use dashboard endpoint to get KYC status
+            const dashboardData = await farmersAPI.getFarmerDashboard(row.farmerId);
             return {
               ...row,
-              name: dto?.firstName ? `${dto.firstName} ${dto.lastName || ''}`.trim() : (row.name || '-'),
-              phone: dto?.contactNumber || row.phone,
-              email: dto?.email || row.email,
-              kycStatus: (dto?.status || row.kycStatus || 'PENDING').toUpperCase(),
+              name: dashboardData?.firstName ? `${dashboardData.firstName} ${dashboardData.lastName || ''}`.trim() : (row.name || '-'),
+              phone: dashboardData?.contactNumber || row.phone,
+              email: dashboardData?.email || row.email,
+              kycStatus: (dashboardData?.kycStatus || row.kycStatus || 'PENDING').toUpperCase(),
             };
           } catch {
             return row;
@@ -101,13 +102,14 @@ const FPOEmployeeDashboard = () => {
             const enriched = await Promise.all(base.map(async (row) => {
               if (!row.farmerId) return row;
               try {
-                const dto = await farmersAPI.getFarmerById(row.farmerId);
+                // Use dashboard endpoint to get KYC status
+                const dashboardData = await farmersAPI.getFarmerDashboard(row.farmerId);
                 return {
                   ...row,
-                  name: dto?.firstName ? `${dto.firstName} ${dto.lastName || ''}`.trim() : (row.name || '-'),
-                  phone: dto?.contactNumber || row.phone,
-                  email: dto?.email || row.email,
-                  kycStatus: (dto?.status || row.kycStatus || 'PENDING').toUpperCase(),
+                  name: dashboardData?.firstName ? `${dashboardData.firstName} ${dashboardData.lastName || ''}`.trim() : (row.name || '-'),
+                  phone: dashboardData?.contactNumber || row.phone,
+                  email: dashboardData?.email || row.email,
+                  kycStatus: (dashboardData?.kycStatus || row.kycStatus || 'PENDING').toUpperCase(),
                 };
               } catch {
                 return row;

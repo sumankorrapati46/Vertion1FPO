@@ -681,6 +681,12 @@ export const farmersAPI = {
     return response.data;
   },
 
+  // Get farmer dashboard data (includes KYC status)
+  getFarmerDashboard: async (id) => {
+    const response = await api.get(`/farmers/dashboard/${id}`);
+    return response.data;
+  },
+
   // Create farmer (supports files)
   createFarmer: async (farmerData) => {
     // Use the /api/farmers endpoint which supports multipart/form-data

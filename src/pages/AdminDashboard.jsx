@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { farmersAPI, employeesAPI, adminAPI, fpoAPI, idCardAPI } from '../api/apiService';
+import api from '../api/apiService';
 import IdCardViewer from '../components/IdCardViewer';
 import '../styles/Dashboard.css';
 import FarmerForm from '../components/FarmerForm';
@@ -221,6 +222,8 @@ const AdminDashboard = () => {
       ]);
 
       if (farmersData) {
+        console.log('🔍 Farmers data loaded from backend:', farmersData);
+        console.log('🔍 Sample farmer with assignment:', farmersData[0]);
         setFarmers(farmersData);
       }
       if (employeesData) {
@@ -243,7 +246,11 @@ const AdminDashboard = () => {
       // Fallback: try to fetch data individually
       try {
         const farmersData = await adminAPI.getFarmersWithKyc();
-        if (farmersData) setFarmers(farmersData);
+        if (farmersData) {
+          console.log('🔍 Farmers data loaded from backend (fallback):', farmersData);
+          console.log('🔍 Sample farmer with assignment (fallback):', farmersData[0]);
+          setFarmers(farmersData);
+        }
       } catch (e) {
         console.error('Failed to fetch farmers:', e);
       }
@@ -870,9 +877,14 @@ const AdminDashboard = () => {
 
   const handleAssignFarmers = async (assignments) => {
     try {
+      console.log('🔍 handleAssignFarmers called with assignments:', assignments);
+      
       // Extract farmer IDs and employee ID from assignments
       const farmerIds = assignments.map(a => a.farmerId);
       const employeeId = assignments[0]?.employeeId;
+      
+      console.log('🔍 Extracted farmerIds:', farmerIds);
+      console.log('🔍 Extracted employeeId:', employeeId);
       
       if (!employeeId || farmerIds.length === 0) {
         alert('Please select an employee and at least one farmer');
@@ -881,16 +893,22 @@ const AdminDashboard = () => {
       
       // Try bulk assign first, then fallback to individual assignments
       try {
+        console.log('🔄 Attempting bulk assign...');
         // Call admin API to bulk assign farmers
-        await adminAPI.bulkAssignFarmers(farmerIds, employeeId);
+        const response = await api.post('/admin/bulk-assign-farmers', { farmerIds, employeeId });
+        console.log('✅ Bulk assign successful:', response.data);
       } catch (bulkError) {
-        console.log('Bulk assign failed, trying individual assignments...');
+        console.log('❌ Bulk assign failed, trying individual assignments...', bulkError);
         // Fallback to individual assignments
         for (const farmerId of farmerIds) {
           try {
-            await adminAPI.assignFarmer(farmerId, employeeId);
+            console.log(`🔄 Assigning farmer ${farmerId} to employee ${employeeId}...`);
+            const response = await api.post('/admin/assign-farmer', null, { 
+              params: { farmerId, employeeId } 
+            });
+            console.log(`✅ Farmer ${farmerId} assigned successfully:`, response.data);
           } catch (individualError) {
-            console.error(`Failed to assign farmer ${farmerId}:`, individualError);
+            console.error(`❌ Failed to assign farmer ${farmerId}:`, individualError);
           }
         }
       }
@@ -909,7 +927,7 @@ const AdminDashboard = () => {
         return farmer;
       }));
       
-      setShowAssignmentModal(false);
+      setShowAssignmentInline(false);
       alert('Farmers assigned successfully!');
     } catch (error) {
       console.error('Error assigning farmers:', error);
