@@ -13,7 +13,6 @@ const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView
     
     // Add custom actions if provided
     if (customActions && Array.isArray(customActions)) {
-      console.log('ActionDropdown: Adding customActions:', customActions);
       actionsArray.push(...customActions);
     }
     
@@ -121,15 +120,9 @@ const ActionDropdown = ({ actions, customActions, item, onEdit, onDelete, onView
   const handleToggleClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('ActionDropdown: Toggle button clicked');
-    console.log('ActionDropdown: allActions:', allActions);
-    console.log('ActionDropdown: allActions.length:', allActions.length);
-    console.log('ActionDropdown: Setting isOpen to true');
     calculatePosition();
     setIsOpen(true);
   };
-
-  console.log('ActionDropdown: Rendering with isOpen:', isOpen, 'allActions.length:', allActions.length);
 
   return (
     <>

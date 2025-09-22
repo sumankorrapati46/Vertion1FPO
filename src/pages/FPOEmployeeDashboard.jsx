@@ -1,10 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { fpoAPI, farmersAPI, kycAPI } from '../api/apiService';
 import '../styles/Dashboard.css';
 import FarmerRegistrationForm from '../components/FarmerRegistrationForm';
 import KYCModal from '../components/KYCModal';
+import ActionDropdown from '../components/ActionDropdown';
+import UserProfileDropdown from '../components/UserProfileDropdown';
 
 const FPOEmployeeDashboard = () => {
   const { user, logout } = useAuth();
@@ -22,11 +24,12 @@ const FPOEmployeeDashboard = () => {
   const [farmerViewData, setFarmerViewData] = useState(null);
   const [tab, setTab] = useState('pending'); // pending | approved | all
   const [search, setSearch] = useState('');
-  // Photo upload state (persisted in localStorage)
-  const [userPhoto, setUserPhoto] = useState(null);
-  const fileInputRef = useRef(null);
 
   const employeeFpoId = user?.fpoId || user?.assignedFpoId || user?.fpo?.id || user?.fpo?.fpoId;
+  
+  // Debug logging to ensure FPO ID consistency
+  console.log('FPOEmployeeDashboard - User FPO ID:', user?.fpoId);
+  console.log('FPOEmployeeDashboard - Resolved FPO ID:', employeeFpoId);
 
   useEffect(() => {
     const load = async () => {
@@ -76,32 +79,50 @@ const FPOEmployeeDashboard = () => {
     load();
   }, [employeeFpoId]);
 
-  // Load saved photo
+
+  // Auto-refresh farmers data every 30 seconds to keep in sync with FPO Admin
   useEffect(() => {
-    try {
-      const savedPhoto = localStorage.getItem('userProfilePhoto:FPO_EMPLOYEE');
-      if (savedPhoto) setUserPhoto(savedPhoto);
-    } catch {}
-  }, []);
-
-  const handlePhotoUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) { alert('Please upload an image'); return; }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const data = ev.target?.result;
-      if (typeof data === 'string') {
-        setUserPhoto(data);
-        try { localStorage.setItem('userProfilePhoto', data); } catch {}
-      }
-    };
-    reader.onerror = () => alert('Error reading the file');
-    reader.readAsDataURL(file);
-  };
-
-  const handlePhotoClick = () => { if (fileInputRef.current) fileInputRef.current.click(); };
-  const handleRemovePhoto = () => { setUserPhoto(null); try { localStorage.removeItem('userProfilePhoto:FPO_EMPLOYEE'); } catch {} };
+    if (employeeFpoId) {
+      const interval = setInterval(() => {
+        // Reload farmers data
+        const loadFarmers = async () => {
+          try {
+            const members = await fpoAPI.getFPOMembers(employeeFpoId);
+            const base = (members || []).map((m, idx) => ({
+              id: m.id || idx + 1,
+              memberId: m.id,
+              farmerId: m.farmerId,
+              name: m.farmerName || m.name || `${m.firstName || ''} ${m.lastName || ''}`.trim(),
+              phone: '-',
+              email: '-',
+              kycStatus: (m.status || 'PENDING').toUpperCase(),
+              raw: m
+            }));
+            const enriched = await Promise.all(base.map(async (row) => {
+              if (!row.farmerId) return row;
+              try {
+                const dto = await farmersAPI.getFarmerById(row.farmerId);
+                return {
+                  ...row,
+                  name: dto?.firstName ? `${dto.firstName} ${dto.lastName || ''}`.trim() : (row.name || '-'),
+                  phone: dto?.contactNumber || row.phone,
+                  email: dto?.email || row.email,
+                  kycStatus: (dto?.status || row.kycStatus || 'PENDING').toUpperCase(),
+                };
+              } catch {
+                return row;
+              }
+            }));
+            setFarmers(enriched);
+          } catch (e) {
+            console.error('Auto-refresh failed:', e);
+          }
+        };
+        loadFarmers();
+      }, 30000); // 30 seconds
+      return () => clearInterval(interval);
+    }
+  }, [employeeFpoId]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -122,21 +143,24 @@ const FPOEmployeeDashboard = () => {
 
   const approveKyc = async (farmer) => {
     try {
-      await kycAPI.approveFarmerKyc(farmer.id);
+      await fpoAPI.approveKyc(farmer.id);
       setFarmers(prev => prev.map(x => x.id === farmer.id ? { ...x, kycStatus: 'APPROVED' } : x));
     } catch (e) {
-      alert('Failed to approve KYC');
+      console.error('KYC approval error:', e);
+      alert('Failed to approve KYC: ' + (e.response?.data?.message || e.message));
     }
   };
 
   const rejectKyc = async (farmer) => {
     try {
-      await kycAPI.rejectFarmerKyc(farmer.id, 'Rejected by employee');
+      await fpoAPI.rejectKyc(farmer.id, { reason: 'Rejected by FPO employee' });
       setFarmers(prev => prev.map(x => x.id === farmer.id ? { ...x, kycStatus: 'REJECTED' } : x));
     } catch (e) {
-      alert('Failed to reject KYC');
+      console.error('KYC rejection error:', e);
+      alert('Failed to reject KYC: ' + (e.response?.data?.message || e.message));
     }
   };
+
 
   if (loading) return <div className="admin-loading"><div className="spinner" /><span>Loading FPO Employee Dashboard…</span></div>;
   if (error) return <div className="admin-error">{error}</div>;
@@ -151,19 +175,7 @@ const FPOEmployeeDashboard = () => {
           </div>
         </div>
         <div className="header-right">
-          <div className="user-profile-dropdown">
-            <div className="user-profile-trigger">
-              <div className="user-avatar user-avatar-with-upload" onClick={handlePhotoClick}>
-                {userPhoto ? (
-                  <img src={userPhoto} alt="Profile" className="user-avatar-photo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-                ) : (
-                  <div className="user-avatar-initials">{(user?.name || 'E').charAt(0)}</div>
-                )}
-                <div className="avatar-upload-overlay"><i className="fas fa-camera"></i></div>
-              </div>
-              <span className="user-email">{user?.email}</span>
-            </div>
-          </div>
+          <UserProfileDropdown user={user} onLogout={logout} />
         </div>
       </div>
 
@@ -252,24 +264,41 @@ const FPOEmployeeDashboard = () => {
                   <td>{f.email}</td>
                   <td>{f.kycStatus}</td>
                   <td>
-                    <div className="action-dropdown" style={{ position: 'relative' }}>
-                      <button className="dropdown-toggle">⋯</button>
-                      <div className="dropdown-menu-enhanced" style={{ position: 'absolute', right: 0 }}>
-                        <button className="dropdown-item" onClick={async () => {
-                          try {
-                            const dto = await farmersAPI.getFarmerById(f.farmerId || f.id);
-                            setFarmerViewData(dto);
-                            setShowFarmerView(true);
-                          } catch (e) { alert('Failed to load farmer'); }
-                        }}>View</button>
-                        {f.kycStatus !== 'APPROVED' && (
-                          <>
-                            <button className="dropdown-item" onClick={() => { setSelectedFarmer(f); setShowKycModal(true); }}>Review & Approve</button>
-                            <button className="dropdown-item" onClick={() => rejectKyc(f)}>Reject KYC</button>
-                          </>
-                        )}
-                      </div>
-                    </div>
+                    <ActionDropdown
+                      item={f}
+                      customActions={[
+                        {
+                          label: 'View',
+                          className: 'info',
+                          onClick: async (farmer) => {
+                            try {
+                              const dto = await farmersAPI.getFarmerById(farmer.farmerId || farmer.id);
+                              setFarmerViewData(dto);
+                              setShowFarmerView(true);
+                            } catch (e) {
+                              alert('Failed to load farmer details');
+                            }
+                          }
+                        },
+                        ...(f.kycStatus !== 'APPROVED' ? [
+                          {
+                            label: 'Review & Approve',
+                            className: 'success',
+                            onClick: (farmer) => {
+                              setSelectedFarmer(farmer);
+                              setShowKycModal(true);
+                            }
+                          },
+                          {
+                            label: 'Reject KYC',
+                            className: 'danger',
+                            onClick: async (farmer) => {
+                              await rejectKyc(farmer);
+                            }
+                          }
+                        ] : [])
+                      ]}
+                    />
                   </td>
                 </tr>
               ))}
@@ -297,8 +326,8 @@ const FPOEmployeeDashboard = () => {
                     // reload farmers after slight delay
                     setTimeout(async () => {
                       try {
-                        // Persist farmer under this FPO
-                        const created = await farmersAPI.createFarmer({ ...formData, fpoId: employeeFpoId });
+                        // Use FPO-specific farmer creation API to ensure farmer is linked to this FPO
+                        const created = await fpoAPI.createFPOFarmer(employeeFpoId, formData);
                         // Assign farmer to this employee so KYC approve endpoint authorizes
                         try {
                           const me = user?.email;
@@ -361,15 +390,29 @@ const FPOEmployeeDashboard = () => {
             onClose={() => { setShowKycModal(false); setSelectedFarmer(null); }}
             onApprove={async (farmerId, docs) => {
               try {
-                await kycAPI.approveKYC?.(farmerId) || await kycAPI.approveFarmerKyc?.(farmerId, docs);
+                await fpoAPI.approveKyc(farmerId);
                 setFarmers(prev => prev.map(x => (x.farmerId === farmerId || x.id === farmerId) ? { ...x, kycStatus: 'APPROVED' } : x));
-              } catch (e) { alert('Failed to approve'); }
+              } catch (e) { 
+                console.error('KYC approval error:', e);
+                alert('Failed to approve: ' + (e.response?.data?.message || e.message)); 
+              }
             }}
             onReject={async (farmerId, reason) => {
-              try { await kycAPI.rejectKYC?.(farmerId, { reason }) || await kycAPI.rejectFarmerKyc?.(farmerId, reason); setFarmers(prev => prev.map(x => (x.farmerId === farmerId || x.id === farmerId) ? { ...x, kycStatus: 'REJECTED' } : x)); } catch (e) { alert('Failed to reject'); }
+              try { 
+                await fpoAPI.rejectKyc(farmerId, { reason }); 
+                setFarmers(prev => prev.map(x => (x.farmerId === farmerId || x.id === farmerId) ? { ...x, kycStatus: 'REJECTED' } : x)); 
+              } catch (e) { 
+                console.error('KYC rejection error:', e);
+                alert('Failed to reject: ' + (e.response?.data?.message || e.message)); 
+              }
             }}
             onReferBack={async (farmerId, reason) => {
-              try { await kycAPI.referBackKYC?.(farmerId, { reason }) || await kycAPI.referBackFarmerKyc?.(farmerId, reason); } catch (e) { console.log('Refer-back not implemented'); }
+              try { 
+                await fpoAPI.referBackKyc(farmerId, { reason }); 
+              } catch (e) { 
+                console.error('KYC refer-back error:', e);
+                console.log('Refer-back not implemented'); 
+              }
             }}
           />
         )}

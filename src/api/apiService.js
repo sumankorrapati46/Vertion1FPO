@@ -1003,6 +1003,26 @@ export const kycAPI = {
   getKYCDocuments: async (farmerId) => {
     const response = await api.get(`/employees/kyc/${farmerId}/documents`);
     return response.data;
+  },
+
+  // Additional KYC functions for FPO Employee Dashboard
+  approveFarmerKyc: async (farmerId) => {
+    const response = await api.put(`/employees/kyc/approve/${farmerId}`);
+    return response.data;
+  },
+
+  rejectFarmerKyc: async (farmerId, reason) => {
+    const response = await api.put(`/employees/kyc/reject/${farmerId}`, {
+      reason: reason || 'KYC rejected by employee'
+    });
+    return response.data;
+  },
+
+  referBackFarmerKyc: async (farmerId, reason) => {
+    const response = await api.put(`/employees/kyc/refer-back/${farmerId}`, {
+      reason: reason || 'KYC referred back by employee'
+    });
+    return response.data;
   }
 };
 
