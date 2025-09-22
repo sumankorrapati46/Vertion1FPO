@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/ViewFarmerDetails.css';
 
-const ViewFarmerRegistrationDetails = ({ farmerData, onClose, onSave }) => {
+const ViewFarmerRegistrationDetails = ({ farmerData, onClose, onSave, inlineMode = false }) => {
 	const [isEditMode, setIsEditMode] = useState(false);
 	const [formData, setFormData] = useState({});
 
@@ -211,9 +211,14 @@ const ViewFarmerRegistrationDetails = ({ farmerData, onClose, onSave }) => {
 		return <span>{safeRender(normalized[field])}</span>;
   };
 
-  return (
-		<div className="modal-overlay" onClick={onClose}>
-			<div className="modal-content view-farmer-modal" onClick={(e) => e.stopPropagation()}>
+  if (inlineMode) {
+    return (
+      <div className="view-farmer-inline-content">
+        <div className="view-farmer-inline-header">
+          <h2>Farmer Information</h2>
+        </div>
+        
+        <div className="view-farmer-inline-body">
 				<div className="modal-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
 					<button className="back-btn" onClick={onClose} style={{
 						background: '#f3f4f6',
@@ -553,8 +558,118 @@ const ViewFarmerRegistrationDetails = ({ farmerData, onClose, onSave }) => {
              </div>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    );
+  }
+
+  return (
+		<div className="modal-overlay" onClick={onClose}>
+			<div className="modal-content view-farmer-modal" onClick={(e) => e.stopPropagation()}>
+				<div className="modal-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+					<button className="back-btn" onClick={onClose} style={{
+						background: '#f3f4f6',
+						border: '1px solid #e5e7eb',
+						borderRadius: '6px',
+						padding: '6px 10px',
+						cursor: 'pointer',
+						color: '#111827'
+					}}>← Back</button>
+					<h2 style={{ margin: 0, flex: 1, textAlign: 'center' }}>Farmer Registration Details</h2>
+					<div style={{ display: 'flex', gap: '8px' }}>
+						<button className="edit-btn" onClick={() => setIsEditMode(!isEditMode)} style={{
+							background: isEditMode ? '#ef4444' : '#10b981',
+							color: 'white',
+							border: 'none',
+							borderRadius: '6px',
+							padding: '6px 12px',
+							cursor: 'pointer'
+						}}>
+							{isEditMode ? 'Cancel' : 'Edit'}
+						</button>
+						{isEditMode && (
+							<button className="save-btn" onClick={handleSave} style={{
+								background: '#3b82f6',
+								color: 'white',
+								border: 'none',
+								borderRadius: '6px',
+								padding: '6px 12px',
+								cursor: 'pointer'
+							}}>
+								Save
+							</button>
+						)}
+						<button className="close-btn" onClick={onClose} style={{
+							background: '#ef4444',
+							color: 'white',
+							border: 'none',
+							borderRadius: '6px',
+							padding: '6px 12px',
+							cursor: 'pointer'
+						}}>×</button>
+					</div>
+				</div>
+				
+				<div className="modal-body">
+					<div className="personal-info-section">
+						<h3>Personal Information</h3>
+						<div className="info-grid">
+							<div className="info-item">
+								<label>Name:</label>
+								{renderField('Name', 'name')}
+							</div>
+							<div className="info-item">
+								<label>Gender:</label>
+								{renderField('Gender', 'gender', 'select', [
+									{ value: '', label: 'Select Gender' },
+									{ value: 'Male', label: 'Male' },
+									{ value: 'Female', label: 'Female' },
+									{ value: 'Other', label: 'Other' }
+								])}
+							</div>
+							<div className="info-item">
+								<label>Email:</label>
+								{renderField('Email', 'email')}
+							</div>
+							<div className="info-item">
+								<label>Nationality:</label>
+								{renderField('Nationality', 'nationality', 'select', [
+									{ value: '', label: 'Select Nationality' },
+									{ value: 'Indian', label: 'Indian' },
+									{ value: 'Other', label: 'Other' }
+								])}
+							</div>
+							<div className="info-item">
+								<label>Alternative Relation:</label>
+								{renderField('Alternative Relation', 'alternativeRelationType', 'select', [
+									{ value: '', label: 'Select Relation' },
+									{ value: 'Father', label: 'Father' },
+									{ value: 'Mother', label: 'Mother' },
+									{ value: 'Spouse', label: 'Spouse' },
+									{ value: 'Son', label: 'Son' },
+									{ value: 'Daughter', label: 'Daughter' },
+									{ value: 'Other', label: 'Other' }
+								])}
+							</div>
+						</div>
+					</div>
+					
+					<div className="address-info-section">
+						<h3>Address Information</h3>
+						<div className="info-grid">
+							<div className="info-item">
+								<label>State:</label>
+								{renderField('State', 'state')}
+							</div>
+							<div className="info-item">
+								<label>District:</label>
+								{renderField('District', 'district')}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
   );
 };
 

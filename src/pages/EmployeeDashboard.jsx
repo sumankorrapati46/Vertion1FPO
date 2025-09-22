@@ -42,9 +42,12 @@ const EmployeeDashboard = () => {
   const [employeeCardId, setEmployeeCardId] = useState('');
   const [assignedFarmers, setAssignedFarmers] = useState([]);
   const [showFarmerForm, setShowFarmerForm] = useState(false);
+  const [showEditFarmerForm, setShowEditFarmerForm] = useState(false);
   const [showKYCModal, setShowKYCModal] = useState(false);
+  const [showKYCInline, setShowKYCInline] = useState(false);
   const [selectedFarmer, setSelectedFarmer] = useState(null);
   const [showFarmerDetails, setShowFarmerDetails] = useState(false);
+  const [showViewFarmerInline, setShowViewFarmerInline] = useState(false);
   const [selectedFarmerData, setSelectedFarmerData] = useState(null);
   const [showEmployeeDetails, setShowEmployeeDetails] = useState(false);
   const [selectedEmployeeData, setSelectedEmployeeData] = useState(null);
@@ -637,7 +640,7 @@ const EmployeeDashboard = () => {
         console.log('🔍 EmployeeDashboard - Full farmer details fetched:', full);
         console.log('🔍 EmployeeDashboard - Transformed farmer data:', farmerData);
         setSelectedFarmerData(farmerData);
-        setShowFarmerDetails(true);
+        setShowViewFarmerInline(true);
       })
       .catch(err => {
         console.warn('⚠️ Failed to fetch full farmer details, using list item only:', err);
@@ -664,12 +667,12 @@ const EmployeeDashboard = () => {
           assignedEmployeeId: farmer.assignedEmployeeId || null
         };
         setSelectedFarmerData(farmerData);
-        setShowFarmerDetails(true);
+        setShowViewFarmerInline(true);
       });
   };
 
   const handleCloseFarmerDetails = () => {
-    setShowFarmerDetails(false);
+    setShowViewFarmerInline(false);
     setSelectedFarmerData(null);
   };
 
@@ -706,7 +709,7 @@ const EmployeeDashboard = () => {
 
   const handleEditFarmer = (farmer) => {
     setEditingFarmer(farmer);
-    setShowFarmerForm(true);
+    setShowEditFarmerForm(true);
   };
 
   const renderOverview = () => {
@@ -1303,27 +1306,29 @@ const EmployeeDashboard = () => {
 
     return (
       <div className="employee-overview-section">
-        <div className="employee-overview-header">
-          <div className="header-left">
-            <h2 className="employee-overview-title">Assigned Farmers</h2>
-            <p className="employee-overview-description">
-              View and manage your assigned farmers with KYC verification tasks.
-            </p>
-          </div>
-          <div className="header-right">
-            <div className="overview-actions">
-              <button 
-                className="action-btn-modern primary"
-                onClick={() => setShowFarmerForm(true)}
-              >
-                <i className="fas fa-plus"></i>
-                Add Farmer
-              </button>
+        {/* Main Content - Show header, filters and overview only when not in forms */}
+        {!showFarmerForm && !showEditFarmerForm && !showKYCInline && !showViewFarmerInline ? (
+          <>
+            <div className="employee-overview-header">
+              <div className="header-left">
+                <h2 className="employee-overview-title">Assigned Farmers</h2>
+                <p className="employee-overview-description">
+                  View and manage your assigned farmers with KYC verification tasks.
+                </p>
+              </div>
+              <div className="header-right">
+                <div className="overview-actions">
+                  <button 
+                    className="action-btn-modern primary"
+                    onClick={() => setShowFarmerForm(true)}
+                  >
+                    <i className="fas fa-plus"></i>
+                    Add Farmer
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-
-        {/* Modern Filters Section */}
+            {/* Modern Filters Section */}
         <div className="section-card" style={{
           background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
           border: '2px solid #64748b',
@@ -1439,8 +1444,7 @@ const EmployeeDashboard = () => {
           </div>
         </div>
 
-        {/* Farmers Table or Inline Add Farmer */}
-        {!showFarmerForm ? (
+            {/* Farmers Table */}
           <div className="section-card" style={{
             background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
             border: '2px solid #22c55e',
@@ -1484,7 +1488,7 @@ const EmployeeDashboard = () => {
                     className: 'warning',
                     onClick: (farmer) => {
                       setSelectedFarmer(farmer);
-                      setShowKYCModal(true);
+                      setShowKYCInline(true);
                     }
                   },
                   {
@@ -1497,11 +1501,12 @@ const EmployeeDashboard = () => {
               />
             </div>
           </div>
-        ) : (
+          </>
+        ) : showFarmerForm ? (
           <div className="section-card" style={{
-            background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-            border: '2px solid #f59e0b',
-            boxShadow: '0 10px 25px rgba(245, 158, 11, 0.15)'
+            background: 'transparent',
+            border: 'none',
+            boxShadow: 'none'
           }}>
             <div className="employee-section-header">
               <h3 className="employee-section-title" style={{ color: '#d97706' }}>Add New Farmer</h3>
@@ -1539,7 +1544,195 @@ const EmployeeDashboard = () => {
               />
             </div>
           </div>
-        )}
+        ) : showEditFarmerForm ? (
+          <div className="section-card" style={{
+            background: 'transparent',
+            border: 'none',
+            boxShadow: 'none'
+          }}>
+            <div className="employee-section-header">
+              <h3 className="employee-section-title" style={{ color: '#1d4ed8' }}>Edit Farmer</h3>
+              <p className="employee-section-description" style={{ color: '#1e40af', marginTop: '8px' }}>
+                Update farmer details and information.
+              </p>
+              <div className="section-accent" style={{ background: '#3b82f6' }}></div>
+            </div>
+            
+            <div className="section-actions-modern">
+              <button 
+                className="action-btn-modern secondary"
+                onClick={() => {
+                  setShowEditFarmerForm(false);
+                  setEditingFarmer(null);
+                }}
+              >
+                <i className="fas fa-arrow-left"></i>
+                Back to Farmers
+              </button>
+              <button 
+                className="action-btn-modern danger"
+                onClick={() => {
+                  setShowEditFarmerForm(false);
+                  setEditingFarmer(null);
+                }}
+                style={{
+                  background: '#ef4444',
+                  marginLeft: '12px'
+                }}
+              >
+                <i className="fas fa-times"></i>
+                Close
+              </button>
+            </div>
+            
+            <div className="form-container-modern">
+              <FarmerRegistrationForm
+                isInDashboard={true}
+                editData={editingFarmer}
+                onClose={() => {
+                  setShowEditFarmerForm(false);
+                  setEditingFarmer(null);
+                }}
+                onSubmit={async (farmerData) => {
+                  try {
+                    if (editingFarmer) {
+                      const updated = await farmersAPI.updateFarmer(editingFarmer.id, farmerData);
+                      setAssignedFarmers(prev => prev.map(f => 
+                        f.id === editingFarmer.id ? updated : f
+                      ));
+                      alert('Farmer updated successfully!');
+                    }
+                    setShowEditFarmerForm(false);
+                    setEditingFarmer(null);
+                  } catch (error) {
+                    console.error('Error updating farmer:', error);
+                    alert('Failed to update farmer. Please try again.');
+                  }
+                }}
+              />
+            </div>
+          </div>
+        ) : showKYCInline ? (
+          <div className="section-card" style={{
+            background: 'transparent',
+            border: 'none',
+            boxShadow: 'none'
+          }}>
+            <div className="employee-section-header">
+              <h3 className="employee-section-title" style={{ color: '#d97706' }}>KYC Review - {selectedFarmer?.name}</h3>
+              <p className="employee-section-description" style={{ color: '#92400e', marginTop: '8px' }}>
+                Review and approve farmer KYC documents and information.
+              </p>
+              <div className="section-accent" style={{ background: '#f59e0b' }}></div>
+            </div>
+            
+            <div className="section-actions-modern">
+              <button 
+                className="action-btn-modern secondary"
+                onClick={() => {
+                  setShowKYCInline(false);
+                  setSelectedFarmer(null);
+                }}
+              >
+                <i className="fas fa-arrow-left"></i>
+                Back to Farmers
+              </button>
+              <button 
+                className="action-btn-modern danger"
+                onClick={() => {
+                  setShowKYCInline(false);
+                  setSelectedFarmer(null);
+                }}
+                style={{
+                  background: '#ef4444',
+                  marginLeft: '12px'
+                }}
+              >
+                <i className="fas fa-times"></i>
+                Close
+              </button>
+            </div>
+            
+            <div className="form-container-modern">
+              <KYCModal
+                farmer={selectedFarmer}
+                onClose={() => {
+                  setShowKYCInline(false);
+                  setSelectedFarmer(null);
+                }}
+                onApprove={(farmerId, documents) => {
+                  handleKYCUpdate(farmerId, 'APPROVED', '', documents);
+                  setShowKYCInline(false);
+                  setSelectedFarmer(null);
+                }}
+                onReject={(farmerId, reason) => {
+                  handleKYCUpdate(farmerId, 'REJECTED', reason);
+                  setShowKYCInline(false);
+                  setSelectedFarmer(null);
+                }}
+                onReferBack={(farmerId, reason) => {
+                  handleKYCUpdate(farmerId, 'REFER_BACK', reason);
+                  setShowKYCInline(false);
+                  setSelectedFarmer(null);
+                }}
+                inlineMode={true}
+              />
+            </div>
+          </div>
+        ) : showViewFarmerInline ? (
+          <div className="section-card" style={{
+            background: 'transparent',
+            border: 'none',
+            boxShadow: 'none'
+          }}>
+            <div className="employee-section-header">
+              <h3 className="employee-section-title" style={{ color: '#059669' }}>Farmer Registration Details</h3>
+              <p className="employee-section-description" style={{ color: '#047857', marginTop: '8px' }}>
+                View detailed information about the selected farmer.
+              </p>
+              <div className="section-accent" style={{ background: '#059669' }}></div>
+            </div>
+            
+            <div className="section-actions-modern">
+              <button 
+                className="action-btn-modern secondary"
+                onClick={() => {
+                  setShowViewFarmerInline(false);
+                  setSelectedFarmerData(null);
+                }}
+              >
+                <i className="fas fa-arrow-left"></i>
+                Back to Farmers
+              </button>
+              <button 
+                className="action-btn-modern danger"
+                onClick={() => {
+                  setShowViewFarmerInline(false);
+                  setSelectedFarmerData(null);
+                }}
+                style={{
+                  background: '#ef4444',
+                  marginLeft: '12px'
+                }}
+              >
+                <i className="fas fa-times"></i>
+                Close
+              </button>
+            </div>
+            
+            <div className="form-container-modern">
+              <ViewFarmerRegistrationDetails
+                farmerData={selectedFarmerData}
+                onClose={() => {
+                  setShowViewFarmerInline(false);
+                  setSelectedFarmerData(null);
+                }}
+                onSave={handleSaveFarmer}
+                inlineMode={true}
+              />
+            </div>
+          </div>
+        ) : null}
       </div>
     );
   };

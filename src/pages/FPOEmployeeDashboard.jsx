@@ -394,8 +394,8 @@ const FPOEmployeeDashboard = () => {
                   // reload farmers after slight delay
                   setTimeout(async () => {
                     try {
-                      // Use FPO-specific farmer creation API to ensure farmer is linked to this FPO
-                      const created = await fpoAPI.createFPOFarmer(employeeFpoId, formData);
+                      // Use general farmer creation API since FPO-specific endpoint doesn't exist
+                      const created = await farmersAPI.createFarmer(formData);
                       // Assign farmer to this employee so KYC approve endpoint authorizes
                       try {
                         const me = user?.email;

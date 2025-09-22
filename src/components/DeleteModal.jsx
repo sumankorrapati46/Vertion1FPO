@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import '../styles/Forms.css';
 
-const DeleteModal = ({ item, type, onClose, onConfirm }) => {
+const DeleteModal = ({ item, type, onClose, onConfirm, inlineMode = false }) => {
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -49,6 +49,65 @@ const DeleteModal = ({ item, type, onClose, onConfirm }) => {
   };
 
   const details = getItemDetails();
+
+  if (inlineMode) {
+    return (
+      <div className="delete-confirmation-inline">
+        <div className="delete-confirmation-header">
+          <h2>Confirm Delete</h2>
+          <button className="close-btn" onClick={onClose}>×</button>
+        </div>
+
+        <div className="delete-warning">
+          <div className="warning-icon">⚠️</div>
+          <h3>Are you sure you want to delete this {type}?</h3>
+          <p>This action cannot be undone.</p>
+        </div>
+
+        <div className="item-details">
+          <h4>{getItemName()} Details:</h4>
+          <div className="details-grid">
+            {Object.entries(details).map(([key, value]) => (
+              <div key={key} className="detail-item">
+                <span className="label">{key.charAt(0).toUpperCase() + key.slice(1)}:</span>
+                <span className="value">{value || 'N/A'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="form">
+          <div className="form-group">
+            <label htmlFor="reason">Reason for Deletion (Optional)</label>
+            <textarea
+              id="reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Enter reason for deletion..."
+              rows="3"
+            />
+          </div>
+
+          <div className="form-actions">
+            <button 
+              type="button" 
+              className="btn-secondary" 
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              className="btn-danger"
+              disabled={loading}
+            >
+              {loading ? 'Deleting...' : `Delete ${getItemName()}`}
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="modal-overlay">

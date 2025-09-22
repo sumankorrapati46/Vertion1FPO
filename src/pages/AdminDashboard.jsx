@@ -4,7 +4,6 @@ import { farmersAPI, employeesAPI, adminAPI, fpoAPI, idCardAPI } from '../api/ap
 import api from '../api/apiService';
 import IdCardViewer from '../components/IdCardViewer';
 import '../styles/Dashboard.css';
-import FarmerForm from '../components/FarmerForm';
 import FarmerRegistrationForm from '../components/FarmerRegistrationForm';
 import EmployeeRegistrationForm from '../components/EmployeeRegistrationForm';
 import AssignmentModal from '../components/AssignmentModal';
@@ -1131,7 +1130,7 @@ const AdminDashboard = () => {
 
     return (
       <div className="overview-section">
-        {!showFarmerRegistration ? (
+        {!showFarmerRegistration && !showFarmerForm ? (
           <>
             <div className="overview-header">
               <div className="header-left">
@@ -1429,7 +1428,7 @@ const AdminDashboard = () => {
         />
       )}
           </>
-        ) : (
+        ) : showFarmerRegistration ? (
           <div className="farmer-registration-section">
             <div className="section-header">
               <div>
@@ -1498,9 +1497,133 @@ const AdminDashboard = () => {
               }}
             />
           </div>
-        )}
-    </div>
-  );
+        ) : showFarmerForm ? (
+          <div className="farmer-edit-section">
+            <div className="section-header">
+              <div>
+                <h2 className="section-title">Edit Farmer</h2>
+                <p className="section-description">
+                  Update farmer details and information.
+                </p>
+              </div>
+              <div className="section-actions">
+                <button 
+                  onClick={() => {
+                    setShowFarmerForm(false);
+                    setEditingFarmer(null);
+                  }}
+                  style={{
+                    background: '#6b7280',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 2px 8px rgba(107, 114, 128, 0.25)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transform: 'translateY(0)',
+                    position: 'relative',
+                    zIndex: 1,
+                    pointerEvents: 'auto'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = '#4b5563';
+                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.boxShadow = '0 4px 12px rgba(107, 114, 128, 0.35)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#6b7280';
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 2px 8px rgba(107, 114, 128, 0.25)';
+                  }}
+                >
+                  <i className="fas fa-arrow-left"></i>
+                  Back to Farmers
+                </button>
+                <button 
+                  onClick={() => {
+                    setShowFarmerForm(false);
+                    setEditingFarmer(null);
+                  }}
+                  style={{
+                    background: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)',
+                    marginLeft: '12px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = '#dc2626';
+                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#ef4444';
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.3)';
+                  }}
+                  title="Close"
+                >
+                  <i className="fas fa-times" style={{ fontSize: '14px' }}></i>
+                </button>
+              </div>
+            </div>
+
+            <div style={{ 
+              background: 'white', 
+              borderRadius: '16px', 
+              overflow: 'hidden',
+              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.08)',
+              border: '1px solid #e2e8f0'
+            }}>
+              <FarmerRegistrationForm
+                isInDashboard={true}
+                editData={editingFarmer}
+                onClose={() => {
+                  setShowFarmerForm(false);
+                  setEditingFarmer(null);
+                }}
+                onSubmit={async (farmerData) => {
+                  try {
+                    if (editingFarmer) {
+                      const updatedFarmer = await farmersAPI.updateFarmer(editingFarmer.id, farmerData);
+                      setFarmers(prev => prev.map(farmer => 
+                        farmer.id === editingFarmer.id ? updatedFarmer : farmer
+                      ));
+                      alert('Farmer updated successfully!');
+                    } else {
+                      const newFarmer = await farmersAPI.createFarmer(farmerData);
+                      setFarmers(prev => [...prev, newFarmer]);
+                      alert('Farmer created successfully!');
+                    }
+                    setShowFarmerForm(false);
+                    setEditingFarmer(null);
+                  } catch (error) {
+                    console.error('Error saving farmer:', error);
+                    alert('Failed to save farmer. Please try again.');
+                  }
+                }}
+              />
+            </div>
+          </div>
+        ) : null}
+      </div>
+    );
   };
 
   const renderRegistration = () => {
@@ -1632,7 +1755,7 @@ const AdminDashboard = () => {
 
   return (
       <div className="overview-section">
-        {!showEmployeeRegistration ? (
+        {!showEmployeeRegistration && !showEmployeeForm ? (
           <>
             <div className="overview-header">
               <div className="header-left">
@@ -1845,7 +1968,7 @@ const AdminDashboard = () => {
             />
           )}
           </>
-        ) : (
+        ) : showEmployeeRegistration ? (
           <div className="employee-registration-section">
             <div className="section-header">
               <div>
@@ -1927,7 +2050,131 @@ const AdminDashboard = () => {
               }}
             />
           </div>
-        )}
+        ) : showEmployeeForm ? (
+          <div className="employee-edit-section">
+            <div className="section-header">
+              <div>
+                <h2 className="section-title">Edit Employee</h2>
+                <p className="section-description">
+                  Update employee details and information.
+                </p>
+              </div>
+              <div className="section-actions">
+                <button 
+                  onClick={() => {
+                    setShowEmployeeForm(false);
+                    setEditingEmployee(null);
+                  }}
+                  style={{
+                    background: '#6b7280',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 2px 8px rgba(107, 114, 128, 0.25)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transform: 'translateY(0)',
+                    position: 'relative',
+                    zIndex: 1,
+                    pointerEvents: 'auto'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = '#4b5563';
+                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.boxShadow = '0 4px 12px rgba(107, 114, 128, 0.35)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#6b7280';
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 2px 8px rgba(107, 114, 128, 0.25)';
+                  }}
+                >
+                  <i className="fas fa-arrow-left"></i>
+                  Back to Employees
+                </button>
+                <button 
+                  onClick={() => {
+                    setShowEmployeeForm(false);
+                    setEditingEmployee(null);
+                  }}
+                  style={{
+                    background: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)',
+                    marginLeft: '12px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = '#dc2626';
+                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#ef4444';
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.3)';
+                  }}
+                  title="Close"
+                >
+                  <i className="fas fa-times" style={{ fontSize: '14px' }}></i>
+                </button>
+              </div>
+            </div>
+
+            <div style={{ 
+              background: 'white', 
+              borderRadius: '16px', 
+              overflow: 'hidden',
+              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.08)',
+              border: '1px solid #e2e8f0'
+            }}>
+              <EmployeeRegistrationForm
+                isInDashboard={true}
+                editData={editingEmployee}
+                onClose={() => {
+                  setShowEmployeeForm(false);
+                  setEditingEmployee(null);
+                }}
+                onSubmit={async (employeeData) => {
+                  try {
+                    if (editingEmployee) {
+                      const updatedEmployee = await employeesAPI.updateEmployee(editingEmployee.id, employeeData);
+                      setEmployees(prev => prev.map(employee => 
+                        employee.id === editingEmployee.id ? updatedEmployee : employee
+                      ));
+                      alert('Employee updated successfully!');
+                    } else {
+                      const newEmployee = await employeesAPI.createEmployee(employeeData);
+                      setEmployees(prev => [...prev, newEmployee]);
+                      alert('Employee created successfully!');
+                    }
+                    setShowEmployeeForm(false);
+                    setEditingEmployee(null);
+                  } catch (error) {
+                    console.error('Error saving employee:', error);
+                    alert('Failed to save employee. Please try again.');
+                  }
+                }}
+              />
+            </div>
+          </div>
+        ) : null}
       </div>
     );
   };
@@ -2653,66 +2900,7 @@ const AdminDashboard = () => {
       )}
 
       {/* Modals */}
-      {showFarmerForm && (
-        <FarmerForm 
-          editData={editingFarmer}
-          onClose={() => {
-            setShowFarmerForm(false);
-            setEditingFarmer(null);
-          }}
-          onSubmit={async (farmerData) => {
-            try {
-              if (editingFarmer) {
-                const updatedFarmer = await farmersAPI.updateFarmer(editingFarmer.id, farmerData);
-                setFarmers(prev => prev.map(farmer => 
-                  farmer.id === editingFarmer.id ? updatedFarmer : farmer
-                ));
-                alert('Farmer updated successfully!');
-              } else {
-                const newFarmer = await farmersAPI.createFarmer(farmerData);
-                setFarmers(prev => [...prev, newFarmer]);
-                alert('Farmer created successfully!');
-              }
-              setShowFarmerForm(false);
-              setEditingFarmer(null);
-            } catch (error) {
-              console.error('Error saving farmer:', error);
-              alert('Failed to save farmer. Please try again.');
-            }
-          }}
-        />
-      )}
 
-      {showEmployeeForm && (
-        <EmployeeRegistrationForm 
-          isInDashboard={true}
-          editData={editingEmployee}
-          onClose={() => {
-            setShowEmployeeForm(false);
-            setEditingEmployee(null);
-          }}
-          onSubmit={async (employeeData) => {
-            try {
-              if (editingEmployee) {
-                const updatedEmployee = await employeesAPI.updateEmployee(editingEmployee.id, employeeData);
-                setEmployees(prev => prev.map(employee => 
-                  employee.id === editingEmployee.id ? updatedEmployee : employee
-                ));
-                alert('Employee updated successfully!');
-              } else {
-                const newEmployee = await employeesAPI.createEmployee(employeeData);
-                setEmployees(prev => [...prev, newEmployee]);
-                alert('Employee created successfully!');
-              }
-              setShowEmployeeForm(false);
-              setEditingEmployee(null);
-            } catch (error) {
-              console.error('Error saving employee:', error);
-              alert('Failed to save employee. Please try again.');
-            }
-          }}
-        />
-      )}
 
       {/* Keep modal fallback if needed elsewhere, but use inline by default */}
 

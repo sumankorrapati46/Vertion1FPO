@@ -1653,55 +1653,57 @@ const SuperAdminDashboard = () => {
 
           {activeTab === 'registration' && (
             <div className="superadmin-overview-section">
-              <div className="superadmin-overview-header">
-                <div className="header-left">
-                  <h2 className="superadmin-overview-title">Registration Management</h2>
-                  <p className="overview-description">
-                    Manage pending registrations and approve new users.
-                  </p>
-                </div>
-                <div className="header-right">
-                  <button 
-                    onClick={() => {
-                      // Show refresh notification popup
-                      alert('🔄 Data refreshed successfully!\n\nRegistration data has been updated with the latest information.');
-                      console.log('🔄 Refresh Data button clicked - showing notification');
-                    }}
+              {!showDeleteModal ? (
+                <>
+                  <div className="superadmin-overview-header">
+                    <div className="header-left">
+                      <h2 className="superadmin-overview-title">Registration Management</h2>
+                      <p className="overview-description">
+                        Manage pending registrations and approve new users.
+                      </p>
+                    </div>
+                    <div className="header-right">
+                      <button 
+                        onClick={() => {
+                          // Show refresh notification popup
+                          alert('🔄 Data refreshed successfully!\n\nRegistration data has been updated with the latest information.');
+                          console.log('🔄 Refresh Data button clicked - showing notification');
+                        }}
                                          style={{
-                       background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
-                       color: 'white',
-                       border: 'none',
-                       borderRadius: '8px',
-                       padding: '8px 16px',
-                       cursor: 'pointer',
-                       fontSize: '12px',
-                       fontWeight: '600',
-                       transition: 'all 0.3s ease',
-                       boxShadow: '0 2px 8px rgba(21, 128, 61, 0.25)',
-                       display: 'flex',
-                       alignItems: 'center',
-                       gap: '6px',
-                       transform: 'translateY(0)',
-                       position: 'relative',
-                       zIndex: 1,
-                       pointerEvents: 'auto'
-                     }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)';
-                      e.target.style.transform = 'translateY(-1px)';
-                      e.target.style.boxShadow = '0 4px 12px rgba(21, 128, 61, 0.35)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)';
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 2px 8px rgba(21, 128, 61, 0.25)';
-                    }}
-                  >
-                    <i className="fas fa-sync-alt"></i>
-                    Refresh Data
-                  </button>
-                </div>
-              </div>
+                           background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
+                           color: 'white',
+                           border: 'none',
+                           borderRadius: '8px',
+                           padding: '8px 16px',
+                           cursor: 'pointer',
+                           fontSize: '12px',
+                           fontWeight: '600',
+                           transition: 'all 0.3s ease',
+                           boxShadow: '0 2px 8px rgba(21, 128, 61, 0.25)',
+                           display: 'flex',
+                           alignItems: 'center',
+                           gap: '6px',
+                           transform: 'translateY(0)',
+                           position: 'relative',
+                           zIndex: 1,
+                           pointerEvents: 'auto'
+                         }}
+                        onMouseEnter={(e) => {
+                          e.target.style.background = 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)';
+                          e.target.style.transform = 'translateY(-1px)';
+                          e.target.style.boxShadow = '0 4px 12px rgba(21, 128, 61, 0.35)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.background = 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)';
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = '0 2px 8px rgba(21, 128, 61, 0.25)';
+                        }}
+                      >
+                        <i className="fas fa-sync-alt"></i>
+                        Refresh Data
+                      </button>
+                    </div>
+                  </div>
               {/* Enhanced Filters */}
               <div className="filters-section">
                 <div className="filter-group">
@@ -1746,51 +1748,61 @@ const SuperAdminDashboard = () => {
                   </button>
                 </div>
               </div>
-                             {!viewingRegistration ? (
-                 (() => {
-                   const registrationData = getFilteredRegistrations();
-                   return (
-                     <div className="table-scroll-wrapper">
-                       <DataTable
-                         data={registrationData}
-                         columns={[
-                           { key: 'name', label: 'Name' },
-                           { key: 'email', label: 'Email' },
-                           { key: 'phoneNumber', label: 'Phone' },
-                           { key: 'role', label: 'Role' },
-                           { key: 'status', label: 'Status' }
-                         ]}
-                         customActions={[
-                           {
-                             label: 'View',
-                             className: 'info',
-                             onClick: handleViewRegistration
-                           },
-                           {
-                             label: 'Approve',
-                             className: 'approve',
-                             onClick: (registration) => handleApproveRegistration(registration.id)
-                           },
-                           {
-                             label: 'Reject',
-                             className: 'reject',
-                             onClick: (registration) => handleRejectRegistration(registration.id)
-                           },
-                           {
-                             label: 'Delete',
-                             className: 'danger',
-                             onClick: (registration) => handleDelete(registration, 'registration')
-                           }
-                         ]}
-                       />
-                     </div>
-                   );
-                 })()
+                  {!viewingRegistration ? (
+                    (() => {
+                      const registrationData = getFilteredRegistrations();
+                      return (
+                        <div className="table-scroll-wrapper">
+                          <DataTable
+                            data={registrationData}
+                            columns={[
+                              { key: 'name', label: 'Name' },
+                              { key: 'email', label: 'Email' },
+                              { key: 'phoneNumber', label: 'Phone' },
+                              { key: 'role', label: 'Role' },
+                              { key: 'status', label: 'Status' }
+                            ]}
+                            customActions={[
+                              {
+                                label: 'View',
+                                className: 'info',
+                                onClick: handleViewRegistration
+                              },
+                              {
+                                label: 'Approve',
+                                className: 'approve',
+                                onClick: (registration) => handleApproveRegistration(registration.id)
+                              },
+                              {
+                                label: 'Reject',
+                                className: 'reject',
+                                onClick: (registration) => handleRejectRegistration(registration.id)
+                              },
+                              {
+                                label: 'Delete',
+                                className: 'danger',
+                                onClick: (registration) => handleDelete(registration, 'registration')
+                              }
+                            ]}
+                          />
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    <RegistrationDetailsInline 
+                      registration={viewingRegistration}
+                      onBack={() => setViewingRegistration(null)}
+                      onUpdate={handleRegistrationUpdate}
+                    />
+                  )}
+                </>
               ) : (
-                <RegistrationDetailsInline 
-                  registration={viewingRegistration}
-                  onBack={() => setViewingRegistration(null)}
-                  onUpdate={handleRegistrationUpdate}
+                <DeleteModal
+                  item={itemToDelete?.item}
+                  type={itemToDelete?.type}
+                  onClose={() => setShowDeleteModal(false)}
+                  onConfirm={confirmDelete}
+                  inlineMode={true}
                 />
               )}
             </div>
@@ -1806,7 +1818,7 @@ const SuperAdminDashboard = () => {
                     setCurrentCardId(null);
                   }}
                 />
-              ) : !viewingFarmer && !showAssignmentInline ? (
+              ) : !viewingFarmer && !showAssignmentInline && !showDeleteModal ? (
                 <div className="superadmin-overview-section">
                   <div className="superadmin-overview-header">
                     <div className="header-left">
@@ -2243,6 +2255,16 @@ const SuperAdminDashboard = () => {
                  />
                )}
 
+              {showDeleteModal && activeTab === 'farmers' && (
+                <DeleteModal
+                  item={itemToDelete?.item}
+                  type={itemToDelete?.type}
+                  onClose={() => setShowDeleteModal(false)}
+                  onConfirm={confirmDelete}
+                  inlineMode={true}
+                />
+              )}
+
               {viewingFarmer && (
                 <ViewFarmer 
                   farmerData={viewingFarmer}
@@ -2273,7 +2295,7 @@ const SuperAdminDashboard = () => {
                     setCurrentCardId(null);
                   }}
                 />
-              ) : !showEmployeeRegistration ? (
+              ) : !showEmployeeRegistration && !showDeleteModal ? (
                 <>
                   {!viewingEmployee ? (
                     <>
@@ -2505,7 +2527,7 @@ const SuperAdminDashboard = () => {
                     />
                   )}
                 </>
-              ) : (
+              ) : showEmployeeRegistration ? (
                 <div className="employee-registration-section">
                   <div className="overview-header">
                     <h2 className="overview-title">Add New Employee</h2>
@@ -2582,6 +2604,16 @@ const SuperAdminDashboard = () => {
                     }}
                   />
                 </div>
+              ) : null}
+
+              {showDeleteModal && activeTab === 'employees' && (
+                <DeleteModal
+                  item={itemToDelete?.item}
+                  type={itemToDelete?.type}
+                  onClose={() => setShowDeleteModal(false)}
+                  onConfirm={confirmDelete}
+                  inlineMode={true}
+                />
               )}
             </>
           )}
@@ -3190,14 +3222,6 @@ const SuperAdminDashboard = () => {
         />
       )}
 
-      {showDeleteModal && (
-        <DeleteModal
-          onClose={() => setShowDeleteModal(false)}
-          onConfirm={confirmDelete}
-          title={`Delete ${itemToDelete?.type}`}
-          message={`Are you sure you want to delete this ${itemToDelete?.type}?`}
-        />
-      )}
 
       {/* Hidden file input for photo upload */}
       <input

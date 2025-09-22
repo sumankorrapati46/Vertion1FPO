@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { fpoAPI, fpoUsersAPI, farmersAPI } from '../api/apiService';
+import { fpoAPI, fpoUsersAPI, farmersAPI, employeesAPI } from '../api/apiService';
 import '../styles/Dashboard.css';
 import '../styles/FPOManagement.css';
 import UserProfileDropdown from '../components/UserProfileDropdown';
@@ -243,12 +243,12 @@ const FPOAdminDashboard = () => {
   // Handlers for inline submissions
   const handleFarmerCreatedInline = async (formData) => {
     try {
-      // Use FPO-specific farmer creation API to ensure farmer is linked to this FPO
-      await fpoAPI.createFPOFarmer(fpoId, formData);
+      // Use general farmer creation API since FPO-specific endpoint doesn't exist
+      const created = await farmersAPI.createFarmer(formData);
       setShowInlineFarmerCreate(false);
       setView('farmers');
       await loadFarmers();
-      alert('FPO farmer created successfully');
+      alert('Farmer created successfully');
     } catch (e) {
       console.error('Failed to create FPO farmer:', e);
       alert(e.response?.data?.message || e.response?.data?.error || 'Failed to create FPO farmer');
@@ -949,12 +949,12 @@ const FPOAdminDashboard = () => {
                 onClose={() => setShowInlineEmployeeCreate(false)}
                 onSubmit={async (formData) => {
                   try {
-                    // Use FPO-specific employee creation API
-                    await fpoUsersAPI.createFPOEmployee(fpoId, formData);
+                    // Use general employee creation API since FPO-specific endpoint doesn't exist
+                    await employeesAPI.createEmployee(formData);
                     setShowInlineEmployeeCreate(false);
                     setView('employees');
                     await loadEmployees();
-                    alert('FPO employee created successfully');
+                    alert('Employee created successfully');
                   } catch (e) {
                     console.error('Failed to create FPO employee:', e);
                     alert(e.response?.data?.message || e.response?.data?.error || 'Failed to create FPO employee');

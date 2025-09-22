@@ -559,4 +559,36 @@
     font-size: 10px;
     padding: 3px 6px;
   }
+}
+
+/* Inline View Farmer Styles */
+.view-farmer-inline-content {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  width: 100%;
+}
+
+.view-farmer-inline-header {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: white;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.view-farmer-inline-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.view-farmer-inline-body {
+  padding: 24px;
+}
+
+.view-farmer-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  justify-content: flex-end;
 } 
