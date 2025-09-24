@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { fpoAPI, farmersAPI, kycAPI } from '../api/apiService';
+import FPODashboard from './FPODashboard';
 import '../styles/Dashboard.css';
 import FarmerRegistrationForm from '../components/FarmerRegistrationForm';
 import KYCModal from '../components/KYCModal';
@@ -21,7 +22,7 @@ const FPOEmployeeDashboard = () => {
   const [selectedFarmer, setSelectedFarmer] = useState(null);
   const [showFarmerView, setShowFarmerView] = useState(false);
   const [farmerViewData, setFarmerViewData] = useState(null);
-  const [tab, setTab] = useState('pending'); // pending | approved | all
+  const [tab, setTab] = useState('overview'); // overview | farmers
   const [search, setSearch] = useState('');
 
   const employeeFpoId = user?.fpoId || user?.assignedFpoId || user?.fpo?.id || user?.fpo?.fpoId;
@@ -128,12 +129,10 @@ const FPOEmployeeDashboard = () => {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return farmers.filter(f => {
-      const byTab = tab === 'all' ? true : tab === 'pending' ? (f.kycStatus !== 'APPROVED') : (f.kycStatus === 'APPROVED');
-      if (!byTab) return false;
       if (!q) return true;
       return (f.name || '').toLowerCase().includes(q) || (f.phone || '').toLowerCase().includes(q) || (f.email || '').toLowerCase().includes(q);
     });
-  }, [farmers, tab, search]);
+  }, [farmers, search]);
 
   const stats = useMemo(() => {
     const total = farmers.length;
@@ -186,23 +185,19 @@ const FPOEmployeeDashboard = () => {
           <div className="sidebar-role">FPO Employee</div>
         </div>
         <div className="sidebar-nav">
-          <div className={`nav-item ${tab === 'pending' ? 'active' : ''}`} onClick={() => setTab('pending')}>
-            <i className="fas fa-user-clock" />
-            <span>Pending KYC</span>
+          <div className={`nav-item ${tab === 'overview' ? 'active' : ''}`} onClick={() => setTab('overview')}>
+            <i className="fas fa-th-large" />
+            <span>Overview</span>
           </div>
-          <div className={`nav-item ${tab === 'approved' ? 'active' : ''}`} onClick={() => setTab('approved')}>
-            <i className="fas fa-user-check" />
-            <span>Approved</span>
-          </div>
-          <div className={`nav-item ${tab === 'all' ? 'active' : ''}`} onClick={() => setTab('all')}>
+          <div className={`nav-item ${tab === 'farmers' ? 'active' : ''}`} onClick={() => setTab('farmers')}>
             <i className="fas fa-users" />
-            <span>All Farmers</span>
+            <span>Farmers</span>
           </div>
         </div>
       </div>
 
       <div className="dashboard-main">
-        {!showCreateFarmer && (
+        {tab === 'overview' && !showCreateFarmer && (
           <>
             <div className="welcome-section">
               <h1 className="welcome-title">{fpo?.fpoName || 'FPO'} — Employee</h1>
@@ -232,10 +227,14 @@ const FPOEmployeeDashboard = () => {
             </div>
           </div>
             </div>
+            {/* Embedded FPO overview below the cards */}
+            <div style={{ marginTop: 12 }}>
+              <FPODashboard initialTab="overview" fpoId={employeeFpoId} embedded />
+            </div>
           </>
         )}
 
-        {!showCreateFarmer && (
+        {tab === 'farmers' && !showCreateFarmer && (
         <section className="panel" style={{ marginTop: 12 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ marginTop: 0 }}>Farmers</h2>
@@ -390,55 +389,41 @@ const FPOEmployeeDashboard = () => {
                 isInDashboard
                 onClose={() => setShowCreateFarmer(false)}
                 onSubmit={async (formData) => {
-                  setShowCreateFarmer(false);
-                  // reload farmers after slight delay
-                  setTimeout(async () => {
-                    try {
-                      // Use general farmer creation API since FPO-specific endpoint doesn't exist
-                      const created = await farmersAPI.createFarmer(formData);
-                      // Assign farmer to this employee so KYC approve endpoint authorizes
+                  try {
+                    // Create farmer scoped to this FPO
+                    const createdRes = await fpoAPI.createFPOFarmer(employeeFpoId, formData);
+                    console.log('Created FPO farmer:', createdRes);
+                    setShowCreateFarmer(false);
+                    // Refresh members list
+                    const members = await fpoAPI.getFPOMembers(employeeFpoId);
+                    const base = (members || []).map((m, idx) => ({
+                      id: m.id || idx + 1,
+                      memberId: m.id,
+                      farmerId: m.farmerId,
+                      name: m.farmerName || m.name || `${m.firstName || ''} ${m.lastName || ''}`.trim(),
+                      phone: '-',
+                      email: '-',
+                      kycStatus: (m.status || 'PENDING').toUpperCase(),
+                      raw: m
+                    }));
+                    const enriched = await Promise.all(base.map(async (row) => {
+                      if (!row.farmerId) return row;
                       try {
-                        const me = user?.email;
-                        // Use admin endpoint to assign by ids if available
-                        const employeeId = user?.id || user?.employeeId;
-                        if (employeeId && (created?.id || created?.farmerId)) {
-                          // Fallback assignment via admin endpoint
-                          await (await import('../api/apiService')).adminAPI?.assignFarmerToEmployee?.(created.id || created.farmerId, employeeId);
-                        }
-                      } catch (assignErr) { console.warn('Assignment skipped', assignErr); }
-                      // Link farmer as FPO member so it appears in this dashboard
-                      try {
-                        await fpoAPI.addMemberToFPO(employeeFpoId, { memberType: 'FARMER', farmerId: created?.id || created?.farmerId || created?.farmer?.id });
-                      } catch (linkErr) {
-                        console.warn('Failed to link farmer as FPO member', linkErr);
-                      }
-                      const members = await fpoAPI.getFPOMembers(employeeFpoId);
-                      const base = (members || []).map((m, idx) => ({
-                        id: m.id || idx + 1,
-                        memberId: m.id,
-                        farmerId: m.farmerId,
-                        name: m.farmerName || m.name || `${m.firstName || ''} ${m.lastName || ''}`.trim(),
-                        phone: '-',
-                        email: '-',
-                        kycStatus: (m.status || 'PENDING').toUpperCase(),
-                        raw: m
-                      }));
-                      const enriched = await Promise.all(base.map(async (row) => {
-                        if (!row.farmerId) return row;
-                        try {
-                          const dto = await farmersAPI.getFarmerById(row.farmerId);
-                          return {
-                            ...row,
-                            name: dto?.firstName ? `${dto.firstName} ${dto.lastName || ''}`.trim() : (row.name || '-'),
-                            phone: dto?.contactNumber || row.phone,
-                            email: dto?.email || row.email,
-                            kycStatus: (dto?.status || row.kycStatus || 'PENDING').toUpperCase(),
-                          };
-                        } catch { return row; }
-                      }));
-                      setFarmers(enriched);
-                    } catch {}
-                  }, 500);
+                        const dashboardData = await farmersAPI.getFarmerDashboard(row.farmerId);
+                        return {
+                          ...row,
+                          name: dashboardData?.firstName ? `${dashboardData.firstName} ${dashboardData.lastName || ''}`.trim() : (row.name || '-'),
+                          phone: dashboardData?.contactNumber || row.phone,
+                          email: dashboardData?.email || row.email,
+                          kycStatus: (dashboardData?.kycStatus || row.kycStatus || 'PENDING').toUpperCase(),
+                        };
+                      } catch { return row; }
+                    }));
+                    setFarmers(enriched);
+                  } catch (e) {
+                    console.error('Failed to create FPO farmer:', e);
+                    alert(e.response?.data?.error || e.response?.data?.message || 'Failed to create farmer');
+                  }
                 }}
               />
             </div>

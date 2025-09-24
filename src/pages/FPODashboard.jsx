@@ -16,7 +16,7 @@ import FPOTurnover from '../components/FPOTurnover';
 import FPOProducts from '../components/FPOProducts';
 import FPONotifications from '../components/FPONotifications';
 
-const FPODashboard = ({ initialTab = 'overview', fpoId: propFpoId }) => {
+const FPODashboard = ({ initialTab = 'overview', fpoId: propFpoId, embedded = false }) => {
   const { user, logout } = useAuth();
   const { fpoId: urlFpoId } = useParams();
   const fpoId = propFpoId || urlFpoId; // Use prop first, then URL param
@@ -272,6 +272,18 @@ const FPODashboard = ({ initialTab = 'overview', fpoId: propFpoId }) => {
     }
   };
 
+  // Embedded (compact) view: no header/sidebar, just content
+  if (embedded) {
+    return (
+      <div className="fpo-embedded" style={{ background: 'transparent', padding: 0 }}>
+        <div style={{ marginBottom: 8 }}>
+          {renderTabContent()}
+        </div>
+      </div>
+    );
+  }
+
+  // Full dashboard view
   return (
     <div className="dashboard fpo-dashboard-container">
       <header className="dashboard-header">

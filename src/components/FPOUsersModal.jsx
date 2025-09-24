@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { fpoUsersAPI } from '../api/apiService';
 
-const USER_TYPES = ['admin', 'employee', 'farmer', 'fpo'];
+// Restrict to FPO-scoped roles only
+const USER_TYPES = ['FPO', 'EMPLOYEE', 'FARMER'];
 
 const FPOUsersModal = ({ isOpen, onClose, fpoId }) => {
   const [users, setUsers] = useState([]);
@@ -129,7 +130,7 @@ const FPOUsersModal = ({ isOpen, onClose, fpoId }) => {
                   <div className="form-group"><label>User Type *</label>
                     <select value={formData.role} onChange={(e)=>setFormData({...formData,role:e.target.value})} required className={!formData.role?'required-field':''}>
                       <option value="">Select</option>
-                      {USER_TYPES.map(t=> (<option key={t} value={t.toUpperCase()}>{t}</option>))}
+                      {USER_TYPES.map(t=> (<option key={t} value={t}>{t}</option>))}
                     </select>
                   </div>
                   <div className="form-group"><label>Password *</label><input type="password" value={formData.password} onChange={(e)=>setFormData({...formData,password:e.target.value})} required /></div>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { fpoAPI, fpoUsersAPI, farmersAPI, employeesAPI } from '../api/apiService';
+import ActionDropdown from '../components/ActionDropdown';
 import '../styles/Dashboard.css';
 import '../styles/FPOManagement.css';
 import UserProfileDropdown from '../components/UserProfileDropdown';
@@ -17,6 +18,7 @@ import FPOInputShopModal from '../components/FPOInputShopModal';
 import FPOProductCategoriesModal from '../components/FPOProductCategoriesModal';
 import FPOProductsModal from '../components/FPOProductsModal';
 import FPOUsersModal from '../components/FPOUsersModal';
+import FPODashboard from './FPODashboard';
 import FarmerRegistrationForm from '../components/FarmerRegistrationForm';
 import EmployeeRegistrationForm from '../components/EmployeeRegistrationForm';
 
@@ -65,6 +67,17 @@ const FPOAdminDashboard = () => {
   const [showFPOProductCategoriesModal, setShowFPOProductCategoriesModal] = useState(false);
   const [showFPOProductsModal, setShowFPOProductsModal] = useState(false);
   const [showFPOUsersModal, setShowFPOUsersModal] = useState(false);
+  const [fpoEmbeddedTab, setFpoEmbeddedTab] = useState(null); // for embedded FPODashboard tab control
+  const scrollToModule = () => {
+    setTimeout(() => {
+      const el = document.getElementById('fpo-module-anchor');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  };
+  const [showFarmerView, setShowFarmerView] = useState(false);
+  const [farmerViewData, setFarmerViewData] = useState(null);
+  const [showEditFarmer, setShowEditFarmer] = useState(false);
+  const [editFarmerData, setEditFarmerData] = useState(null);
 
   // Greeting function based on time of day
   const getGreeting = () => {
@@ -227,6 +240,7 @@ const FPOAdminDashboard = () => {
   useEffect(() => {
     if (view === 'farmers') loadFarmers();
     if (view === 'employees') loadEmployees();
+    if (view === 'fpo') { loadFarmers(); loadEmployees(); }
     if (view === 'fpo') loadFPOs();
   }, [view, fpoId]);
 
@@ -243,8 +257,8 @@ const FPOAdminDashboard = () => {
   // Handlers for inline submissions
   const handleFarmerCreatedInline = async (formData) => {
     try {
-      // Use general farmer creation API since FPO-specific endpoint doesn't exist
-      const created = await farmersAPI.createFarmer(formData);
+      // Create farmer under this FPO
+      const created = await fpoAPI.createFPOFarmer(fpoId, formData);
       setShowInlineFarmerCreate(false);
       setView('farmers');
       await loadFarmers();
@@ -409,50 +423,8 @@ const FPOAdminDashboard = () => {
         )}
 
         {view === 'overview' && (
-        <div className="content-grid">
-          <div className="content-card farmers-card">
-            <div className="card-header">
-              <div className="card-icon farmers-icon">
-                <i className="fas fa-users"></i>
-              </div>
-              <div className="card-title">
-                <h3>Manage Farmers</h3>
-                <p>Add and manage farmers belonging to this FPO only.</p>
-              </div>
-            </div>
-            <div className="card-actions">
-              <button className="btn btn-primary" onClick={() => setShowInlineFarmerCreate(true)}>
-                <i className="fas fa-plus"></i>
-                Add Farmer
-              </button>
-              <button className="btn btn-secondary" onClick={() => setView('farmers')}>
-                <i className="fas fa-eye"></i>
-                View Farmers
-              </button>
-            </div>
-          </div>
-
-          <div className="content-card employees-card">
-            <div className="card-header">
-              <div className="card-icon employees-icon">
-                <i className="fas fa-user-tie"></i>
-              </div>
-              <div className="card-title">
-                <h3>Manage Employees</h3>
-                <p>Create and manage employees scoped to this FPO.</p>
-              </div>
-            </div>
-            <div className="card-actions">
-              <button className="btn btn-primary" onClick={() => setShowInlineEmployeeCreate(true)}>
-                <i className="fas fa-plus"></i>
-                Add Employee
-              </button>
-              <button className="btn btn-secondary" onClick={() => setView('employees')}>
-                <i className="fas fa-eye"></i>
-                View Employees
-              </button>
-            </div>
-          </div>
+          <div style={{ marginTop: 12 }}>
+            <FPODashboard initialTab="overview" fpoId={fpoId} embedded />
         </div>
         )}
 
@@ -541,6 +513,7 @@ const FPOAdminDashboard = () => {
                     <th>Phone</th>
                     <th>Email</th>
                     <th>Status</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -572,6 +545,81 @@ const FPOAdminDashboard = () => {
                           {f.status}
                         </span>
                       </td>
+                      <td>
+                        <ActionDropdown
+                          item={f}
+                          customActions={[
+                            {
+                              label: 'View Details',
+                              className: 'info',
+                              onClick: async (row) => {
+                                try {
+                                  const dto = await farmersAPI.getFarmerById(row.farmerId || row.id);
+                                  setFarmerViewData(dto);
+                                  setShowFarmerView(true);
+                                } catch (e) { alert('Failed to load farmer details'); }
+                              }
+                            },
+                            {
+                              label: 'Edit',
+                              className: 'primary',
+                              onClick: async (row) => {
+                                try {
+                                  const dto = await farmersAPI.getFarmerById(row.farmerId || row.id);
+                                  setEditFarmerData(dto);
+                                  setShowEditFarmer(true);
+                                } catch (e) { alert('Failed to load farmer'); }
+                              }
+                            },
+                            {
+                              label: 'Delete',
+                              className: 'danger',
+                              onClick: async (row) => {
+                                if (!window.confirm('Delete this farmer permanently?')) return;
+                                try {
+                                  await farmersAPI.deleteFarmer(row.farmerId || row.id);
+                                  await loadFarmers();
+                                  alert('Farmer deleted');
+                                } catch (e) { alert(e.response?.data?.message || 'Failed to delete'); }
+                              }
+                            },
+                            {
+                              label: 'Approve KYC',
+                              className: 'success',
+                              onClick: async (row) => {
+                                try {
+                                  await fpoAPI.approveKyc(row.farmerId || row.id);
+                                  alert('KYC approved');
+                                } catch (e) { alert(e.response?.data?.message || 'Failed to approve'); }
+                              }
+                            },
+                            {
+                              label: 'Reject KYC',
+                              className: 'danger',
+                              onClick: async (row) => {
+                                const reason = prompt('Enter rejection reason');
+                                if (!reason) return;
+                                try {
+                                  await fpoAPI.rejectKyc(row.farmerId || row.id, { reason });
+                                  alert('KYC rejected');
+                                } catch (e) { alert(e.response?.data?.message || 'Failed to reject'); }
+                              }
+                            },
+                            {
+                              label: 'Refer Back',
+                              className: 'warning',
+                              onClick: async (row) => {
+                                const reason = prompt('Enter refer-back reason');
+                                if (!reason) return;
+                                try {
+                                  await fpoAPI.referBackKyc(row.farmerId || row.id, { reason });
+                                  alert('Referred back to employee');
+                                } catch (e) { console.error(e); alert('Failed to refer back'); }
+                              }
+                            }
+                          ]}
+                        />
+                      </td>
                     </tr>
                   ))}
                   {farmers.length === 0 && (
@@ -590,6 +638,30 @@ const FPOAdminDashboard = () => {
                 </tbody>
               </table>
             </div>
+          </section>
+        )}
+
+        {/* Edit Farmer - reuse registration form prefilled */}
+        {showEditFarmer && editFarmerData && (
+          <section className="panel" style={{ marginTop: 12, width: '100%', maxWidth: 'none', padding: '24px' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
+              <h2 style={{ marginTop:0 }}>Edit Farmer</h2>
+              <button className="btn" onClick={()=>{ setShowEditFarmer(false); setEditFarmerData(null); }}>Close</button>
+            </div>
+            <FarmerRegistrationForm
+              isInDashboard
+              editData={editFarmerData}
+              onClose={()=>{ setShowEditFarmer(false); setEditFarmerData(null); }}
+              onSubmit={async (formData)=>{
+                try {
+                  await farmersAPI.updateFarmer(editFarmerData.id, formData);
+                  setShowEditFarmer(false);
+                  setEditFarmerData(null);
+                  await loadFarmers();
+                  alert('Farmer updated');
+                } catch (e) { alert(e.response?.data?.message || 'Failed to update'); }
+              }}
+            />
           </section>
         )}
 
@@ -677,84 +749,29 @@ const FPOAdminDashboard = () => {
           </section>
         )}
 
+        {/* Employees list (scoped to this FPO) */}
         {view === 'employees' && !showInlineEmployeeCreate && (
           <section className="panel" style={{ marginTop: 12, width: '100%', maxWidth: 'none', padding: '24px' }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              marginBottom: '24px',
-              flexWrap: 'wrap',
-              gap: '16px'
-            }}>
-              <h2 style={{ marginTop: 0, fontSize: '28px', fontWeight: '700', color: '#1e293b' }}>Employees</h2>
-              <div style={{ 
-                display: 'flex', 
-                gap: '12px',
-                flexWrap: 'wrap',
-                alignItems: 'center'
-              }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24, flexWrap:'wrap', gap:16 }}>
+              <h2 style={{ marginTop: 0, fontSize: '28px', fontWeight: 700, color: '#1e293b' }}>Employees</h2>
+              <div style={{ display:'flex', gap:12, flexWrap:'wrap', alignItems:'center' }}>
                 <input
                   value={employeeSearch}
-                  onChange={(e) => setEmployeeSearch(e.target.value)}
+                  onChange={(e)=>setEmployeeSearch(e.target.value)}
                   placeholder="Search name, phone or email"
                   className="input"
-                  style={{ 
-                    padding: '12px 16px', 
-                    border: '2px solid #e5e7eb', 
-                    borderRadius: '12px',
-                    fontSize: '15px',
-                    minWidth: '280px',
-                    background: 'white',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = '#22c55e'}
-                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                  style={{ padding:'12px 16px', border:'2px solid #e5e7eb', borderRadius:12, fontSize:15, minWidth:280, background:'white', boxShadow:'0 2px 4px rgba(0,0,0,0.05)', transition:'all 0.2s ease' }}
+                  onFocus={(e)=>e.target.style.borderColor='#22c55e'}
+                  onBlur={(e)=>e.target.style.borderColor='#e5e7eb'}
                 />
-                <button 
-                  className="btn" 
-                  onClick={() => setView('overview') || setTimeout(() => setView('employees'), 0)}
-                  style={{
-                    padding: '12px 20px',
-                    borderRadius: '12px',
-                    fontSize: '15px',
-                    fontWeight: '600',
-                    background: 'white',
-                    border: '2px solid #e5e7eb',
-                    color: '#374151',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
+                <button className="btn" onClick={()=>{ setView('overview'); setTimeout(()=>setView('employees'),0); }}
+                  style={{ padding:'12px 20px', borderRadius:12, fontSize:15, fontWeight:600, background:'white', border:'2px solid #e5e7eb', color:'#374151', transition:'all 0.2s ease' }}>
                   Refresh
-                </button>
-                <button 
-                  className="btn primary" 
-                  onClick={() => setShowInlineEmployeeCreate(true)}
-                  style={{
-                    padding: '12px 20px',
-                    borderRadius: '12px',
-                    fontSize: '15px',
-                    fontWeight: '600',
-                    background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
-                    border: 'none',
-                    color: 'white',
-                    boxShadow: '0 4px 12px rgba(21, 128, 61, 0.3)',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  Add Employee
                 </button>
               </div>
             </div>
-            <div style={{ 
-              background: 'white', 
-              borderRadius: '16px', 
-              overflow: 'hidden',
-              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.08)',
-              border: '1px solid #e2e8f0'
-            }}>
-              <table className="fpo-table" style={{ width: '100%', margin: 0 }}>
+            <div style={{ background:'white', borderRadius:16, overflow:'hidden', boxShadow:'0 8px 25px rgba(0,0,0,0.08)', border:'1px solid #e2e8f0' }}>
+              <table className="fpo-table" style={{ width:'100%', margin:0 }}>
                 <thead>
                   <tr>
                     <th>Id</th>
@@ -766,100 +783,59 @@ const FPOAdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {employees.filter(u => {
+                  {employees.filter(u=>{
                     const q = employeeSearch.trim().toLowerCase();
                     if (!q) return true;
-                    const name = `${u.firstName || ''} ${u.lastName || ''}`.trim();
-                    return (
-                      name.toLowerCase().includes(q) ||
-                      (u.email || '').toLowerCase().includes(q) ||
-                      (u.phoneNumber || '').toLowerCase().includes(q)
-                    );
+                    const name = `${u.firstName||''} ${u.lastName||''}`.trim();
+                    return name.toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q) || (u.phoneNumber||'').toLowerCase().includes(q);
                   }).map(u => (
                     <tr key={u.id}>
-                      <td style={{ fontWeight: '600', color: '#15803d' }}>{u.id}</td>
-                      <td style={{ fontWeight: '600', color: '#1e293b' }}>{u.firstName} {u.lastName}</td>
-                      <td style={{ color: '#64748b' }}>{u.email}</td>
-                      <td style={{ color: '#64748b' }}>{u.phoneNumber}</td>
+                      <td style={{ fontWeight:600, color:'#15803d' }}>{u.id}</td>
+                      <td style={{ fontWeight:600, color:'#1e293b' }}>{u.firstName} {u.lastName}</td>
+                      <td style={{ color:'#64748b' }}>{u.email}</td>
+                      <td style={{ color:'#64748b' }}>{u.phoneNumber}</td>
                       <td>
-                        <span style={{
-                          padding: '6px 12px',
-                          borderRadius: '20px',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                          background: u.status === 'APPROVED' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                          color: u.status === 'APPROVED' ? '#15803d' : '#dc2626'
-                        }}>
+                        <span style={{ padding:'6px 12px', borderRadius:20, fontSize:12, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.5px', background: u.status==='APPROVED' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: u.status==='APPROVED' ? '#15803d' : '#dc2626' }}>
                           {u.status}
                         </span>
                       </td>
-                      <td style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        <button 
-                          className="btn" 
-                          onClick={async () => {
-                            try {
-                              const { fpoUsersAPI } = await import('../api/apiService');
-                              await fpoUsersAPI.toggleActive(fpoId, u.id, !(u.status === 'APPROVED'));
-                              // refresh
-                              setView('overview');
-                              setTimeout(() => setView('employees'), 0);
-                            } catch (e) {
-                              alert('Failed to update status');
-                            }
-                          }}
-                          style={{
-                            padding: '8px 16px',
-                            borderRadius: '8px',
-                            fontSize: '13px',
-                            fontWeight: '600',
-                            background: u.status === 'APPROVED' ? '#ef4444' : '#22c55e',
-                            border: 'none',
-                            color: 'white',
-                            transition: 'all 0.2s ease'
-                          }}
-                        >
-                          {u.status === 'APPROVED' ? 'Deactivate' : 'Activate'}
-                        </button>
-                        <button 
-                          className="btn" 
-                          onClick={async () => {
+                      <td>
+                        <ActionDropdown
+                          item={u}
+                          customActions={[
+                            {
+                              label: 'Edit Password',
+                              className: 'info',
+                              onClick: async (userRow) => {
                             const pwd = prompt('Enter new password for employee');
                             if (!pwd) return;
                             try {
-                              const { fpoUsersAPI } = await import('../api/apiService');
-                              await fpoUsersAPI.updatePassword(fpoId, u.id, pwd);
+                                  await fpoUsersAPI.updatePassword(fpoId, userRow.id, pwd);
                               alert('Password updated');
                             } catch (e) { alert('Failed to update password'); }
-                          }}
-                          style={{
-                            padding: '8px 16px',
-                            borderRadius: '8px',
-                            fontSize: '13px',
-                            fontWeight: '600',
-                            background: '#3b82f6',
-                            border: 'none',
-                            color: 'white',
-                            transition: 'all 0.2s ease'
-                          }}
-                        >
-                          Edit Password
-                        </button>
+                              }
+                            },
+                            {
+                              label: (u.status === 'APPROVED') ? 'Deactivate Account' : 'Activate Account',
+                              className: (u.status === 'APPROVED') ? 'danger' : 'success',
+                              onClick: async (userRow) => {
+                                try {
+                                  await fpoUsersAPI.toggleActive(fpoId, userRow.id, !(userRow.status === 'APPROVED'));
+                                  // refresh
+                                  await loadEmployees();
+                                } catch (e) {
+                                  alert('Failed to update status');
+                                }
+                              }
+                            }
+                          ]}
+                        />
                       </td>
                     </tr>
                   ))}
                   {employees.length === 0 && (
                     <tr>
-                      <td colSpan={6} style={{ 
-                        textAlign: 'center', 
-                        color: '#64748b', 
-                        padding: '60px 20px',
-                        fontSize: '16px',
-                        fontWeight: '500'
-                      }}>
-                        No employees found. Click "Add Employee" to get started.
-                      </td>
+                      <td colSpan={5} style={{ textAlign:'center', color:'#64748b', padding:'60px 20px', fontSize:16, fontWeight:500 }}>No employees found for this FPO.</td>
                     </tr>
                   )}
                 </tbody>
@@ -967,150 +943,95 @@ const FPOAdminDashboard = () => {
 
         {view === 'fpo' && (
           <div className="superadmin-overview-section">
-            {!showFPOCreationForm ? (
-              <>
-                {!viewingFPO ? (
-                  <>
                     <div className="superadmin-overview-header">
                       <div className="header-left">
-                        <h2 className="superadmin-overview-title">FPO Management</h2>
-                        <p className="overview-description">
-                          Manage Farmer Producer Organizations and their operations.
-                        </p>
+                <h2 className="superadmin-overview-title">{fpo?.fpoName || 'FPO'} - Details</h2>
+                <p className="overview-description">Manage all modules and details of this FPO.</p>
                       </div>
                       <div className="header-right">
-                        <div className="overview-actions">
-                          <button 
-                            onClick={handleAddFPO}
-                            className="btn btn-primary"
-                            style={{
-                              background: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '8px',
-                              padding: '12px 24px',
-                              cursor: 'pointer',
-                              fontSize: '14px',
-                              fontWeight: '600',
-                              transition: 'all 0.3s ease',
-                              boxShadow: '0 4px 12px rgba(21, 128, 61, 0.25)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px'
-                            }}
-                          >
-                            <i className="fas fa-plus"></i>
-                            Add FPO
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* FPO Filters */}
-                    <div className="filters-section">
-                      <div className="filter-group">
-                        <label className="filter-label">State</label>
-                        <select 
-                          value={fpoFilters.state} 
-                          onChange={(e) => setFpoFilters(prev => ({ ...prev, state: e.target.value }))}
-                          className="filter-select"
-                        >
-                          <option value="">All States</option>
-                          <option value="Telangana">Telangana</option>
-                          <option value="Andhrapradesh">Andhrapradesh</option>
-                          <option value="Maharashtra">Maharashtra</option>
-                          <option value="Gujarat">Gujarat</option>
-                          <option value="Punjab">Punjab</option>
-                          <option value="Uttar Pradesh">Uttar Pradesh</option>
-                          <option value="Tamil Nadu">Tamil Nadu</option>
-                        </select>
-                      </div>
-                      
-                      <div className="filter-group">
-                        <label className="filter-label">District</label>
-                        <select 
-                          value={fpoFilters.district} 
-                          onChange={(e) => setFpoFilters(prev => ({ ...prev, district: e.target.value }))}
-                          className="filter-select"
-                        >
-                          <option value="">All Districts</option>
-                          <option value="Karimnagar">Karimnagar</option>
-                          <option value="rangareddy">Rangareddy</option>
-                          <option value="kadapa">Kadapa</option>
-                          <option value="Kadapa">Kadapa</option>
-                          <option value="kadpaa">Kadpaa</option>
-                          <option value="Kuppam">Kuppam</option>
-                          <option value="Pune">Pune</option>
-                          <option value="Ahmedabad">Ahmedabad</option>
-                          <option value="Amritsar">Amritsar</option>
-                          <option value="Lucknow">Lucknow</option>
-                          <option value="Chennai">Chennai</option>
-                        </select>
-                      </div>
-                      
-                      <div className="filter-group">
-                        <label className="filter-label">Status</label>
-                        <select 
-                          value={fpoFilters.status} 
-                          onChange={(e) => setFpoFilters(prev => ({ ...prev, status: e.target.value }))}
-                          className="filter-select"
-                        >
-                          <option value="">All Status</option>
-                          <option value="ACTIVE">Active</option>
-                          <option value="INACTIVE">Inactive</option>
-                          <option value="PENDING">Pending</option>
-                        </select>
-                      </div>
-                      
-                      <div className="filter-group">
-                        <label className="filter-label">Search</label>
-                        <input
-                          type="text"
-                          placeholder="Search FPOs..."
-                          value={fpoSearch}
-                          onChange={(e) => setFpoSearch(e.target.value)}
-                          className="filter-input"
+                <ActionDropdown
+                  item={fpo}
+                  customActions={[
+                    { label: 'Dashboard', className: 'info', onClick: ()=> setFpoEmbeddedTab('overview') },
+                    { label: 'Edit FPO', className: 'primary', onClick: ()=> setShowFPOEditModal(true) },
+                    { label: 'Farm Services', className: 'primary', onClick: ()=> setShowFPOFarmServicesModal(true) },
+                    { label: 'Board Members', className: 'primary', onClick: ()=> setShowFPOBoardMembersModal(true) },
+                    { label: 'Crops', className: 'primary', onClick: ()=> setFpoEmbeddedTab('crops') },
+                    { label: 'Turnover', className: 'primary', onClick: ()=> setFpoEmbeddedTab('turnover') },
+                    { label: 'Products', className: 'primary', onClick: ()=> setFpoEmbeddedTab('products') },
+                    { label: 'Notifications', className: 'primary', onClick: ()=> setFpoEmbeddedTab('notifications') },
+                    { label: 'FPO Users', className: 'primary', onClick: ()=> setShowFPOUsersModal(true) },
+                    { label: 'Close All Modals', className: 'danger', onClick: ()=> { setShowFPOEditModal(false); setShowFPOBoardMembersModal(false); setShowFPOFarmServicesModal(false); } }
+                  ]}
                         />
                       </div>
                     </div>
 
-                    {/* FPO List */}
-                    <FPOList
-                      fpos={fpos}
-                      onEdit={handleEditFPO}
-                      onView={handleViewFPO}
-                      onDelete={handleDeleteFPO}
-                      filters={fpoFilters}
-                      searchTerm={fpoSearch}
-                    />
-                  </>
-                ) : (
-                  <div className="fpo-detail-view">
-                    <div className="fpo-detail-header">
-                      <button 
-                        className="btn btn-secondary"
-                        onClick={() => setViewingFPO(false)}
-                        style={{ marginBottom: '20px' }}
-                      >
-                        <i className="fas fa-arrow-left"></i>
-                        Back to FPO List
-                      </button>
+            {/* FPO details table scoped to this FPO */}
+            <section className="panel" style={{ marginTop: 12, width: '100%', maxWidth: 'none', padding: '24px' }}>
+              <h3 style={{ marginTop: 0, fontSize: '20px', fontWeight: 700, color: '#1e293b', marginBottom: 16 }}>FPO Details</h3>
+              <div style={{ background:'white', borderRadius:16, overflow:'hidden', boxShadow:'0 8px 25px rgba(0,0,0,0.08)', border:'1px solid #e2e8f0' }}>
+                <table className="fpo-table" style={{ width:'100%', margin:0 }}>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Reg No</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>State</th>
+                      <th>District</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {fpo ? (
+                      <tr>
+                        <td style={{ fontWeight:600, color:'#15803d' }}>{fpo.id || fpo.fpoId}</td>
+                        <td style={{ fontWeight:600, color:'#1e293b' }}>{fpo.fpoName || fpo.name}</td>
+                        <td style={{ color:'#64748b' }}>{fpo.registrationNumber || '-'}</td>
+                        <td style={{ color:'#64748b' }}>{fpo.email || '-'}</td>
+                        <td style={{ color:'#64748b' }}>{fpo.phoneNumber || '-'}</td>
+                        <td style={{ color:'#64748b' }}>{fpo.state || '-'}</td>
+                        <td style={{ color:'#64748b' }}>{fpo.district || '-'}</td>
+                        <td>
+                          <span style={{ padding:'6px 12px', borderRadius:20, fontSize:12, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.5px', background: (String(fpo.status).toUpperCase()==='ACTIVE') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: (String(fpo.status).toUpperCase()==='ACTIVE') ? '#15803d' : '#dc2626' }}>
+                            {String(fpo.status || 'PENDING')}
+                          </span>
+                        </td>
+                        <td>
+                <ActionDropdown
+                            item={fpo}
+                            customActions={[
+                    { label: 'Edit FPO', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOEditModal(true); } },
+                    { label: 'Farm Services', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOFarmServicesModal(true); } },
+                    { label: 'Board Members', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOBoardMembersModal(true); } },
+                    { label: 'Crops', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOCropEntriesModal(true); } },
+                    { label: 'Turnover', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOTurnoverModal(true); } },
+                    { label: 'Products', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOProductsModal(true); } },
+                    { label: 'Product Categories', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOProductCategoriesModal(true); } },
+                    { label: 'Input Shops', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOInputShopModal(true); } },
+                    { label: 'Notifications', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setFpoEmbeddedTab('notifications'); scrollToModule(); } },
+                    { label: 'FPO Users', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOUsersModal(true); } },
+                    
+                            ]}
+                          />
+                        </td>
+                      </tr>
+                    ) : (
+                      <tr><td colSpan={9} style={{ textAlign:'center', color:'#64748b', padding:'24px 12px' }}>No FPO found</td></tr>
+                    )}
+                  </tbody>
+                </table>
                     </div>
-                    <div className="fpo-detail-content">
-                      <h2>FPO Details: {selectedFPO?.fpoName || selectedFPO?.name}</h2>
-                      <p>FPO ID: {selectedFPO?.fpoId || selectedFPO?.id}</p>
-                      <p>Status: {selectedFPO?.status}</p>
-                      <p>State: {selectedFPO?.state}</p>
-                      <p>District: {selectedFPO?.district}</p>
-                    </div>
+            </section>
+
+            {/* Optional: render embedded sections when an action selects a tab */}
+            {fpoEmbeddedTab && (
+              <div id="fpo-module-anchor" style={{ marginTop: 16 }}>
+                <FPODashboard initialTab={fpoEmbeddedTab} fpoId={fpoId} embedded />
                   </div>
-                )}
-              </>
-            ) : (
-              <FPOCreationForm
-                onSuccess={handleFPOCreated}
-                onCancel={() => setShowFPOCreationForm(false)}
-              />
             )}
           </div>
         )}
@@ -1140,82 +1061,120 @@ const FPOAdminDashboard = () => {
         />
       )}
 
+      {/* Farmer quick view modal */}
+      {showFarmerView && farmerViewData && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Farmer Details - {farmerViewData.firstName} {farmerViewData.lastName}</h2>
+              <button className="modal-close" onClick={() => { setShowFarmerView(false); setFarmerViewData(null); }}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="info-grid">
+                <div className="info-item"><label>Name:</label><span>{farmerViewData.firstName} {farmerViewData.lastName}</span></div>
+                <div className="info-item"><label>Phone:</label><span>{farmerViewData.contactNumber || '-'}</span></div>
+                <div className="info-item"><label>Email:</label><span>{farmerViewData.email || '-'}</span></div>
+                <div className="info-item"><label>Village:</label><span>{farmerViewData.village || '-'}</span></div>
+                <div className="info-item"><label>District:</label><span>{farmerViewData.district || '-'}</span></div>
+                <div className="info-item"><label>State:</label><span>{farmerViewData.state || '-'}</span></div>
+                <div className="info-item"><label>Status:</label><span>{farmerViewData.status || '-'}</span></div>
+              </div>
+              <div style={{ marginTop:16, display:'flex', gap:8 }}>
+                <button className="btn primary" onClick={() => { setShowFarmerView(false); setEditFarmerData(farmerViewData); setShowEditFarmer(true); }}>Edit</button>
+                <button className="btn danger" onClick={async ()=>{
+                  if (!window.confirm('Delete this farmer permanently?')) return;
+                  try { await farmersAPI.deleteFarmer(farmerViewData.id); setShowFarmerView(false); setFarmerViewData(null); await loadFarmers(); alert('Farmer deleted'); }
+                  catch(e){ alert(e.response?.data?.message || 'Failed to delete'); }
+                }}>Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showFPOBoardMembersModal && selectedFPO && (
         <FPOBoardMembersModal
-          fpo={selectedFPO}
+          isOpen={showFPOBoardMembersModal}
+          fpoId={selectedFPO.id}
+          fpoName={selectedFPO.fpoName || selectedFPO.name}
           onClose={() => {
             setShowFPOBoardMembersModal(false);
-            setSelectedFPO(null);
           }}
         />
       )}
 
       {showFPOFarmServicesModal && selectedFPO && (
         <FPOFarmServicesModal
-          fpo={selectedFPO}
+          isOpen={showFPOFarmServicesModal}
+          fpoId={selectedFPO.id}
+          fpoName={selectedFPO.fpoName || selectedFPO.name}
           onClose={() => {
             setShowFPOFarmServicesModal(false);
-            setSelectedFPO(null);
           }}
         />
       )}
 
       {showFPOTurnoverModal && selectedFPO && (
         <FPOTurnoverModal
-          fpo={selectedFPO}
+          isOpen={showFPOTurnoverModal}
+          fpoId={selectedFPO.id}
+          fpoName={selectedFPO.fpoName || selectedFPO.name}
           onClose={() => {
             setShowFPOTurnoverModal(false);
-            setSelectedFPO(null);
           }}
         />
       )}
 
       {showFPOCropEntriesModal && selectedFPO && (
         <FPOCropEntriesModal
-          fpo={selectedFPO}
+          isOpen={showFPOCropEntriesModal}
+          fpoId={selectedFPO.id}
+          fpoName={selectedFPO.fpoName || selectedFPO.name}
           onClose={() => {
             setShowFPOCropEntriesModal(false);
-            setSelectedFPO(null);
           }}
         />
       )}
 
       {showFPOInputShopModal && selectedFPO && (
         <FPOInputShopModal
-          fpo={selectedFPO}
+          isOpen={showFPOInputShopModal}
+          fpoId={selectedFPO.id}
+          fpoName={selectedFPO.fpoName || selectedFPO.name}
           onClose={() => {
             setShowFPOInputShopModal(false);
-            setSelectedFPO(null);
           }}
         />
       )}
 
       {showFPOProductCategoriesModal && selectedFPO && (
         <FPOProductCategoriesModal
-          fpo={selectedFPO}
+          isOpen={showFPOProductCategoriesModal}
+          fpoId={selectedFPO.id}
+          fpoName={selectedFPO.fpoName || selectedFPO.name}
           onClose={() => {
             setShowFPOProductCategoriesModal(false);
-            setSelectedFPO(null);
           }}
         />
       )}
 
       {showFPOProductsModal && selectedFPO && (
         <FPOProductsModal
-          fpo={selectedFPO}
+          isOpen={showFPOProductsModal}
+          fpoId={selectedFPO.id}
+          fpoName={selectedFPO.fpoName || selectedFPO.name}
           onClose={() => {
             setShowFPOProductsModal(false);
-            setSelectedFPO(null);
           }}
         />
       )}
 
       {showFPOUsersModal && selectedFPO && (
         <FPOUsersModal
-          fpo={selectedFPO}
+          isOpen={showFPOUsersModal}
+          fpoId={selectedFPO.id}
           onClose={() => {
             setShowFPOUsersModal(false);
-            setSelectedFPO(null);
           }}
         />
       )}
