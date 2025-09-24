@@ -212,7 +212,7 @@ const FPOProductCategoriesView = ({ fpo, onClose }) => {
   if (showCreateForm) {
     return (
       <div className="fpo-product-category-form">
-        <div className="form-header">
+        <div className="form-header" style={{ background: 'linear-gradient(90deg,#10b981,#16a34a)' }}>
           <div className="header-content">
             <div className="header-left">
               <h1 className="form-title">{editingCategory ? 'Edit Product Category' : 'Add New Product Category'}</h1>
@@ -220,17 +220,16 @@ const FPOProductCategoriesView = ({ fpo, onClose }) => {
                 {editingCategory ? 'Update product category information' : 'Add a new category for ' + (fpo?.fpoName || 'FPO')}
               </p>
             </div>
-            <div className="header-right">
+            <div className="header-right" style={{ display: 'flex', gap: 8 }}>
               <button
-                className="close-btn"
+                className="btn btn-secondary"
                 onClick={() => {
                   setShowCreateForm(false);
                   setEditingCategory(null);
                   setFormErrors({});
                 }}
-                title="Close"
               >
-                <i className="fas fa-times"></i>
+                Back to List
               </button>
             </div>
           </div>
@@ -309,16 +308,14 @@ const FPOProductCategoriesView = ({ fpo, onClose }) => {
   return (
     <div className="fpo-product-categories-view">
       {/* Header Section */}
-      <div className="product-categories-header">
+      <div className="product-categories-header" style={{ background: 'linear-gradient(90deg,#10b981,#16a34a)' }}>
         <div className="header-content">
           <div className="header-left">
             <h1 className="product-categories-title">Product Categories Management</h1>
             <p className="product-categories-subtitle">Manage product categories and classifications for {fpo?.fpoName || 'FPO'}</p>
           </div>
-          <div className="header-right">
-            <button className="close-btn" onClick={onClose}>
-              <i className="fas fa-times"></i>
-            </button>
+          <div className="header-right" style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-secondary" onClick={onClose}>Back to FPO</button>
           </div>
         </div>
       </div>

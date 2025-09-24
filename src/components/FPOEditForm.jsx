@@ -119,17 +119,15 @@ const FPOEditForm = ({ fpo, onClose, onUpdated }) => {
 
   return (
     <div className="fpo-edit-form">
-      {/* Header Section */}
-      <div className="fpo-edit-header">
+      {/* Slim header with Back button only */}
+      <div className="fpo-edit-header" style={{ background: 'linear-gradient(90deg,#10b981,#16a34a)' }}>
         <div className="header-content">
           <div className="header-left">
             <h1 className="edit-title">Edit FPO</h1>
             <p className="edit-subtitle">Update {fpo?.fpoName || 'FPO'} information</p>
           </div>
-          <div className="header-right">
-            <button className="close-btn" onClick={handleCancel}>
-              <i className="fas fa-times"></i>
-            </button>
+          <div className="header-right" style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-secondary" onClick={handleCancel}>Back to FPO</button>
           </div>
         </div>
       </div>

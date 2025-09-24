@@ -302,7 +302,7 @@ const FPOUsersView = ({ fpo, onClose }) => {
   if (showCreateForm) {
     return (
       <div className="fpo-user-form">
-        <div className="form-header">
+        <div className="form-header" style={{ background: 'linear-gradient(90deg,#10b981,#16a34a)' }}>
           <div className="header-content">
             <div className="header-left">
               <h1 className="form-title">{editingUser ? 'Edit User' : 'Add New User'}</h1>
@@ -310,17 +310,16 @@ const FPOUsersView = ({ fpo, onClose }) => {
                 {editingUser ? 'Update user details' : 'Add a new user for ' + (fpo?.fpoName || 'FPO')}
               </p>
             </div>
-            <div className="header-right">
-              <button
-                className="close-btn"
+            <div className="header-right" style={{ display: 'flex', gap: 8 }}>
+              <button 
+                className="btn btn-secondary"
                 onClick={() => {
                   setShowCreateForm(false);
                   setEditingUser(null);
                   setFormErrors({});
                 }}
-                title="Close"
               >
-                <i className="fas fa-times"></i>
+                Back to List
               </button>
             </div>
           </div>
@@ -435,16 +434,14 @@ const FPOUsersView = ({ fpo, onClose }) => {
   return (
     <div className="fpo-users-view">
       {/* Header Section */}
-      <div className="users-header">
+      <div className="users-header" style={{ background: 'linear-gradient(90deg,#10b981,#16a34a)' }}>
         <div className="header-content">
           <div className="header-left">
             <h1 className="users-title">FPO Users Management</h1>
             <p className="users-subtitle">Manage users and access control for {fpo?.fpoName || 'FPO'}</p>
           </div>
-          <div className="header-right">
-            <button className="close-btn" onClick={onClose}>
-              <i className="fas fa-times"></i>
-            </button>
+          <div className="header-right" style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-secondary" onClick={onClose}>Back to FPO</button>
           </div>
         </div>
       </div>

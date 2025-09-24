@@ -217,7 +217,7 @@ const FPOInputShopView = ({ fpo, onClose }) => {
     return (
       <div className="fpo-input-shop-form">
         {/* Header */}
-        <div className="form-header">
+        <div className="form-header" style={{ background: 'linear-gradient(90deg,#10b981,#16a34a)' }}>
           <div className="header-content">
             <div className="header-left">
               <h1 className="form-title">{editingShop ? 'Edit Input Shop' : 'Add New Input Shop'}</h1>
@@ -225,17 +225,16 @@ const FPOInputShopView = ({ fpo, onClose }) => {
                 {editingShop ? 'Update input shop information' : 'Add a new input shop for ' + (fpo?.fpoName || 'FPO')}
               </p>
             </div>
-            <div className="header-right">
-              <button
-                className="close-btn"
+            <div className="header-right" style={{ display: 'flex', gap: 8 }}>
+              <button 
+                className="btn btn-secondary"
                 onClick={() => {
                   setShowCreateForm(false);
                   setEditingShop(null);
                   setFormErrors({});
                 }}
-                title="Close"
               >
-                <i className="fas fa-times"></i>
+                Back to List
               </button>
             </div>
           </div>
@@ -324,16 +323,14 @@ const FPOInputShopView = ({ fpo, onClose }) => {
   return (
     <div className="fpo-input-shop-view">
       {/* Header Section */}
-      <div className="input-shop-header">
+      <div className="input-shop-header" style={{ background: 'linear-gradient(90deg,#10b981,#16a34a)' }}>
         <div className="header-content">
           <div className="header-left">
             <h1 className="input-shop-title">Input Shop Management</h1>
             <p className="input-shop-subtitle">Manage input shops and licensing for {fpo?.fpoName || 'FPO'}</p>
           </div>
-          <div className="header-right">
-            <button className="close-btn" onClick={onClose}>
-              <i className="fas fa-times"></i>
-            </button>
+          <div className="header-right" style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-secondary" onClick={onClose}>Back to FPO</button>
           </div>
         </div>
       </div>

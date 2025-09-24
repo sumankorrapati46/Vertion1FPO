@@ -4,6 +4,7 @@ import { farmersAPI, employeesAPI, adminAPI, fpoAPI, idCardAPI } from '../api/ap
 import api from '../api/apiService';
 import IdCardViewer from '../components/IdCardViewer';
 import '../styles/Dashboard.css';
+import Configurations from '../components/Configurations';
 import FarmerRegistrationForm from '../components/FarmerRegistrationForm';
 import EmployeeRegistrationForm from '../components/EmployeeRegistrationForm';
 import AssignmentModal from '../components/AssignmentModal';
@@ -2537,6 +2538,14 @@ const AdminDashboard = () => {
             <i className="fas fa-tasks"></i>
             <span>Bulk Operations</span>
           </div>
+
+          <div 
+            className={`nav-item ${activeTab === 'configurations' ? 'active' : ''}`}
+            onClick={() => setActiveTab('configurations')}
+          >
+            <i className="fas fa-sliders-h"></i>
+            <span>Configurations</span>
+          </div>
         </div>
       </div>
 
@@ -2568,6 +2577,9 @@ const AdminDashboard = () => {
               
               {renderOverview()}
             </>
+          )}
+          {activeTab === 'configurations' && (
+            <Configurations role={user?.role} />
           )}
           {activeTab === 'fpo' && (
             <div className="superadmin-overview-section">

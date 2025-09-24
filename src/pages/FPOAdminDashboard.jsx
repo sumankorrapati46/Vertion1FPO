@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { fpoAPI, fpoUsersAPI, farmersAPI, employeesAPI } from '../api/apiService';
@@ -8,16 +8,25 @@ import '../styles/FPOManagement.css';
 import UserProfileDropdown from '../components/UserProfileDropdown';
 import FPOList from '../components/FPOList';
 import FPOEditModal from '../components/FPOEditModal';
+import FPOEditForm from '../components/FPOEditForm';
 import FPODetailModal from '../components/FPODetailModal';
 import FPOCreationForm from '../components/FPOCreationForm';
 import FPOBoardMembersModal from '../components/FPOBoardMembersModal';
+import FPOBoardMembersView from '../components/FPOBoardMembersView';
 import FPOFarmServicesModal from '../components/FPOFarmServicesModal';
+import FPOFarmServicesView from '../components/FPOFarmServicesView';
 import FPOTurnoverModal from '../components/FPOTurnoverModal';
+import FPOTurnoverView from '../components/FPOTurnoverView';
 import FPOCropEntriesModal from '../components/FPOCropEntriesModal';
+import FPOCropEntriesView from '../components/FPOCropEntriesView';
 import FPOInputShopModal from '../components/FPOInputShopModal';
+import FPOInputShopView from '../components/FPOInputShopView';
 import FPOProductCategoriesModal from '../components/FPOProductCategoriesModal';
+import FPOProductCategoriesView from '../components/FPOProductCategoriesView';
 import FPOProductsModal from '../components/FPOProductsModal';
+import FPOProductsView from '../components/FPOProductsView';
 import FPOUsersModal from '../components/FPOUsersModal';
+import FPOUsersView from '../components/FPOUsersView';
 import FPODashboard from './FPODashboard';
 import FarmerRegistrationForm from '../components/FarmerRegistrationForm';
 import EmployeeRegistrationForm from '../components/EmployeeRegistrationForm';
@@ -60,13 +69,21 @@ const FPOAdminDashboard = () => {
   const [showFPOEditModal, setShowFPOEditModal] = useState(false);
   const [showFPODetailModal, setShowFPODetailModal] = useState(false);
   const [showFPOBoardMembersModal, setShowFPOBoardMembersModal] = useState(false);
+  const [showFPOBoardMembersInline, setShowFPOBoardMembersInline] = useState(false);
   const [showFPOFarmServicesModal, setShowFPOFarmServicesModal] = useState(false);
+  const [showFPOFarmServicesInline, setShowFPOFarmServicesInline] = useState(false);
   const [showFPOTurnoverModal, setShowFPOTurnoverModal] = useState(false);
+  const [showFPOTurnoverInline, setShowFPOTurnoverInline] = useState(false);
   const [showFPOCropEntriesModal, setShowFPOCropEntriesModal] = useState(false);
+  const [showFPOCropEntriesInline, setShowFPOCropEntriesInline] = useState(false);
   const [showFPOInputShopModal, setShowFPOInputShopModal] = useState(false);
+  const [showFPOInputShopInline, setShowFPOInputShopInline] = useState(false);
   const [showFPOProductCategoriesModal, setShowFPOProductCategoriesModal] = useState(false);
+  const [showFPOProductCategoriesInline, setShowFPOProductCategoriesInline] = useState(false);
   const [showFPOProductsModal, setShowFPOProductsModal] = useState(false);
+  const [showFPOProductsInline, setShowFPOProductsInline] = useState(false);
   const [showFPOUsersModal, setShowFPOUsersModal] = useState(false);
+  const [showFPOUsersInline, setShowFPOUsersInline] = useState(false);
   const [fpoEmbeddedTab, setFpoEmbeddedTab] = useState(null); // for embedded FPODashboard tab control
   const scrollToModule = () => {
     setTimeout(() => {
@@ -78,6 +95,17 @@ const FPOAdminDashboard = () => {
   const [farmerViewData, setFarmerViewData] = useState(null);
   const [showEditFarmer, setShowEditFarmer] = useState(false);
   const [editFarmerData, setEditFarmerData] = useState(null);
+  const [showFPOEditInline, setShowFPOEditInline] = useState(false);
+  const editPanelRef = useRef(null);
+
+  useEffect(() => {
+    if (showFPOEditInline && editPanelRef.current) {
+      try {
+        editPanelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch {}
+    }
+  }, [showFPOEditInline]);
 
   // Greeting function based on time of day
   const getGreeting = () => {
@@ -123,7 +151,7 @@ const FPOAdminDashboard = () => {
 
   const handleEditFPO = (fpo) => {
     setSelectedFPO(fpo);
-    setShowFPOEditModal(true);
+    setShowFPOEditInline(true);
   };
 
   const handleViewFPO = (fpo, viewType = 'overview') => {
@@ -941,7 +969,7 @@ const FPOAdminDashboard = () => {
           </section>
         )}
 
-        {view === 'fpo' && (
+        {view === 'fpo' && !showFPOEditInline && !showFPOFarmServicesInline && !showFPOBoardMembersInline && !showFPOCropEntriesInline && !showFPOTurnoverInline && !showFPOProductsInline && !showFPOProductCategoriesInline && !showFPOInputShopInline && !showFPOUsersInline && (
           <div className="superadmin-overview-section">
                     <div className="superadmin-overview-header">
                       <div className="header-left">
@@ -953,14 +981,14 @@ const FPOAdminDashboard = () => {
                   item={fpo}
                   customActions={[
                     { label: 'Dashboard', className: 'info', onClick: ()=> setFpoEmbeddedTab('overview') },
-                    { label: 'Edit FPO', className: 'primary', onClick: ()=> setShowFPOEditModal(true) },
-                    { label: 'Farm Services', className: 'primary', onClick: ()=> setShowFPOFarmServicesModal(true) },
-                    { label: 'Board Members', className: 'primary', onClick: ()=> setShowFPOBoardMembersModal(true) },
+                    { label: 'Edit FPO', className: 'primary', onClick: ()=> setShowFPOEditInline(true) },
+                    { label: 'Farm Services', className: 'primary', onClick: ()=> setShowFPOFarmServicesInline(true) },
+                    { label: 'Board Members', className: 'primary', onClick: ()=> setShowFPOBoardMembersInline(true) },
                     { label: 'Crops', className: 'primary', onClick: ()=> setFpoEmbeddedTab('crops') },
                     { label: 'Turnover', className: 'primary', onClick: ()=> setFpoEmbeddedTab('turnover') },
                     { label: 'Products', className: 'primary', onClick: ()=> setFpoEmbeddedTab('products') },
                     { label: 'Notifications', className: 'primary', onClick: ()=> setFpoEmbeddedTab('notifications') },
-                    { label: 'FPO Users', className: 'primary', onClick: ()=> setShowFPOUsersModal(true) },
+                    { label: 'FPO Users', className: 'primary', onClick: ()=> setShowFPOUsersInline(true) },
                     { label: 'Close All Modals', className: 'danger', onClick: ()=> { setShowFPOEditModal(false); setShowFPOBoardMembersModal(false); setShowFPOFarmServicesModal(false); } }
                   ]}
                         />
@@ -1004,16 +1032,16 @@ const FPOAdminDashboard = () => {
                 <ActionDropdown
                             item={fpo}
                             customActions={[
-                    { label: 'Edit FPO', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOEditModal(true); } },
-                    { label: 'Farm Services', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOFarmServicesModal(true); } },
-                    { label: 'Board Members', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOBoardMembersModal(true); } },
-                    { label: 'Crops', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOCropEntriesModal(true); } },
-                    { label: 'Turnover', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOTurnoverModal(true); } },
-                    { label: 'Products', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOProductsModal(true); } },
-                    { label: 'Product Categories', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOProductCategoriesModal(true); } },
-                    { label: 'Input Shops', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOInputShopModal(true); } },
+                    { label: 'Edit FPO', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOEditInline(true); } },
+                    { label: 'Farm Services', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOFarmServicesInline(true); } },
+                    { label: 'Board Members', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOBoardMembersInline(true); } },
+                    { label: 'Crops', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOCropEntriesInline(true); } },
+                    { label: 'Turnover', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOTurnoverInline(true); } },
+                    { label: 'Products', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOProductsInline(true); } },
+                    { label: 'Product Categories', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOProductCategoriesInline(true); } },
+                    { label: 'Input Shops', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOInputShopInline(true); } },
                     { label: 'Notifications', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setFpoEmbeddedTab('notifications'); scrollToModule(); } },
-                    { label: 'FPO Users', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOUsersModal(true); } },
+                    { label: 'FPO Users', className: 'primary', onClick: ()=> { setSelectedFPO(fpo); setShowFPOUsersInline(true); } },
                     
                             ]}
                           />
@@ -1035,21 +1063,107 @@ const FPOAdminDashboard = () => {
             )}
           </div>
         )}
+
+        {view === 'fpo' && showFPOEditInline && selectedFPO && (
+          <section ref={editPanelRef} className="panel" style={{ marginTop: 0, width: '100%', maxWidth: 'none', padding: 0 }}>
+            <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 8px 25px rgba(0,0,0,0.08)', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+              <div style={{ padding: 16 }}>
+                <FPOEditForm
+                  fpo={selectedFPO}
+                  onClose={() => { setShowFPOEditInline(false); setSelectedFPO(null); }}
+                  onUpdated={(updated) => {
+                    setShowFPOEditInline(false);
+                    setSelectedFPO(null);
+                    setFpo(prev => ({ ...prev, ...(updated || {}) }));
+                    loadFPOs();
+                  }}
+                />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {view === 'fpo' && showFPOFarmServicesInline && selectedFPO && (
+          <section className="panel" style={{ marginTop: 0, width: '100%', maxWidth: 'none', padding: 0 }}>
+            <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 8px 25px rgba(0,0,0,0.08)', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+              <div style={{ padding: 16 }}>
+                <FPOFarmServicesView fpo={selectedFPO} onClose={() => setShowFPOFarmServicesInline(false)} />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {view === 'fpo' && showFPOCropEntriesInline && selectedFPO && (
+          <section className="panel" style={{ marginTop: 0, width: '100%', maxWidth: 'none', padding: 0 }}>
+            <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 8px 25px rgba(0,0,0,0.08)', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+              <div style={{ padding: 16 }}>
+                <FPOCropEntriesView fpo={selectedFPO} onClose={() => setShowFPOCropEntriesInline(false)} />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {view === 'fpo' && showFPOTurnoverInline && selectedFPO && (
+          <section className="panel" style={{ marginTop: 0, width: '100%', maxWidth: 'none', padding: 0 }}>
+            <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 8px 25px rgba(0,0,0,0.08)', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+              <div style={{ padding: 16 }}>
+                <FPOTurnoverView fpo={selectedFPO} onClose={() => setShowFPOTurnoverInline(false)} />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {view === 'fpo' && showFPOProductsInline && selectedFPO && (
+          <section className="panel" style={{ marginTop: 0, width: '100%', maxWidth: 'none', padding: 0 }}>
+            <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 8px 25px rgba(0,0,0,0.08)', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+              <div style={{ padding: 16 }}>
+                <FPOProductsView fpo={selectedFPO} onClose={() => setShowFPOProductsInline(false)} />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {view === 'fpo' && showFPOProductCategoriesInline && selectedFPO && (
+          <section className="panel" style={{ marginTop: 0, width: '100%', maxWidth: 'none', padding: 0 }}>
+            <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 8px 25px rgba(0,0,0,0.08)', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+              <div style={{ padding: 16 }}>
+                <FPOProductCategoriesView fpo={selectedFPO} onClose={() => setShowFPOProductCategoriesInline(false)} />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {view === 'fpo' && showFPOInputShopInline && selectedFPO && (
+          <section className="panel" style={{ marginTop: 0, width: '100%', maxWidth: 'none', padding: 0 }}>
+            <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 8px 25px rgba(0,0,0,0.08)', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+              <div style={{ padding: 16 }}>
+                <FPOInputShopView fpo={selectedFPO} onClose={() => setShowFPOInputShopInline(false)} />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {view === 'fpo' && showFPOUsersInline && selectedFPO && (
+          <section className="panel" style={{ marginTop: 0, width: '100%', maxWidth: 'none', padding: 0 }}>
+            <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 8px 25px rgba(0,0,0,0.08)', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+              <div style={{ padding: 16 }}>
+                <FPOUsersView fpo={selectedFPO} onClose={() => setShowFPOUsersInline(false)} />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {view === 'fpo' && showFPOBoardMembersInline && selectedFPO && (
+          <section className="panel" style={{ marginTop: 0, width: '100%', maxWidth: 'none', padding: 0 }}>
+            <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 8px 25px rgba(0,0,0,0.08)', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+              <div style={{ padding: 16 }}>
+                <FPOBoardMembersView fpo={selectedFPO} onClose={() => setShowFPOBoardMembersInline(false)} />
+              </div>
+            </div>
+          </section>
+        )}
       </div>
 
-      {/* FPO Modals */}
-
-
-      {showFPOEditModal && selectedFPO && (
-        <FPOEditModal
-          fpo={selectedFPO}
-          onClose={() => {
-            setShowFPOEditModal(false);
-            setSelectedFPO(null);
-          }}
-          onSuccess={handleFPOUpdated}
-        />
-      )}
 
       {showFPODetailModal && selectedFPO && (
         <FPODetailModal
@@ -1092,7 +1206,7 @@ const FPOAdminDashboard = () => {
         </div>
       )}
 
-      {showFPOBoardMembersModal && selectedFPO && (
+      {false && showFPOBoardMembersModal && selectedFPO && (
         <FPOBoardMembersModal
           isOpen={showFPOBoardMembersModal}
           fpoId={selectedFPO.id}
@@ -1103,7 +1217,7 @@ const FPOAdminDashboard = () => {
         />
       )}
 
-      {showFPOFarmServicesModal && selectedFPO && (
+      {false && showFPOFarmServicesModal && selectedFPO && (
         <FPOFarmServicesModal
           isOpen={showFPOFarmServicesModal}
           fpoId={selectedFPO.id}
@@ -1114,7 +1228,7 @@ const FPOAdminDashboard = () => {
         />
       )}
 
-      {showFPOTurnoverModal && selectedFPO && (
+      {false && showFPOTurnoverModal && selectedFPO && (
         <FPOTurnoverModal
           isOpen={showFPOTurnoverModal}
           fpoId={selectedFPO.id}
@@ -1125,7 +1239,7 @@ const FPOAdminDashboard = () => {
         />
       )}
 
-      {showFPOCropEntriesModal && selectedFPO && (
+      {false && showFPOCropEntriesModal && selectedFPO && (
         <FPOCropEntriesModal
           isOpen={showFPOCropEntriesModal}
           fpoId={selectedFPO.id}
@@ -1136,7 +1250,7 @@ const FPOAdminDashboard = () => {
         />
       )}
 
-      {showFPOInputShopModal && selectedFPO && (
+      {false && showFPOInputShopModal && selectedFPO && (
         <FPOInputShopModal
           isOpen={showFPOInputShopModal}
           fpoId={selectedFPO.id}
@@ -1147,7 +1261,7 @@ const FPOAdminDashboard = () => {
         />
       )}
 
-      {showFPOProductCategoriesModal && selectedFPO && (
+      {false && showFPOProductCategoriesModal && selectedFPO && (
         <FPOProductCategoriesModal
           isOpen={showFPOProductCategoriesModal}
           fpoId={selectedFPO.id}
@@ -1158,7 +1272,7 @@ const FPOAdminDashboard = () => {
         />
       )}
 
-      {showFPOProductsModal && selectedFPO && (
+      {false && showFPOProductsModal && selectedFPO && (
         <FPOProductsModal
           isOpen={showFPOProductsModal}
           fpoId={selectedFPO.id}
@@ -1169,7 +1283,7 @@ const FPOAdminDashboard = () => {
         />
       )}
 
-      {showFPOUsersModal && selectedFPO && (
+      {false && showFPOUsersModal && selectedFPO && (
         <FPOUsersModal
           isOpen={showFPOUsersModal}
           fpoId={selectedFPO.id}

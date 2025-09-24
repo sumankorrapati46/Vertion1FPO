@@ -300,7 +300,7 @@ const FPOBoardMembersView = ({ fpo, onClose }) => {
     return (
       <div className="fpo-board-member-form">
         {/* Header */}
-        <div className="form-header">
+        <div className="form-header" style={{ background: 'linear-gradient(90deg,#10b981,#16a34a)' }}>
           <div className="header-content">
             <div className="header-left">
               <h1 className="form-title">
@@ -310,17 +310,16 @@ const FPOBoardMembersView = ({ fpo, onClose }) => {
                 {editingMember ? 'Update board member information' : 'Add a new board member for ' + (fpo?.fpoName || 'FPO')}
               </p>
             </div>
-            <div className="header-right">
+            <div className="header-right" style={{ display: 'flex', gap: 8 }}>
               <button 
-                className="close-btn"
+                className="btn btn-secondary"
                 onClick={() => {
                   setShowCreateForm(false);
                   setEditingMember(null);
                   setFormErrors({});
                 }}
-                title="Close"
               >
-                <i className="fas fa-times"></i>
+                Back to List
               </button>
             </div>
           </div>
@@ -476,16 +475,14 @@ const FPOBoardMembersView = ({ fpo, onClose }) => {
   return (
     <div className="fpo-board-members-view">
       {/* Header Section */}
-      <div className="board-members-header">
+      <div className="board-members-header" style={{ background: 'linear-gradient(90deg,#10b981,#16a34a)' }}>
         <div className="header-content">
           <div className="header-left">
             <h1 className="board-members-title">Board Members Management</h1>
             <p className="board-members-subtitle">Manage board members for {fpo?.fpoName || 'FPO'}</p>
           </div>
-          <div className="header-right">
-            <button className="close-btn" onClick={onClose}>
-              <i className="fas fa-times"></i>
-            </button>
+          <div className="header-right" style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-secondary" onClick={onClose}>Back to FPO</button>
           </div>
         </div>
       </div>

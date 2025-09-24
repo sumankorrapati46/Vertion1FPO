@@ -41,6 +41,7 @@ import FPOUsersModal from '../components/FPOUsersModal';
 import FPOUsersView from '../components/FPOUsersView';
 import FPODashboard from '../pages/FPODashboard';
 import '../styles/Dashboard.css';
+import Configurations from '../components/Configurations';
 
 const SuperAdminDashboard = () => {
   const { user, logout } = useAuth();
@@ -1445,6 +1446,14 @@ const SuperAdminDashboard = () => {
           </div>
 
           <div 
+            className={`nav-item ${activeTab === 'configurations' ? 'active' : ''}`}
+            onClick={() => setActiveTab('configurations')}
+          >
+            <i className="fas fa-sliders-h"></i>
+            <span>Configurations</span>
+          </div>
+
+          <div 
             className={`nav-item ${activeTab === 'my-account' ? 'active' : ''}`}
             onClick={() => setActiveTab('my-account')}
           >
@@ -1649,6 +1658,9 @@ const SuperAdminDashboard = () => {
                 </div>
               </div>
             </>
+          )}
+          {activeTab === 'configurations' && (
+            <Configurations role={user?.role} />
           )}
 
           {activeTab === 'registration' && (

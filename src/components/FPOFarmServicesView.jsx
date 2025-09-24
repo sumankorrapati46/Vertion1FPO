@@ -339,17 +339,15 @@ const FPOFarmServicesView = ({ fpo, onClose }) => {
 
   return (
     <div className="fpo-farm-services-view">
-      {/* Header Section */}
-      <div className="farm-services-header">
+      {/* Minimal header with Back button */}
+      <div className="farm-services-header" style={{ background: 'linear-gradient(90deg,#10b981,#16a34a)' }}>
         <div className="header-content">
           <div className="header-left">
             <h1 className="farm-services-title">Farm Services Management</h1>
             <p className="farm-services-subtitle">Manage farm services for {fpo?.fpoName || 'FPO'}</p>
           </div>
-          <div className="header-right">
-            <button className="close-btn" onClick={onClose}>
-              <i className="fas fa-times"></i>
-            </button>
+          <div className="header-right" style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-secondary" onClick={onClose}>Back to FPO</button>
           </div>
         </div>
       </div>
